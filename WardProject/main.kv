@@ -1,0 +1,142 @@
+<ListItemWithCheckbox@ThreeLineAvatarIconListItem>:
+
+    MyAvatar:
+        source: "IconsWitnessAngel\PNG\Witness_Angel_Logotype1.png"
+
+
+
+
+
+
+
+<Lists@BoxLayout>
+
+    name: "lists"
+    orientation: "vertical"
+    canvas.before:
+        Color:
+            rgba: 0.1372, 0.2862, 0.5294, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+
+
+    # FIXME not too much spacing
+
+
+
+    GridLayout:
+        cols:2
+        spacing: [20,20]
+        GridLayout:
+            size_hint: 1, 1
+            rows:5
+            id: grid
+
+            MDToolbar:
+                title:"Select a USB"
+                size_hint: 1, 0.1
+                md_bg_color: [0.1372, 0.2862, 0.5294, 1]
+                elevation: 3
+
+            ScrollView:
+                id: table
+                size_hint: 0.9, 0.9
+
+                MDList:
+                    id: scroll
+
+
+
+        AnchorLayout:
+            padding: [0, 20, 20, 0]
+            size_hint: 0.5, 0.9
+
+            Button:
+                id: btn
+                background_color: (51, 23, 186.0, 1)
+                color: 0.1372, 0.2862, 0.5294, 1
+                text: "Refresh"
+                size: 150, 50
+                size_hint: None, None
+                on_release:
+                    app.refresh_list()
+
+
+
+
+
+    GridLayout:
+        rows:2
+
+        GridLayout:
+            cols:2
+            spacing: [20,20]
+            padding: [20,20]
+
+            GridLayout:
+                padding: [0, 20, 0, 0]
+                rows: 3
+                MDList:
+                    id: labelInfoUsb
+                MDTextField:
+                    id: textfield1
+                    size_hint_x: -0.5
+                    hint_text: 'Enter username'
+                    helper_text: 'Personal ID'
+                    helper_text_mode: 'on_focus'
+                    width: 50
+                    color_mode: 'custom'
+                    line_color_focus: 1, 1, 1, 1
+                    mode: "rectangle"
+                    current_hint_text_color: 1, 1, 1, 1
+
+                MDTextField:
+                    id: textfield2
+                    size_hint_x: -0.5
+                    hint_text: 'Enter passphrase'
+                    helper_text: 'A sentence to memorize'
+                    helper_text_mode: 'on_focus'
+                    width: 50
+                    color_mode: 'custom'
+                    line_color_focus: 1, 1, 1, 1
+                    mode: "rectangle"
+                    current_hint_text_color: 1, 1, 1, 1
+
+
+            AnchorLayout:
+                padding: [20,20]
+
+                size_hint: 0.5, 0.9
+
+                Button:
+                    id: btn
+                    background_color: (51, 23, 186.0, 1)
+                    color: 0.1372, 0.2862, 0.5294, 1
+                    text: "Initialize"
+                    size: 150, 50
+                    size_hint: None, None
+                    on_release:
+                        app.initialize_USB()
+        GridLayout:
+            cols:2
+
+            Label:
+                size_hint: 1, .1
+                text: 'Errors'
+
+
+            AnchorLayout:
+                padding: [0, 20, 20, 0]
+                size_hint: 0.5, 0.9
+
+                Button:
+                    id: btn
+                    background_color: (51, 23, 186.0, 1)
+                    color: 0.1372, 0.2862, 0.5294, 1
+                    text: "Retry"
+                    size: 150, 50
+                    size_hint: None, None
+                    on_release:
+                        app.retry_initialisation()
