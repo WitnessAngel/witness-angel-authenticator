@@ -1,18 +1,13 @@
 <ListItemWithCheckbox@ThreeLineAvatarIconListItem>:
-
     MyAvatar:
         source: "IconsWitnessAngel\PNG\Witness_Angel_Logotype1.png"
-
-
-
-
-
 
 
 <Lists@BoxLayout>
 
     name: "lists"
     orientation: "vertical"
+
     canvas.before:
         Color:
             rgba: 0.1372, 0.2862, 0.5294, 1
@@ -20,38 +15,39 @@
             pos: self.pos
             size: self.size
 
-
-
-    # FIXME not too much spacing
-
-
+    AnchorLayout:
+        anchor_x: 'center'
+        anchor_y: 'top'
+        size_hint: 1, 0.3
+        MDToolbar:
+            title:"Select a USB"
+            size_hint: 1, 1
+            md_bg_color: [0.1372, 0.2862, 0.5294, 1]
+            elevation: 2
 
     GridLayout:
         cols:2
-        spacing: [20,20]
+        rows: 3
         GridLayout:
             size_hint: 1, 1
             rows:5
             id: grid
 
-            MDToolbar:
-                title:"Select a USB"
-                size_hint: 1, 0.1
-                md_bg_color: [0.1372, 0.2862, 0.5294, 1]
-                elevation: 3
-
             ScrollView:
                 id: table
-                size_hint: 0.9, 0.9
+                size_hint: 1, 1
 
                 MDList:
                     id: scroll
-
-
+                    bg_color: [1, 0, 0, 1]
+            FloatLayout:
+                pos:(20, 20)
+                id: barProgress
+                size_hint: 1, 0.1
 
         AnchorLayout:
             padding: [0, 20, 20, 0]
-            size_hint: 0.5, 0.9
+            size_hint: 0.5, 1
 
             Button:
                 id: btn
@@ -62,13 +58,20 @@
                 size_hint: None, None
                 on_release:
                     app.refresh_list()
-
-
-
-
+        GridLayout:
+            rows:3
+            size_hint: 0.4, 0.3
+            AnchorLayout:
+                padding: [20,20]
+                size_hint: 0.4, 0.3
+                id: labelInfoUsb1
+            AnchorLayout:
+                padding: [20,20]
+                size_hint: 0.4, 0.3
+                id: label_alert
 
     GridLayout:
-        rows:2
+        rows:3
 
         GridLayout:
             cols:2
@@ -76,34 +79,44 @@
             padding: [20,20]
 
             GridLayout:
-                padding: [0, 20, 0, 0]
+                padding: [20, 20, 0, 0]
+                spacing: [20,40]
                 rows: 3
-                MDList:
-                    id: labelInfoUsb
+
                 MDTextField:
-                    id: textfield1
+                    id: userfield
                     size_hint_x: -0.5
                     hint_text: 'Enter username'
                     helper_text: 'Personal ID'
                     helper_text_mode: 'on_focus'
                     width: 50
+                    height: 20
                     color_mode: 'custom'
                     line_color_focus: 1, 1, 1, 1
-                    mode: "rectangle"
+                    mode: "fill"
+                    disabled: True
+                    fill_color: 0.3, 0.3, 0.3, 0.4
                     current_hint_text_color: 1, 1, 1, 1
 
                 MDTextField:
-                    id: textfield2
+                    id: passphrasefield
                     size_hint_x: -0.5
                     hint_text: 'Enter passphrase'
-                    helper_text: 'A sentence to memorize'
+                    helper_text: 'sentence or more'
                     helper_text_mode: 'on_focus'
                     width: 50
                     color_mode: 'custom'
                     line_color_focus: 1, 1, 1, 1
-                    mode: "rectangle"
+                    mode: "fill"
+                    disabled: True
+                    fill_color: 0.3, 0.3, 0.3, 0.4
                     current_hint_text_color: 1, 1, 1, 1
+                AnchorLayout:
+                    size_hint: 1, 1
 
+                    pos: 300,300
+
+                    id: errors
 
             AnchorLayout:
                 padding: [20,20]
@@ -111,32 +124,15 @@
                 size_hint: 0.5, 0.9
 
                 Button:
-                    id: btn
+                    id: button_initialize
                     background_color: (51, 23, 186.0, 1)
                     color: 0.1372, 0.2862, 0.5294, 1
                     text: "Initialize"
                     size: 150, 50
                     size_hint: None, None
+                    disabled: True
                     on_release:
-                        app.initialize_USB()
-        GridLayout:
-            cols:2
-
-            Label:
-                size_hint: 1, .1
-                text: 'Errors'
+                        app.show_validate()
 
 
-            AnchorLayout:
-                padding: [0, 20, 20, 0]
-                size_hint: 0.5, 0.9
 
-                Button:
-                    id: btn
-                    background_color: (51, 23, 186.0, 1)
-                    color: 0.1372, 0.2862, 0.5294, 1
-                    text: "Retry"
-                    size: 150, 50
-                    size_hint: None, None
-                    on_release:
-                        app.retry_initialisation()

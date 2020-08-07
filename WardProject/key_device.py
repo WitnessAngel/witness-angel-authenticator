@@ -8,7 +8,6 @@ from wacryptolib.utilities import generate_uuid0
 # To install development version of wacryptolib, and this way you don't need to copy/paste code like this
 
 
-
 def list_available_key_devices():
     """
     Generate a list of dictionaries representing mounted partitions of USB keys.
