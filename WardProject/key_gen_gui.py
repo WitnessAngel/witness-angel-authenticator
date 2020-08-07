@@ -34,9 +34,6 @@ class MyAvatar(ILeftBody, Image):
     pass
 
 
-# FIXME, the project must only contain necessary icons and at proper resolutions (here Witness_Angel_LogotypeX.png are huge)
-
-
 class MainApp(MDApp):
     def __init__(self, **kwargs):
         self.title = "Witness Angel - WardProject"
@@ -49,11 +46,10 @@ class MainApp(MDApp):
             title_dialog = "USB not selected !!"
             self.open_dialog(user_error, title_dialog)
         else:
-            # FIXME use "==" or here juste "if variable", almost never is (except "is None")
-            if (self.list.ids.userfield.text is not "") and (
-                self.list.ids.passphrasefield.text is not ""
+            if (self.list.ids.userfield.text != "") and (
+                self.list.ids.passphrasefield.text != ""
             ):
-                self.initialize_USB()
+                self.initialize()
             else:
                 user_error = "Please enter a username and a passphrase"
                 self.open_dialog(user_error)
@@ -70,26 +66,26 @@ class MainApp(MDApp):
     def close_dialog(self, obj):
         self.dialog.dismiss()
 
-    def create_list(self):  # FIXME wrong naming case
+    def get_detected_devices(self):
         self.list = Factory.Lists()
         list_devices = list_available_key_devices()
         for index, usb in enumerate(list_devices):
             self.lineCheck = Factory.ListItemWithCheckbox(
-                text="Path :%s" % (str(usb["path"])),
-                secondary_text="Label : %s" % (str(usb["label"])),
+                text="[color=#FFFFFF][b]Path:[/b] %s[/color]" % (str(usb["path"])),
+                secondary_text="[color=#FFFFFF][b]Label:[/b] %s[/color]" % (str(usb["label"])),
                 bg_color=[0.1372, 0.2862, 0.5294, 1],
-                secondary_text_color=[1, 1, 1, 1],
+
             )
-            self.lineCheck.bind(on_release=self.key_device_selected_fct)
+            self.lineCheck.bind(on_release=self.get_info_key_selected)
             self.list.ids.scroll.add_widget(self.lineCheck)
         self.screen.add_widget(self.list)
 
     def refresh_list(self):
 
         self.screen.remove_widget(self.list)
-        self.create_list()
+        self.get_detected_devices()
 
-    def initialize_7_RSA_key_USB(self):  # FIXME wrong naming case
+    def initialize_rsa_key(self):  
 
         initialize_key_device(self.key_device_selected, self.list.ids.userfield.text)
         metadata_file = _get_metadata_file_path(self.key_device_selected)
@@ -115,10 +111,10 @@ class MainApp(MDApp):
         self.key_device_selected = None
         self.orientation = "vertical"
         self.screen = Screen()
-        self.create_list()
+        self.get_detected_devices()
         return self.screen
 
-    def key_device_selected_fct(self, linelist):  # FIXME wrong naming
+    def get_info_key_selected(self, linelist):
         list_devices = list_available_key_devices()
         for i in self.list.ids.scroll.children:
             i.bg_color = [0.1372, 0.2862, 0.5294, 1]
@@ -136,7 +132,7 @@ class MainApp(MDApp):
         self.list.ids.labelInfoUsb1.add_widget(self.l)
         self.list.ids.label_alert.add_widget(self.alertMessage)
         for index, key_device in enumerate(list_devices):
-            if linelist.text == "Path :" + str(key_device["path"]):
+            if linelist.text == "[color=#FFFFFF][b]Path:[/b] "+ str(key_device["path"]) +"[/color]":
                 self.key_device_selected = key_device
                 print(key_device["is_initialized"])
                 if str(key_device["is_initialized"]) == "True":
@@ -171,12 +167,12 @@ class MainApp(MDApp):
                 self.list.ids.labelInfoUsb1.add_widget(self.l)
                 self.list.ids.label_alert.add_widget(self.alertMessage)
 
-    def waiting_message(self):  # FIXME wrong naming
+
+
+
+    def initialize(self):
         self.l.text = "Please wait a few seconds."
         self.alertMessage.text = "the operation is being processed."
-
-    def initialize_USB(self):  # FIXME wrong naming case
-        self.waiting_message()
 
         # Store the reference, in case you want to show things again in standard output
         old_stdout = sys.stdout
@@ -186,7 +182,7 @@ class MainApp(MDApp):
         sys.stdout = result
 
         try:
-            self.initialize_7_RSA_key_USB()
+            self.initialize_rsa_key()
         except PermissionError:
             print("Oops!  That was no valid operation.  Try again...")
 
@@ -196,11 +192,6 @@ class MainApp(MDApp):
         # Then, get the stdout like a string and process it!
         result_string = result.getvalue()
         self.list.ids.errors.add_widget(Label(text=result_string, font_size="20sp"))
-        self.success_message()
-
-        # FIXME also refresh keys?
-
-    def success_message(self):  # FIXME wrong naming
         if self.success:
             self.list.ids.errors.add_widget(
                 Label(text="successful operation", font_size="28sp", color=[0, 1, 0, 1])
@@ -208,6 +199,9 @@ class MainApp(MDApp):
             self.list.ids.button_initialize.disabled = True
             self.l.text = "Processing completed."
             self.alertMessage.text = "successful operation."
+
+       
+
 
 
 if __name__ == "__main__":
