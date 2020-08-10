@@ -114,6 +114,7 @@ class MainApp(MDApp):
         self.get_detected_devices()
         return self.screen
 
+
     def get_info_key_selected(self, linelist):  
         list_devices = list_available_key_devices()
         for i in self.list.ids.scroll.children:
@@ -132,7 +133,7 @@ class MainApp(MDApp):
         self.list.ids.labelInfoUsb1.add_widget(self.l)
         self.list.ids.label_alert.add_widget(self.alertMessage)
         for index, key_device in enumerate(list_devices):
-            if linelist.text == "Path :" + str(key_device["path"]):
+            if linelist.text == "[color=#FFFFFF][b]Path:[/b] "+ str(key_device["path"]) +"[/color]":
                 self.key_device_selected = key_device
                 if str(key_device["is_initialized"]) == "True":
                     self.list.ids.button_initialize.disabled = True
