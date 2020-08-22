@@ -39,9 +39,9 @@
                 MDList:
                     id: scroll
                     bg_color: [1, 0, 0, 1]
-            FloatLayout:
+            FloatLayout:  # what is this?
                 pos:(20, 20)
-                id: barProgress
+                id: barProgressWIP
                 size_hint: 1, 0.1
 
         AnchorLayout:
@@ -71,6 +71,7 @@
 
     GridLayout:
         rows:3
+        #padding: [20,20]
 
         GridLayout:
             cols:2
@@ -110,12 +111,15 @@
                     disabled: True
                     fill_color: 0.3, 0.3, 0.3, 0.4
                     current_hint_text_color: 1, 1, 1, 1
+
                 AnchorLayout:
                     size_hint: 1, 1
 
                     pos: 300,300
 
                     id: errors
+
+
 
             AnchorLayout:
                 padding: [20,20]
@@ -132,3 +136,8 @@
                     disabled: True
                     on_release:
                         app.show_validate()
+
+        MDProgressBar:
+            id: barProgress
+            value: 0
+

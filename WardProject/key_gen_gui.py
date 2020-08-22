@@ -1,9 +1,13 @@
+from concurrent.futures.thread import ThreadPoolExecutor
+from functools import partial
+
+from kivy.clock import Clock
 from kivy.factory import Factory
 from kivy.uix.image import Image
 from kivymd.app import MDApp
 from kivymd.uix.list import IRightBodyTouch, ILeftBody
 from kivymd.uix.selectioncontrol import MDCheckbox
-from key_device import (
+from wacryptolib.key_device import (
     list_available_key_devices,
     initialize_key_device,
     _get_metadata_file_path,
@@ -26,6 +30,11 @@ class MyCheckbox(IRightBodyTouch, MDCheckbox):
 
 class MyAvatar(ILeftBody, Image):
     pass
+
+
+THREAD_POOL_EXECUTOR = ThreadPoolExecutor(
+    max_workers=1, thread_name_prefix="keygen_worker"  # SINGLE worker for now, to avoid concurrency
+)
 
 
 class MainApp(MDApp):
@@ -80,26 +89,41 @@ class MainApp(MDApp):
         self.get_detected_devices()
 
     def initialize_rsa_key(self):
+        try:
+            keys_count = 7
+            print(">starting initialize_rsa_key")
 
-        initialize_key_device(self.key_device_selected, self.list.ids.userfield.text)
-        metadata_file = _get_metadata_file_path(self.key_device_selected)
-        metadata_folder = metadata_file.parent
-        private_key_dir = metadata_folder.joinpath("crypto_keys")
-        private_key_dir.mkdir(exist_ok=True)
-        object_FilesystemKeyStorage = FilesystemKeyStorage(private_key_dir)
+            Clock.schedule_once(partial(self._do_update_progress_bar, 10))
 
-        for i in range(7):
-            key_pair = generate_asymmetric_keypair(
-                key_type="RSA_OAEP",
-                passphrase=self.list.ids.passphrasefield.text.encode(),
-            )
-            object_FilesystemKeyStorage.set_keys(
-                keychain_uid=generate_uuid0(),
-                key_type="RSA_OAEP",
-                public_key=key_pair["public_key"],
-                private_key=key_pair["private_key"],
-            )
-        self.success = True
+            initialize_key_device(self.key_device_selected, self.list.ids.userfield.text)
+            metadata_file = _get_metadata_file_path(self.key_device_selected)
+            metadata_folder = metadata_file.parent
+            private_key_dir = metadata_folder.joinpath("crypto_keys")
+            private_key_dir.mkdir(exist_ok=True)
+
+            object_FilesystemKeyStorage = FilesystemKeyStorage(private_key_dir)
+
+            for i in range(1, keys_count+1):
+                print(">WIP initialize_rsa_key", id)
+                key_pair = generate_asymmetric_keypair(
+                    key_type="RSA_OAEP",
+                    passphrase=self.list.ids.passphrasefield.text.encode(),
+                )
+                object_FilesystemKeyStorage.set_keys(
+                    keychain_uid=generate_uuid0(),
+                    key_type="RSA_OAEP",
+                    public_key=key_pair["public_key"],
+                    private_key=key_pair["private_key"],
+                )
+
+                Clock.schedule_once(partial(self._do_update_progress_bar, 10 + int (i * 90 / keys_count)))
+
+            self.success = True
+            print(">finish_initialization")
+            Clock.schedule_once(self.finish_initialization)
+        except Exception as exc:
+            print(">>>>>>>>>>>>>>>> ERROR THREAD", exc)
+
 
     def build(self):
         self.key_device_selected = None
@@ -160,33 +184,50 @@ class MainApp(MDApp):
                 self.list.ids.labelInfoUsb1.add_widget(self.l)
                 self.list.ids.label_alert.add_widget(self.alertMessage)
 
+    def update_progress_bar(self, percent):
+        print(">>>>>update_progress_bar")
+        Clock.schedule_once(partial(self._do_update_progress_bar, percent))
+
+    def _do_update_progress_bar(self, percent, *args, **kwargs):
+        print(">>>>>>", self.list.ids)
+        self.list.ids.barProgress.value = percent
+
     def initialize(self):
         self.l.text = "Please wait a few seconds."
         self.alertMessage.text = "the operation is being processed."
+        self.list.ids.button_initialize.disabled = True
+        THREAD_POOL_EXECUTOR.submit(self.initialize_rsa_key)
+
+    def finish_initialization(self, *args, **kwargs):
 
         # Store the reference, in case you want to show things again in standard output
-        old_stdout = sys.stdout
+        ##old_stdout = sys.stdout
 
         # This variable will store everything that is sent to the standard output
-        result = StringIO()
-        sys.stdout = result
+        ##result = StringIO()
+        ##sys.stdout = result
 
+        """
         try:
             self.initialize_rsa_key()
         except PermissionError:
             print("Oops!  That was no valid operation.  Try again...")
+        """
 
         # Redirect again the std output to screen
-        sys.stdout = old_stdout
+        ##sys.stdout = old_stdout
 
         # Then, get the stdout like a string and process it!
-        result_string = result.getvalue()
-        self.list.ids.errors.add_widget(Label(text=result_string, font_size="20sp"))
+        ##result_string = result.getvalue()
+        ##self.list.ids.errors.add_widget(Label(text=result_string, font_size="20sp"))
+
+        self._do_update_progress_bar(0)  # Reset
+
         if self.success:
             self.list.ids.errors.add_widget(
                 Label(text="successful operation", font_size="28sp", color=[0, 1, 0, 1])
             )
-            self.list.ids.button_initialize.disabled = True
+
             self.l.text = "Processing completed."
             self.alertMessage.text = "successful operation."
 
