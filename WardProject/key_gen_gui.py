@@ -84,11 +84,15 @@ class MainApp(MDApp):
         self.screen.add_widget(self.list)
 
     def refresh_list(self):
-
-        self.screen.remove_widget(self.list)
         self.get_detected_devices()
 
     def initialize_rsa_key(self):
+        for c in list(self.list.ids.scroll.children):
+            c.bg_color=[1, 1, 1, 0.4]
+        #self.list.ids.scroll.bg_color=[1, 0.2862, 0.5294, 1]
+        self.lineCheck.unbind(on_release=self.get_info_key_selected)
+
+        self.list.ids.btn_refresh.disabled = True
         try:
             keys_count = 7
             print(">starting initialize_rsa_key")
@@ -120,6 +124,7 @@ class MainApp(MDApp):
 
             self.success = True
             print(">finish_initialization")
+            self.list.ids.btn_refresh.disabled = False
             Clock.schedule_once(self.finish_initialization)
         except Exception as exc:
             print(">>>>>>>>>>>>>>>> ERROR THREAD", exc)
@@ -133,31 +138,32 @@ class MainApp(MDApp):
         return self.screen
 
     def get_info_key_selected(self, linelist):
+        list_ids=self.list.ids
         list_devices = list_available_key_devices()
-        for i in self.list.ids.scroll.children:
+        for i in list_ids.scroll.children:
             i.bg_color = [0.1372, 0.2862, 0.5294, 1]
         linelist.bg_color = [0.6, 0.6, 0.6, 1]
 
-        self.list.ids.button_initialize.disabled = False
-        self.list.ids.userfield.disabled = False
-        self.list.ids.passphrasefield.disabled = False
-        self.list.ids.userfield.fill_color = [1, 1, 1, 0.4]
-        self.list.ids.passphrasefield.fill_color = [1, 1, 1, 0.4]
+        list_ids.button_initialize.disabled = False
+        list_ids.userfield.disabled = False
+        list_ids.passphrasefield.disabled = False
+        list_ids.userfield.fill_color = [1, 1, 1, 0.4]
+        list_ids.passphrasefield.fill_color = [1, 1, 1, 0.4]
         self.l = Label(text="")
         self.alertMessage = Label(text="")
-        self.list.ids.labelInfoUsb1.clear_widgets()
-        self.list.ids.label_alert.clear_widgets()
-        self.list.ids.labelInfoUsb1.add_widget(self.l)
-        self.list.ids.label_alert.add_widget(self.alertMessage)
+        list_ids.labelInfoUsb1.clear_widgets()
+        list_ids.label_alert.clear_widgets()
+        list_ids.labelInfoUsb1.add_widget(self.l)
+        list_ids.label_alert.add_widget(self.alertMessage)
         for index, key_device in enumerate(list_devices):
             if linelist.text == "[color=#FFFFFF][b]Path:[/b] " + str(key_device["path"]) + "[/color]":
                 self.key_device_selected = key_device
                 if str(key_device["is_initialized"]) == "True":
-                    self.list.ids.button_initialize.disabled = True
-                    self.list.ids.userfield.disabled = True
-                    self.list.ids.passphrasefield.disabled = True
-                    self.list.ids.userfield.fill_color = [0.3, 0.3, 0.3, 0.4]
-                    self.list.ids.passphrasefield.fill_color = [0.3, 0.3, 0.3, 0.4]
+                    list_ids.button_initialize.disabled = True
+                    list_ids.userfield.disabled = True
+                    list_ids.passphrasefield.disabled = True
+                    list_ids.userfield.fill_color = [0.3, 0.3, 0.3, 0.4]
+                    list_ids.passphrasefield.fill_color = [0.3, 0.3, 0.3, 0.4]
                     self.l = Label(
                         text="USB information : Size %s   |   Fst :%s | and it is initialized"
                              % (str(key_device["size"]), str(key_device["format"]))
@@ -168,9 +174,9 @@ class MainApp(MDApp):
                     meta = load_from_json_file(
                         key_device["path"] + "\.key_storage\.metadata.json"
                     )
-                    self.list.ids.userfield.text = meta["user"]
-                    self.list.ids.userfield.disabled = True
-                    self.list.ids.userfield.fill_color = [0.3, 0.3, 0.3, 0.4]
+                    list_ids.userfield.text = meta["user"]
+                    list_ids.userfield.disabled = True
+                    list_ids.userfield.fill_color = [0.3, 0.3, 0.3, 0.4]
 
                 else:
                     self.l = Label(
@@ -180,9 +186,9 @@ class MainApp(MDApp):
                     self.alertMessage = Label(
                         text="Please fill in the username and passphrase to initialize the usb key"
                     )
-                    self.list.ids.userfield.text = ""
-                self.list.ids.labelInfoUsb1.add_widget(self.l)
-                self.list.ids.label_alert.add_widget(self.alertMessage)
+                    list_ids.userfield.text = ""
+                list_ids.labelInfoUsb1.add_widget(self.l)
+                list_ids.label_alert.add_widget(self.alertMessage)
 
     def update_progress_bar(self, percent):
         print(">>>>>update_progress_bar")
@@ -192,6 +198,7 @@ class MainApp(MDApp):
         print(">>>>>>", self.list.ids)
         self.list.ids.barProgress.value = percent
 
+
     def initialize(self):
         self.l.text = "Please wait a few seconds."
         self.alertMessage.text = "the operation is being processed."
@@ -199,27 +206,6 @@ class MainApp(MDApp):
         THREAD_POOL_EXECUTOR.submit(self.initialize_rsa_key)
 
     def finish_initialization(self, *args, **kwargs):
-
-        # Store the reference, in case you want to show things again in standard output
-        ##old_stdout = sys.stdout
-
-        # This variable will store everything that is sent to the standard output
-        ##result = StringIO()
-        ##sys.stdout = result
-
-        """
-        try:
-            self.initialize_rsa_key()
-        except PermissionError:
-            print("Oops!  That was no valid operation.  Try again...")
-        """
-
-        # Redirect again the std output to screen
-        ##sys.stdout = old_stdout
-
-        # Then, get the stdout like a string and process it!
-        ##result_string = result.getvalue()
-        ##self.list.ids.errors.add_widget(Label(text=result_string, font_size="20sp"))
 
         self._do_update_progress_bar(0)  # Reset
 

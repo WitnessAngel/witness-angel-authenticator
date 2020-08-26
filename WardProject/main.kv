@@ -36,7 +36,9 @@
                 id: table
                 size_hint: 1, 1
 
+
                 MDList:
+                    padding:[40,0,0,0]
                     id: scroll
                     bg_color: [1, 0, 0, 1]
             FloatLayout:  # what is this?
@@ -49,7 +51,7 @@
             size_hint: 0.5, 1
 
             Button:
-                id: btn
+                id: btn_refresh
                 background_color: (51, 23, 186.0, 1)
                 color: 0.1372, 0.2862, 0.5294, 1
                 text: "Refresh"
@@ -71,7 +73,7 @@
 
     GridLayout:
         rows:3
-        #padding: [20,20]
+        spacing: [20,250]
 
         GridLayout:
             cols:2
@@ -138,6 +140,7 @@
                         app.show_validate()
 
         MDProgressBar:
+            padding: [20,200]
             id: barProgress
             value: 0
 
