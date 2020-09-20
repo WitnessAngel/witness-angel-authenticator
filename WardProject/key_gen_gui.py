@@ -7,10 +7,10 @@ from kivy.uix.image import Image
 from kivymd.app import MDApp
 from kivymd.uix.list import IRightBodyTouch, ILeftBody
 from kivymd.uix.selectioncontrol import MDCheckbox
-from wacryptolib.key_device import (
-    list_available_key_devices,
-    initialize_key_device,
-    _get_metadata_file_path,
+from wacryptolib.authentication_device import (
+    list_available_authentication_devices,
+    initialize_authentication_device,
+    _get_metadata_file_path, _get_key_storage_folder_path, load_authentication_device_metadata,
 )
 from kivymd.uix.button import  MDFlatButton
 from kivymd.uix.screen import Screen
@@ -44,8 +44,8 @@ class MainApp(MDApp):
 
     def show_validate(self):
 
-        if self.key_device_selected == None:
-            user_error = "Please select USB"
+        if not self.authentication_device_selected:
+            user_error = "Please select USB device"  # FIXME remove this useless case
             title_dialog = "USB not selected !!"
             self.open_dialog(user_error, title_dialog)
         else:
@@ -71,7 +71,7 @@ class MainApp(MDApp):
 
     def get_detected_devices(self):
         self.list = Factory.Lists()
-        list_devices = list_available_key_devices()
+        list_devices = list_available_authentication_devices()
         for index, usb in enumerate(list_devices):
             self.lineCheck = Factory.ListItemWithCheckbox(
                 text="[color=#FFFFFF][b]Path:[/b] %s[/color]" % (str(usb["path"])),
@@ -95,20 +95,18 @@ class MainApp(MDApp):
         self.list.ids.btn_refresh.disabled = True
         try:
             keys_count = 7
-            print(">starting initialize_rsa_key")
+            #print(">starting initialize_rsa_key")
 
             Clock.schedule_once(partial(self._do_update_progress_bar, 10))
 
-            initialize_key_device(self.key_device_selected, self.list.ids.userfield.text)
-            metadata_file = _get_metadata_file_path(self.key_device_selected)
-            metadata_folder = metadata_file.parent
-            private_key_dir = metadata_folder.joinpath("crypto_keys")
-            private_key_dir.mkdir(exist_ok=True)
+            initialize_authentication_device(self.authentication_device_selected, self.list.ids.userfield.text)
+            key_storage_folder = _get_key_storage_folder_path(self.authentication_device_selected)
+            assert key_storage_folder.is_dir()  # By construction...
 
-            object_FilesystemKeyStorage = FilesystemKeyStorage(private_key_dir)
+            object_FilesystemKeyStorage = FilesystemKeyStorage(key_storage_folder)
 
             for i in range(1, keys_count+1):
-                print(">WIP initialize_rsa_key", id)
+                #print(">WIP initialize_rsa_key", id)
                 key_pair = generate_asymmetric_keypair(
                     key_type="RSA_OAEP",
                     passphrase=self.list.ids.passphrasefield.text.encode(),
@@ -123,15 +121,15 @@ class MainApp(MDApp):
                 Clock.schedule_once(partial(self._do_update_progress_bar, 10 + int (i * 90 / keys_count)))
 
             self.success = True
-            print(">finish_initialization")
+            #print(">finish_initialization")
             self.list.ids.btn_refresh.disabled = False
             Clock.schedule_once(self.finish_initialization)
         except Exception as exc:
-            print(">>>>>>>>>>>>>>>> ERROR THREAD", exc)
+            print(">>>>>>>>>>>>>>>> ERROR IN THREAD", exc)  # FIXME add logging
 
 
     def build(self):
-        self.key_device_selected = None
+        self.authentication_device_selected = None
         self.orientation = "vertical"
         self.screen = Screen()
         self.get_detected_devices()
@@ -139,7 +137,7 @@ class MainApp(MDApp):
 
     def get_info_key_selected(self, linelist):
         list_ids=self.list.ids
-        list_devices = list_available_key_devices()
+        list_devices = list_available_authentication_devices()
         for i in list_ids.scroll.children:
             i.bg_color = [0.1372, 0.2862, 0.5294, 1]
         linelist.bg_color = [0.6, 0.6, 0.6, 1]
@@ -155,47 +153,44 @@ class MainApp(MDApp):
         list_ids.label_alert.clear_widgets()
         list_ids.labelInfoUsb1.add_widget(self.l)
         list_ids.label_alert.add_widget(self.alertMessage)
-        for index, key_device in enumerate(list_devices):
-            if linelist.text == "[color=#FFFFFF][b]Path:[/b] " + str(key_device["path"]) + "[/color]":
-                self.key_device_selected = key_device
-                if str(key_device["is_initialized"]) == "True":
+        for index, authentication_device in enumerate(list_devices):
+            if linelist.text == "[color=#FFFFFF][b]Path:[/b] " + str(authentication_device["path"]) + "[/color]":
+                self.authentication_device_selected = authentication_device
+                if str(authentication_device["is_initialized"]) == "True":
                     list_ids.button_initialize.disabled = True
                     list_ids.userfield.disabled = True
                     list_ids.passphrasefield.disabled = True
                     list_ids.userfield.fill_color = [0.3, 0.3, 0.3, 0.4]
                     list_ids.passphrasefield.fill_color = [0.3, 0.3, 0.3, 0.4]
-                    self.l = Label(
-                        text="USB information : Size %s   |   Fst :%s | and it is initialized"
-                             % (str(key_device["size"]), str(key_device["format"]))
-                    )
+
                     self.alertMessage = Label(
                         text="You have to format the key or manually delete the private folder"
                     )
-                    meta = load_from_json_file(
-                        key_device["path"] + "\.key_storage\.metadata.json"
-                    )
-                    list_ids.userfield.text = meta["user"]
+                    metadata = load_authentication_device_metadata(authentication_device)
+                    list_ids.userfield.text = metadata["user"]
                     list_ids.userfield.disabled = True
                     list_ids.userfield.fill_color = [0.3, 0.3, 0.3, 0.4]
 
                 else:
-                    self.l = Label(
-                        text="USB information : Size %s   |   Fst :%s | and it is not initialized"
-                             % (str(key_device["size"]), str(key_device["format"]))
-                    )
+
                     self.alertMessage = Label(
                         text="Please fill in the username and passphrase to initialize the usb key"
                     )
                     list_ids.userfield.text = ""
+
+                self.l = Label(
+                    text="USB key : size %s, fileystem %s, initialized=%s"
+                         % (authentication_device["size"], authentication_device["format"], authentication_device["is_initialized"])
+                )
                 list_ids.labelInfoUsb1.add_widget(self.l)
                 list_ids.label_alert.add_widget(self.alertMessage)
 
     def update_progress_bar(self, percent):
-        print(">>>>>update_progress_bar")
+        #print(">>>>>update_progress_bar")
         Clock.schedule_once(partial(self._do_update_progress_bar, percent))
 
     def _do_update_progress_bar(self, percent, *args, **kwargs):
-        print(">>>>>>", self.list.ids)
+        #print(">>>>>>", self.list.ids)
         self.list.ids.barProgress.value = percent
 
 
@@ -210,9 +205,9 @@ class MainApp(MDApp):
         self._do_update_progress_bar(0)  # Reset
 
         if self.success:
-            self.list.ids.errors.add_widget(
-                Label(text="successful operation", font_size="28sp", color=[0, 1, 0, 1])
-            )
+            #self.list.ids.errors.add_widget(
+            #    Label(text="Initialization successful", font_size="28sp", color=[0, 1, 0, 1])
+            #)
 
             self.l.text = "Processing completed."
             self.alertMessage.text = "successful operation."
