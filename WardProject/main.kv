@@ -15,7 +15,7 @@
             size: self.size
 
     AnchorLayout:
-        padding: [0,20]
+        padding: [0,10]
         anchor_x: 'center'
         anchor_y: 'top'
         size_hint: 1, 0.3
@@ -37,9 +37,8 @@
                 id: table
                 size_hint: 1, 1
 
-
                 MDList:
-                    padding:[40,0,0,0]
+                    padding:[20,0,0,0]
                     id: scroll
                     bg_color: [1, 0, 0, 1]
             FloatLayout:  # what is this?
@@ -73,25 +72,25 @@
                 id: label_alert
 
     GridLayout:
-        rows:3
+        rows: 2
         spacing: [20,250]
 
         GridLayout:
             cols:2
-            spacing: [20,20]
-            padding: [20,20]
+            spacing: [10,10]
+            padding: [10,10]
 
             GridLayout:
-                padding: [20, 20, 0, 0]
-                spacing: [20,40]
-                rows: 3
+                padding: [10, 10, 0, 0]
+                spacing: [20,20]
+                rows: 4
 
                 MDTextField:
                     id: userfield
                     size_hint_x: -0.5
                     hint_text: 'Enter username'
-                    helper_text: 'Your own name'
-                    helper_text_mode: 'on_focus'
+                    #helper_text: 'Your own name'
+                    #helper_text_mode: 'on_focus'
                     width: 50
                     height: 20
                     color_mode: 'custom'
@@ -105,8 +104,22 @@
                     id: passphrasefield
                     size_hint_x: -0.5
                     hint_text: 'Enter passphrase'
-                    helper_text: 'Type a long sentence'
-                    helper_text_mode: 'on_focus'
+                    #helper_text: 'Type a long sentence'
+                    #helper_text_mode: 'on_focus'
+                    width: 50
+                    color_mode: 'custom'
+                    line_color_focus: 1, 1, 1, 1
+                    mode: "fill"
+                    disabled: True
+                    fill_color: 0.3, 0.3, 0.3, 0.4
+                    current_hint_text_color: 1, 1, 1, 1
+
+                MDTextField:
+                    id: passphrasehintfield
+                    size_hint_x: -0.5
+                    hint_text: 'Enter passphrase hint'
+                    #helper_text: 'Type a short hint'
+                    #helper_text_mode: 'on_focus'
                     width: 50
                     color_mode: 'custom'
                     line_color_focus: 1, 1, 1, 1

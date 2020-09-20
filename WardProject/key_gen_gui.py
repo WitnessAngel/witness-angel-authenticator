@@ -49,12 +49,12 @@ class MainApp(MDApp):
             title_dialog = "USB not selected !!"
             self.open_dialog(user_error, title_dialog)
         else:
-            if (self.list.ids.userfield.text != "") and (
-                    self.list.ids.passphrasefield.text != ""
-            ):
+            if (self.list.ids.userfield.text.strip()) and (
+                    self.list.ids.passphrasefield.text.strip()
+            ) and self.list.ids.passphrasehintfield.text.strip():
                 self.initialize()
             else:
-                user_error = "Please enter a username and a passphrase"
+                user_error = "Please enter a username, passphrase and passphrase_hint."
                 self.open_dialog(user_error)
 
     def open_dialog(self, user_error, title_dialog="Please fill in the empty field"):
@@ -99,7 +99,10 @@ class MainApp(MDApp):
 
             Clock.schedule_once(partial(self._do_update_progress_bar, 10))
 
-            initialize_authentication_device(self.authentication_device_selected, self.list.ids.userfield.text)
+
+            initialize_authentication_device(self.authentication_device_selected,
+                                             user=self.list.ids.userfield.text,
+                                             extra_metadata=dict(passphrase_hint=self.list.ids.passphrasehintfield.text))
             key_storage_folder = _get_key_storage_folder_path(self.authentication_device_selected)
             assert key_storage_folder.is_dir()  # By construction...
 
@@ -109,7 +112,7 @@ class MainApp(MDApp):
                 #print(">WIP initialize_rsa_key", id)
                 key_pair = generate_asymmetric_keypair(
                     key_type="RSA_OAEP",
-                    passphrase=self.list.ids.passphrasefield.text.encode(),
+                    passphrase=self.list.ids.passphrasefield.text,  # FIXME received from GUI
                 )
                 object_FilesystemKeyStorage.set_keys(
                     keychain_uid=generate_uuid0(),
@@ -145,8 +148,10 @@ class MainApp(MDApp):
         list_ids.button_initialize.disabled = False
         list_ids.userfield.disabled = False
         list_ids.passphrasefield.disabled = False
+        list_ids.passphrasehintfield.disabled = False
         list_ids.userfield.fill_color = [1, 1, 1, 0.4]
         list_ids.passphrasefield.fill_color = [1, 1, 1, 0.4]
+        list_ids.passphrasehintfield.fill_color = [1, 1, 1, 0.4]
         self.l = Label(text="")
         self.alertMessage = Label(text="")
         list_ids.labelInfoUsb1.clear_widgets()
@@ -154,22 +159,23 @@ class MainApp(MDApp):
         list_ids.labelInfoUsb1.add_widget(self.l)
         list_ids.label_alert.add_widget(self.alertMessage)
         for index, authentication_device in enumerate(list_devices):
-            if linelist.text == "[color=#FFFFFF][b]Path:[/b] " + str(authentication_device["path"]) + "[/color]":
+            if linelist.text == "[color=#FFFFFF][b]Path:[/b] " + str(authentication_device["path"]) + "[/color]":  # FIXME
                 self.authentication_device_selected = authentication_device
                 if str(authentication_device["is_initialized"]) == "True":
                     list_ids.button_initialize.disabled = True
                     list_ids.userfield.disabled = True
                     list_ids.passphrasefield.disabled = True
+                    list_ids.passphrasehintfield.disabled = True
                     list_ids.userfield.fill_color = [0.3, 0.3, 0.3, 0.4]
                     list_ids.passphrasefield.fill_color = [0.3, 0.3, 0.3, 0.4]
+                    list_ids.passphrasehintfield.fill_color = [0.3, 0.3, 0.3, 0.4]
 
                     self.alertMessage = Label(
-                        text="You have to format the key or manually delete the private folder"
+                        text="To reinitialize, manually delete the key storage folder on device"
                     )
                     metadata = load_authentication_device_metadata(authentication_device)
                     list_ids.userfield.text = metadata["user"]
-                    list_ids.userfield.disabled = True
-                    list_ids.userfield.fill_color = [0.3, 0.3, 0.3, 0.4]
+                    list_ids.passphrasehintfield.text = metadata["passpherase"]
 
                 else:
 
