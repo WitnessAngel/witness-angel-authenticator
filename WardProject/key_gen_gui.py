@@ -10,7 +10,7 @@ from kivymd.uix.selectioncontrol import MDCheckbox
 from wacryptolib.authentication_device import (
     list_available_authentication_devices,
     initialize_authentication_device,
-    _get_metadata_file_path, _get_key_storage_folder_path, load_authentication_device_metadata,
+    _get_key_storage_folder_path, load_authentication_device_metadata,
 )
 from kivymd.uix.button import  MDFlatButton
 from kivymd.uix.screen import Screen
@@ -18,9 +18,7 @@ from kivymd.uix.dialog import MDDialog
 from kivymd.uix.label import Label
 from wacryptolib.key_generation import generate_asymmetric_keypair
 from wacryptolib.key_storage import FilesystemKeyStorage
-from wacryptolib.utilities import load_from_json_file
-import sys
-from io import StringIO
+
 from wacryptolib.utilities import generate_uuid0
 
 
@@ -42,6 +40,12 @@ class MainApp(MDApp):
         self.title = "Witness Angel - WardProject"
         super(MainApp, self).__init__(**kwargs)
 
+    def get_form_values(self):
+        return dict(user=self.list.ids.userfield.text.strip(),
+                    passphrase=self.list.ids.passphrasefield.text.strip(),
+                    passphrase_hint=self.list.ids.passphrasehintfield.text.strip())
+
+
     def show_validate(self):
 
         if not self.authentication_device_selected:
@@ -49,15 +53,14 @@ class MainApp(MDApp):
             title_dialog = "USB not selected !!"
             self.open_dialog(user_error, title_dialog)
         else:
-            if (self.list.ids.userfield.text.strip()) and (
-                    self.list.ids.passphrasefield.text.strip()
-            ) and self.list.ids.passphrasehintfield.text.strip():
-                self.initialize()
+            form_values = self.get_form_values()
+            if all(form_values.values()):
+                self.initialize(form_values=form_values)
             else:
                 user_error = "Please enter a username, passphrase and passphrase_hint."
                 self.open_dialog(user_error)
 
-    def open_dialog(self, user_error, title_dialog="Please fill in the empty field"):
+    def open_dialog(self, user_error, title_dialog="Please fill in empty fields"):
         self.dialog = MDDialog(
             title=title_dialog,
             text=user_error,
@@ -86,13 +89,10 @@ class MainApp(MDApp):
     def refresh_list(self):
         self.get_detected_devices()
 
-    def initialize_rsa_key(self):
-        for c in list(self.list.ids.scroll.children):
-            c.bg_color=[1, 1, 1, 0.4]
-        #self.list.ids.scroll.bg_color=[1, 0.2862, 0.5294, 1]
-        self.lineCheck.unbind(on_release=self.get_info_key_selected)
+    def _offloaded_initialize_rsa_key(self, form_values):
 
-        self.list.ids.btn_refresh.disabled = True
+        success = False
+
         try:
             keys_count = 7
             #print(">starting initialize_rsa_key")
@@ -101,8 +101,8 @@ class MainApp(MDApp):
 
 
             initialize_authentication_device(self.authentication_device_selected,
-                                             user=self.list.ids.userfield.text,
-                                             extra_metadata=dict(passphrase_hint=self.list.ids.passphrasehintfield.text))
+                                             user=form_values["user"],
+                                             extra_metadata=dict(passphrase_hint=form_values["passphrase_hint"]))
             key_storage_folder = _get_key_storage_folder_path(self.authentication_device_selected)
             assert key_storage_folder.is_dir()  # By construction...
 
@@ -112,7 +112,7 @@ class MainApp(MDApp):
                 #print(">WIP initialize_rsa_key", id)
                 key_pair = generate_asymmetric_keypair(
                     key_type="RSA_OAEP",
-                    passphrase=self.list.ids.passphrasefield.text,  # FIXME received from GUI
+                    passphrase=form_values["passphrase"]
                 )
                 object_FilesystemKeyStorage.set_keys(
                     keychain_uid=generate_uuid0(),
@@ -123,12 +123,12 @@ class MainApp(MDApp):
 
                 Clock.schedule_once(partial(self._do_update_progress_bar, 10 + int (i * 90 / keys_count)))
 
-            self.success = True
-            #print(">finish_initialization")
-            self.list.ids.btn_refresh.disabled = False
-            Clock.schedule_once(self.finish_initialization)
+            success = True
+
         except Exception as exc:
             print(">>>>>>>>>>>>>>>> ERROR IN THREAD", exc)  # FIXME add logging
+
+        Clock.schedule_once(partial(self.finish_initialization, success=success))
 
 
     def build(self):
@@ -175,7 +175,7 @@ class MainApp(MDApp):
                     )
                     metadata = load_authentication_device_metadata(authentication_device)
                     list_ids.userfield.text = metadata["user"]
-                    list_ids.passphrasehintfield.text = metadata["passpherase"]
+                    list_ids.passphrasehintfield.text = metadata.get("passphrase_hint", "")
 
                 else:
 
@@ -200,24 +200,33 @@ class MainApp(MDApp):
         self.list.ids.barProgress.value = percent
 
 
-    def initialize(self):
+    def initialize(self, form_values):
         self.l.text = "Please wait a few seconds."
-        self.alertMessage.text = "the operation is being processed."
+        self.alertMessage.text = "The operation is being processed."
+        self.list.ids.btn_refresh.disabled = True
         self.list.ids.button_initialize.disabled = True
-        THREAD_POOL_EXECUTOR.submit(self.initialize_rsa_key)
+        for c in list(self.list.ids.scroll.children):
+            c.bg_color=[1, 1, 1, 0.4]
+        #self.list.ids.scroll.bg_color=[1, 0.2862, 0.5294, 1]
+        self.lineCheck.unbind(on_release=self.get_info_key_selected)
 
-    def finish_initialization(self, *args, **kwargs):
+        THREAD_POOL_EXECUTOR.submit(self._offloaded_initialize_rsa_key, form_values=form_values)
 
+    def finish_initialization(self, *args, success, **kwargs):
+
+        self.list.ids.btn_refresh.disabled = False
         self._do_update_progress_bar(0)  # Reset
 
-        if self.success:
+        if success:
             #self.list.ids.errors.add_widget(
             #    Label(text="Initialization successful", font_size="28sp", color=[0, 1, 0, 1])
             #)
 
-            self.l.text = "Processing completed."
-            self.alertMessage.text = "successful operation."
-
+            self.l.text = "Processing completed"
+            self.alertMessage.text = "Operation successful"
+        else:
+            self.l.text = "Errors occurred"
+            self.alertMessage.text = "Operation failed, check logs"
 
 if __name__ == "__main__":
     MainApp().run()
