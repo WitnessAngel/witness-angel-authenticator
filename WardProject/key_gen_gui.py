@@ -1,6 +1,7 @@
 from concurrent.futures.thread import ThreadPoolExecutor
 from functools import partial
 
+from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.factory import Factory
 from kivy.uix.image import Image
@@ -140,18 +141,26 @@ class MainApp(MDApp):
 
     def get_info_key_selected(self, linelist):
         list_ids=self.list.ids
+        text_fields = [
+            list_ids.userfield,
+            list_ids.passphrasefield,
+            list_ids.passphrasehintfield,
+        ]
+
         list_devices = list_available_authentication_devices()
         for i in list_ids.scroll.children:
             i.bg_color = [0.1372, 0.2862, 0.5294, 1]
         linelist.bg_color = [0.6, 0.6, 0.6, 1]
 
         list_ids.button_initialize.disabled = False
-        list_ids.userfield.disabled = False
-        list_ids.passphrasefield.disabled = False
-        list_ids.passphrasehintfield.disabled = False
-        list_ids.userfield.fill_color = [1, 1, 1, 0.4]
-        list_ids.passphrasefield.fill_color = [1, 1, 1, 0.4]
-        list_ids.passphrasehintfield.fill_color = [1, 1, 1, 0.4]
+
+        for text_field in text_fields:
+            text_field.focus = False
+            text_field.disabled = False
+            Animation.cancel_all(text_field, "fill_color", "_line_width", "_hint_y", "_hint_lbl_font_size")  # Unfocus triggered an animation
+            text_field.fill_color = [1, 1, 1, 0.4]
+            text_field.text = ""
+
         self.l = Label(text="")
         self.alertMessage = Label(text="")
         list_ids.labelInfoUsb1.clear_widgets()
@@ -161,17 +170,15 @@ class MainApp(MDApp):
         for index, authentication_device in enumerate(list_devices):
             if linelist.text == "[color=#FFFFFF][b]Path:[/b] " + str(authentication_device["path"]) + "[/color]":  # FIXME
                 self.authentication_device_selected = authentication_device
-                if str(authentication_device["is_initialized"]) == "True":
+                if authentication_device["is_initialized"]:
                     list_ids.button_initialize.disabled = True
-                    list_ids.userfield.disabled = True
-                    list_ids.passphrasefield.disabled = True
-                    list_ids.passphrasehintfield.disabled = True
-                    list_ids.userfield.fill_color = [0.3, 0.3, 0.3, 0.4]
-                    list_ids.passphrasefield.fill_color = [0.3, 0.3, 0.3, 0.4]
-                    list_ids.passphrasehintfield.fill_color = [0.3, 0.3, 0.3, 0.4]
+
+                    for text_field in text_fields:
+                        text_field.disabled = True
+                        text_field.fill_color = [0.3, 0.3, 0.3, 0.4]
 
                     self.alertMessage = Label(
-                        text="To reinitialize, manually delete the key storage folder on device"
+                        text="To reset the USB key, manually delete the key-storage folder on it"
                     )
                     metadata = load_authentication_device_metadata(authentication_device)
                     list_ids.userfield.text = metadata["user"]
@@ -180,7 +187,7 @@ class MainApp(MDApp):
                 else:
 
                     self.alertMessage = Label(
-                        text="Please fill in the username and passphrase to initialize the usb key"
+                        text="Please fill in the form below to initialize the usb key"
                     )
                     list_ids.userfield.text = ""
 
@@ -205,6 +212,7 @@ class MainApp(MDApp):
         self.alertMessage.text = "The operation is being processed."
         self.list.ids.btn_refresh.disabled = True
         self.list.ids.button_initialize.disabled = True
+        self.list.ids.passphrasefield.text = "***"  # PRIVACY
         for c in list(self.list.ids.scroll.children):
             c.bg_color=[1, 1, 1, 0.4]
         #self.list.ids.scroll.bg_color=[1, 0.2862, 0.5294, 1]
