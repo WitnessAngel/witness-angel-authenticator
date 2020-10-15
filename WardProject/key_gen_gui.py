@@ -1,3 +1,8 @@
+import sys, os
+
+if sys.platform == "win32":
+    os.environ["KIVY_GL_BACKEND"] = "angle_sdl2"
+
 from concurrent.futures.thread import ThreadPoolExecutor
 from functools import partial
 
@@ -37,6 +42,9 @@ THREAD_POOL_EXECUTOR = ThreadPoolExecutor(
 
 
 class MainApp(MDApp):
+
+    list_devices = ()
+
     def __init__(self, **kwargs):
         self.title = "Witness Angel - WardProject"
         super(MainApp, self).__init__(**kwargs)
@@ -76,6 +84,8 @@ class MainApp(MDApp):
     def get_detected_devices(self):
         self.list = Factory.Lists()
         list_devices = list_available_authentication_devices()
+        self.list_devices = list_devices
+
         for index, usb in enumerate(list_devices):
             self.lineCheck = Factory.ListItemWithCheckbox(
                 text="[color=#FFFFFF][b]Path:[/b] %s[/color]" % (str(usb["path"])),
@@ -86,6 +96,7 @@ class MainApp(MDApp):
             self.lineCheck.bind(on_release=self.get_info_key_selected)
             self.list.ids.scroll.add_widget(self.lineCheck)
         self.screen.add_widget(self.list)
+
 
     def refresh_list(self):
         self.get_detected_devices()
@@ -147,7 +158,7 @@ class MainApp(MDApp):
             list_ids.passphrasehintfield,
         ]
 
-        list_devices = list_available_authentication_devices()
+        list_devices = self.list_devices
         for i in list_ids.scroll.children:
             i.bg_color = [0.1372, 0.2862, 0.5294, 1]
         linelist.bg_color = [0.6, 0.6, 0.6, 1]
