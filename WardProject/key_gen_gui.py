@@ -247,5 +247,15 @@ class MainApp(MDApp):
             self.l.text = "Errors occurred"
             self.alertMessage.text = "Operation failed, check logs"
 
+def resourcePath():
+    '''Returns path containing content - either locally or in pyinstaller tmp file'''
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS)
+
+    return os.path.join(os.path.abspath("."))
+
+
 if __name__ == "__main__":
+    import kivy.resources
+    kivy.resources.resource_add_path(resourcePath()) # Pyinstaller workaround
     MainApp().run()

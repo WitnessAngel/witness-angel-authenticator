@@ -16,23 +16,33 @@ a = Analysis(['key_gen_gui.py'],
              hiddenimports=["kivymd"],
              hookspath=[kivymd_hooks_path],
              runtime_hooks=[],
-             excludes=[],
+             excludes=['_tkinter', 'Tkinter', "cv2", "numpy", "pygame"],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,
              noarchive=False)
+
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
+             
 exe = EXE(pyz,
           a.scripts,
-          [],
-          exclude_binaries=True,
-          name='key_gen_gui',
+                         a.binaries,
+                         a.zipfiles,
+                         a.datas,
+                         *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
+          #[],
+          #exclude_binaries=True,
+          name='witness_angel_keygen',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=True )
+          runtime_tmpdir=None,
+          console=True,
+          icon='./favicon_white_on_black.ico')
+
+'''
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
@@ -42,3 +52,4 @@ coll = COLLECT(exe,
                upx=True,
                upx_exclude=[],
                name='key_gen_gui')
+'''
