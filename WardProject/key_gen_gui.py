@@ -1,7 +1,7 @@
 import sys, os
 
-if sys.platform == "win32":
-    os.environ["KIVY_GL_BACKEND"] = "angle_sdl2"
+#if sys.platform == "win32":
+#    os.environ["KIVY_GL_BACKEND"] = "angle_sdl2"
 
 from concurrent.futures.thread import ThreadPoolExecutor
 from functools import partial
@@ -191,9 +191,13 @@ class MainApp(MDApp):
                     self.alertMessage = Label(
                         text="To reset the USB key, manually delete the key-storage folder on it"
                     )
-                    metadata = load_authentication_device_metadata(authentication_device)
-                    list_ids.userfield.text = metadata["user"]
-                    list_ids.passphrasehintfield.text = metadata.get("passphrase_hint", "")
+                    try:
+                        metadata = load_authentication_device_metadata(authentication_device)
+                    except FileNotFoundError:
+                        pass  # User has removed the key or folder in the meantime...
+                    else:
+                        list_ids.userfield.text = metadata["user"]
+                        list_ids.passphrasehintfield.text = metadata.get("passphrase_hint", "")
 
                 else:
 
