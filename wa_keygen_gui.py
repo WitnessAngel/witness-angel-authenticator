@@ -43,6 +43,8 @@ THREAD_POOL_EXECUTOR = ThreadPoolExecutor(
 
 class MainApp(MDApp):
 
+    kv_file = "wa_keygen_gui.kv"
+
     list_devices = ()
 
     def __init__(self, **kwargs):

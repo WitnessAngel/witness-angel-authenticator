@@ -249,3 +249,6 @@ artifacts/
 
 # local shortcuts
 __*.sh
+
+# Trashed files
+__*
