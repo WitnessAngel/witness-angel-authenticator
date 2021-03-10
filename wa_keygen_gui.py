@@ -6,6 +6,7 @@ import sys, os
 from concurrent.futures.thread import ThreadPoolExecutor
 from functools import partial
 
+from kivy.core.window import Window
 from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.factory import Factory
@@ -142,6 +143,12 @@ class MainApp(MDApp):
         Clock.schedule_once(partial(self.finish_initialization, success=success))
 
     def build(self):
+
+        # Ensure that we don't need to click TWICE to gain focus on Kivy Window and then on widget!
+        def force_window_focus(*args, **kwargs):
+            Window.raise_window()
+        Window.bind(on_cursor_enter=force_window_focus)
+
         self.authentication_device_selected = None
         self.orientation = "vertical"
         self.screen = Screen()
