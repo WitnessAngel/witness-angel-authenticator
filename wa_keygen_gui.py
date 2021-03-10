@@ -68,7 +68,7 @@ class MainApp(MDApp):
         form_values = self.get_form_values()
 
         if all(form_values.values()):
-            self.initialize(form_values=form_values)
+            self.initialize_authentication_device(form_values=form_values)
         else:
             user_error = "Please enter a username, passphrase and passphrase_hint."
             self.open_dialog(user_error)
@@ -97,7 +97,7 @@ class MainApp(MDApp):
                 bg_color=[0.1372, 0.2862, 0.5294, 1],
 
             )
-            device_list_item._onrelease_callback = partial(self.get_info_key_selected, list_item_index=index)
+            device_list_item._onrelease_callback = partial(self.show_authentication_device_info, list_item_index=index)
             device_list_item.bind(on_release=device_list_item._onrelease_callback)
             self.keygen_panel.ids.scroll.add_widget(device_list_item)
         self.screen.add_widget(self.keygen_panel)
@@ -149,21 +149,21 @@ class MainApp(MDApp):
         self.list_detected_devices()
         return self.screen
 
-    def get_info_key_selected(self, list_item_obj, list_item_index):
+    def show_authentication_device_info(self, list_item_obj, list_item_index):
 
-        list_ids=self.keygen_panel.ids
+        keygen_panel_ids=self.keygen_panel.ids
         text_fields = [
-            list_ids.userfield,
-            list_ids.passphrasefield,
-            list_ids.passphrasehintfield,
+            keygen_panel_ids.userfield,
+            keygen_panel_ids.passphrasefield,
+            keygen_panel_ids.passphrasehintfield,
         ]
 
         authentication_device_list = self.authentication_device_list
-        for i in list_ids.scroll.children:
+        for i in keygen_panel_ids.scroll.children:
             i.bg_color = [0.1372, 0.2862, 0.5294, 1]
         list_item_obj.bg_color = [0.6, 0.6, 0.6, 1]
 
-        list_ids.button_initialize.disabled = False
+        keygen_panel_ids.button_initialize.disabled = False
 
         for text_field in text_fields:
             text_field.focus = False
@@ -174,16 +174,18 @@ class MainApp(MDApp):
 
         self.status_title = Label(text="")
         self.status_message = Label(text="")
-        list_ids.labelInfoUsb1.clear_widgets()
-        list_ids.label_alert.clear_widgets()
-        list_ids.labelInfoUsb1.add_widget(self.status_title)
-        list_ids.label_alert.add_widget(self.status_message)
+
+        keygen_panel_ids.status_title_layout.clear_widgets()
+        keygen_panel_ids.status_title_layout.add_widget(self.status_title)
+
+        keygen_panel_ids.status_message_layout.clear_widgets()
+        keygen_panel_ids.status_message_layout.add_widget(self.status_message)
 
         authentication_device = authentication_device_list[list_item_index]
         self.authentication_device_selected = authentication_device
 
         if authentication_device["is_initialized"]:
-            list_ids.button_initialize.disabled = True
+            keygen_panel_ids.button_initialize.disabled = True
 
             for text_field in text_fields:
                 text_field.disabled = True
@@ -197,22 +199,22 @@ class MainApp(MDApp):
             except FileNotFoundError:
                 pass  # User has removed the key or folder in the meantime...
             else:
-                list_ids.userfield.text = metadata["user"]
-                list_ids.passphrasehintfield.text = metadata.get("passphrase_hint", "")
+                keygen_panel_ids.userfield.text = metadata["user"]
+                keygen_panel_ids.passphrasehintfield.text = metadata.get("passphrase_hint", "")
 
         else:
 
             self.status_message = Label(
                 text="Please fill in the form below to initialize the usb key"
             )
-            list_ids.userfield.text = ""
+            keygen_panel_ids.userfield.text = ""
 
         self.status_title = Label(
             text="USB key : size %s, fileystem %s, initialized=%s"
                  % (authentication_device["size"], authentication_device["format"], authentication_device["is_initialized"])
         )
-        list_ids.labelInfoUsb1.add_widget(self.status_title)
-        list_ids.label_alert.add_widget(self.status_message)
+        keygen_panel_ids.status_title_layout.add_widget(self.status_title)
+        keygen_panel_ids.status_message_layout.add_widget(self.status_message)
 
     def update_progress_bar(self, percent):
         #print(">>>>>update_progress_bar")
@@ -222,7 +224,7 @@ class MainApp(MDApp):
         #print(">>>>>>", self.keygen_panel.ids)
         self.keygen_panel.ids.barProgress.value = percent
 
-    def initialize(self, form_values):
+    def initialize_authentication_device(self, form_values):
         self.status_title.text = "Please wait a few seconds."
         self.status_message.text = "The operation is being processed."
         self.keygen_panel.ids.btn_refresh.disabled = True
