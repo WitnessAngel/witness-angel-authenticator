@@ -101,6 +101,8 @@ class MainApp(MDApp):
         authentication_device_list = list_available_authentication_devices()
         self.authentication_device_list = authentication_device_list
 
+        first_device_list_item = None
+
         for index, authentication_device in enumerate(authentication_device_list):
             device_list_item = Factory.ListItemWithCheckbox(
                 text="[color=#FFFFFF][b]Path:[/b] %s[/color]" % (str(authentication_device["path"])),
@@ -110,7 +112,14 @@ class MainApp(MDApp):
             device_list_item._onrelease_callback = partial(self.show_authentication_device_info, list_item_index=index)
             device_list_item.bind(on_release=device_list_item._onrelease_callback)
             self.keygen_panel.ids.scroll.add_widget(device_list_item)
+
+            if not first_device_list_item:
+                first_device_list_item = device_list_item
+
         self.screen.add_widget(self.keygen_panel)
+
+        if first_device_list_item:
+            self.show_authentication_device_info(first_device_list_item, list_item_index=0)
 
     def _offloaded_initialize_rsa_key(self, form_values):
 
