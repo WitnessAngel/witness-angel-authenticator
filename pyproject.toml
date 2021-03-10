@@ -28,6 +28,7 @@ classifiers = [
 include = []
 exclude = []
 
+
 [tool.poetry.dependencies]
 python = ">=3.6,<4"
 
@@ -37,4 +38,7 @@ wacryptolib = "^0.5.2"
 Kivy = {version = "^2.0.0", extras = ["base"]}
 kivymd = "^0.104.1"
 
+
 [tool.poetry.dev-dependencies]
+
+PyInstaller = "^4.2"
