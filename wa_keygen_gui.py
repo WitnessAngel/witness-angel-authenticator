@@ -46,9 +46,10 @@ GENERATED_KEYS_COUNT = 7
 class MainApp(MDApp):
 
     kv_file = "wa_keygen_gui.kv"
-
-    device_list = ()
     keygen_panel = None
+
+    authentication_device_list = ()
+    authentication_device_selected = None
 
     def __init__(self, **kwargs):
         self.title = "Witness Angel - WardProject"
@@ -59,25 +60,23 @@ class MainApp(MDApp):
                     passphrase=self.keygen_panel.ids.passphrasefield.text.strip(),
                     passphrase_hint=self.keygen_panel.ids.passphrasehintfield.text.strip())
 
-
     def show_validate(self):
 
         if not self.authentication_device_selected:
-            user_error = "Please select USB device"  # FIXME remove this useless case
-            title_dialog = "USB not selected !!"
-            self.open_dialog(user_error, title_dialog)
-        else:
-            form_values = self.get_form_values()
-            if all(form_values.values()):
-                self.initialize(form_values=form_values)
-            else:
-                user_error = "Please enter a username, passphrase and passphrase_hint."
-                self.open_dialog(user_error)
+            return  # Abormal state of button, which should be disabled...
 
-    def open_dialog(self, user_error, title_dialog="Please fill in empty fields"):
+        form_values = self.get_form_values()
+
+        if all(form_values.values()):
+            self.initialize(form_values=form_values)
+        else:
+            user_error = "Please enter a username, passphrase and passphrase_hint."
+            self.open_dialog(user_error)
+
+    def open_dialog(self, main_text, title_dialog="Please fill in empty fields"):
         self.dialog = MDDialog(
             title=title_dialog,
-            text=user_error,
+            text=main_text,
             size_hint=(0.8, 1),
             buttons=[MDFlatButton(text="Close", on_release=self.close_dialog)],
         )
@@ -88,10 +87,10 @@ class MainApp(MDApp):
 
     def list_detected_devices(self):
         self.keygen_panel = Factory.KeygenPanel()
-        device_list = list_available_authentication_devices()
-        self.device_list = device_list
+        authentication_device_list = list_available_authentication_devices()
+        self.authentication_device_list = authentication_device_list
 
-        for index, usb in enumerate(device_list):
+        for index, usb in enumerate(authentication_device_list):
             self.lineCheck = Factory.ListItemWithCheckbox(
                 text="[color=#FFFFFF][b]Path:[/b] %s[/color]" % (str(usb["path"])),
                 secondary_text="[color=#FFFFFF][b]Label:[/b] %s[/color]" % (str(usb["label"])),
@@ -157,7 +156,7 @@ class MainApp(MDApp):
             list_ids.passphrasehintfield,
         ]
 
-        device_list = self.device_list
+        authentication_device_list = self.authentication_device_list
         for i in list_ids.scroll.children:
             i.bg_color = [0.1372, 0.2862, 0.5294, 1]
         linelist.bg_color = [0.6, 0.6, 0.6, 1]
@@ -177,7 +176,7 @@ class MainApp(MDApp):
         list_ids.label_alert.clear_widgets()
         list_ids.labelInfoUsb1.add_widget(self.l)
         list_ids.label_alert.add_widget(self.alertMessage)
-        for index, authentication_device in enumerate(device_list):
+        for index, authentication_device in enumerate(authentication_device_list):
             if linelist.text == "[color=#FFFFFF][b]Path:[/b] " + str(authentication_device["path"]) + "[/color]":  # FIXME
                 self.authentication_device_selected = authentication_device
                 if authentication_device["is_initialized"]:
