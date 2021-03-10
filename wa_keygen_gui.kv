@@ -9,7 +9,7 @@
 
     canvas.before:
         Color:
-            rgba: 0.1372, 0.2862, 0.5294, 1
+            rgba: app.COLORS.DARKEST_BLUE
         Rectangle:
             pos: self.pos
             size: self.size
@@ -22,7 +22,7 @@
         MDToolbar:
             title:"Select USB device to be initialized with crypto keys"
             size_hint: 1, 1
-            md_bg_color: [0.1372, 0.2862, 0.5294, 1]
+            md_bg_color: app.COLORS.DARKEST_BLUE
             elevation: 2
 
     GridLayout:
@@ -40,7 +40,8 @@
                 MDList:
                     padding:[20,0,0,0]
                     id: scroll
-                    bg_color: [1, 0, 0, 1]
+                    #bg_color: [1, 0, 0, 1]
+
             FloatLayout:  # what is this?
                 pos:(20, 20)
                 id: barProgressWIP
@@ -52,8 +53,8 @@
 
             Button:
                 id: btn_refresh
-                background_color: (51, 23, 186.0, 1)
-                color: 0.1372, 0.2862, 0.5294, 1
+                background_color: app.COLORS.BUTTON_BACKGROUND
+                color: app.COLORS.DARKEST_BLUE
                 text: "Refresh"
                 size: 150, 50
                 size_hint: None, None
@@ -94,11 +95,11 @@
                     width: 50
                     height: 20
                     color_mode: 'custom'
-                    line_color_focus: 1, 1, 1, 1
+                    line_color_focus: app.COLORS.WHITE
                     mode: "fill"
                     disabled: True
-                    fill_color: 0.3, 0.3, 0.3, 0.4
-                    current_hint_text_color: 1, 1, 1, 1
+                    fill_color: app.COLORS.DARK_GREY
+                    current_hint_text_color: app.COLORS.WHITE
 
                 MDTextField:
                     id: passphrasefield
@@ -108,11 +109,11 @@
                     #helper_text_mode: 'on_focus'
                     width: 50
                     color_mode: 'custom'
-                    line_color_focus: 1, 1, 1, 1
+                    line_color_focus: app.COLORS.WHITE
                     mode: "fill"
                     disabled: True
-                    fill_color: 0.3, 0.3, 0.3, 0.4
-                    current_hint_text_color: 1, 1, 1, 1
+                    fill_color: app.COLORS.DARK_GREY
+                    current_hint_text_color: app.COLORS.WHITE
 
                 MDTextField:
                     id: passphrasehintfield
@@ -122,11 +123,11 @@
                     #helper_text_mode: 'on_focus'
                     width: 50
                     color_mode: 'custom'
-                    line_color_focus: 1, 1, 1, 1
+                    line_color_focus: app.COLORS.WHITE
                     mode: "fill"
                     disabled: True
-                    fill_color: 0.3, 0.3, 0.3, 0.4
-                    current_hint_text_color: 1, 1, 1, 1
+                    fill_color: app.COLORS.DARK_GREY
+                    current_hint_text_color: app.COLORS.WHITE
 
                 AnchorLayout:
                     size_hint: 1, 1
@@ -142,8 +143,8 @@
 
                 Button:
                     id: button_initialize
-                    background_color: (51, 23, 186.0, 1)
-                    color: 0.1372, 0.2862, 0.5294, 1
+                    background_color: app.COLORS.BUTTON_BACKGROUND
+                    color: app.COLORS.DARKEST_BLUE
                     text: "Initialize"
                     size: 150, 50
                     size_hint: None, None

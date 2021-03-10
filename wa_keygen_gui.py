@@ -44,6 +44,7 @@ THREAD_POOL_EXECUTOR = ThreadPoolExecutor(
 GENERATED_KEYS_COUNT = 7
 
 
+
 class MainApp(MDApp):
 
     kv_file = "wa_keygen_gui.kv"
@@ -51,6 +52,15 @@ class MainApp(MDApp):
 
     authentication_device_list = ()
     authentication_device_selected = None
+
+    class COLORS:
+        LIGHT_GREY = [1, 1, 1, 0.4]
+        MEDIUM_GREY = [0.6, 0.6, 0.6, 1]
+        DARK_GREY = [0.3, 0.3, 0.3, 0.4]
+        DARKEST_BLUE = [0.1372, 0.2862, 0.5294, 1]
+        DARK_BLUE = [0.1272, 0.2662, 0.4294, 1]
+        BUTTON_BACKGROUND = [51, 23, 186, 1]  # Not same format as others, as its' a tint
+        WHITE = [1, 1, 1, 1]
 
     def __init__(self, **kwargs):
         self.title = "Witness Angel - WardProject"
@@ -91,11 +101,11 @@ class MainApp(MDApp):
         authentication_device_list = list_available_authentication_devices()
         self.authentication_device_list = authentication_device_list
 
-        for index, usb in enumerate(authentication_device_list):
+        for index, authentication_device in enumerate(authentication_device_list):
             device_list_item = Factory.ListItemWithCheckbox(
-                text="[color=#FFFFFF][b]Path:[/b] %s[/color]" % (str(usb["path"])),
-                secondary_text="[color=#FFFFFF][b]Label:[/b] %s[/color]" % (str(usb["label"])),
-                bg_color=[0.1272, 0.2662, 0.4294, 1],
+                text="[color=#FFFFFF][b]Path:[/b] %s[/color]" % (str(authentication_device["path"])),
+                secondary_text="[color=#FFFFFF][b]Label:[/b] %s[/color]" % (str(authentication_device["label"])),
+                bg_color=self.COLORS.DARK_BLUE,
             )
             device_list_item._onrelease_callback = partial(self.show_authentication_device_info, list_item_index=index)
             device_list_item.bind(on_release=device_list_item._onrelease_callback)
@@ -169,10 +179,10 @@ class MainApp(MDApp):
             text_field.disabled = not enabled
             Animation.cancel_all(text_field, "fill_color", "_line_width", "_hint_y", "_hint_lbl_font_size")  # Unfocus triggered an animation, we must disable it
             if enabled:
-                text_field.fill_color = [1, 1, 1, 0.4]
+                text_field.fill_color = self.COLORS.LIGHT_GREY
                 text_field.text = ""  # RESET
             else:
-                text_field.fill_color = [0.3, 0.3, 0.3, 0.4]
+                text_field.fill_color = self.COLORS.DARK_GREY
 
     def show_authentication_device_info(self, list_item_obj, list_item_index):
 
@@ -180,8 +190,9 @@ class MainApp(MDApp):
 
         authentication_device_list = self.authentication_device_list
         for i in keygen_panel_ids.scroll.children:
-            i.bg_color = [0.1372, 0.2862, 0.5294, 1]
-        list_item_obj.bg_color = [0.6, 0.6, 0.6, 1]
+            i.bg_color = self.COLORS.DARK_BLUE
+
+        list_item_obj.bg_color = self.COLORS.MEDIUM_GREY
 
         keygen_panel_ids.button_initialize.disabled = False
 
@@ -247,7 +258,7 @@ class MainApp(MDApp):
         self.keygen_panel.ids.passphrasefield.text = "***"  # PRIVACY
 
         for device_list_item in list(self.keygen_panel.ids.scroll.children):
-            device_list_item.bg_color=[1, 1, 1, 0.4]
+            #device_list_item.bg_color=self.COLORS.LIGHT_GREY Nope
             device_list_item.unbind(on_release=device_list_item._onrelease_callback)
 
         self.set_form_fields_status(enabled=False)
@@ -260,10 +271,6 @@ class MainApp(MDApp):
         self._do_update_progress_bar(0)  # Reset
 
         if success:
-            #self.keygen_panel.ids.errors.add_widget(
-            #    Label(text="Initialization successful", font_size="28sp", color=[0, 1, 0, 1])
-            #)
-
             self.status_title.text = "Processing completed"
             self.status_message.text = "Operation successful"
         else:
