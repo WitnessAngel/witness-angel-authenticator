@@ -94,8 +94,7 @@ class MainApp(MDApp):
             device_list_item = Factory.ListItemWithCheckbox(
                 text="[color=#FFFFFF][b]Path:[/b] %s[/color]" % (str(usb["path"])),
                 secondary_text="[color=#FFFFFF][b]Label:[/b] %s[/color]" % (str(usb["label"])),
-                bg_color=[0.1372, 0.2862, 0.5294, 1],
-
+                bg_color=[0.1272, 0.2662, 0.4294, 1],
             )
             device_list_item._onrelease_callback = partial(self.show_authentication_device_info, list_item_index=index)
             device_list_item.bind(on_release=device_list_item._onrelease_callback)
@@ -118,7 +117,7 @@ class MainApp(MDApp):
             key_storage_folder = _get_key_storage_folder_path(self.authentication_device_selected)
             assert key_storage_folder.is_dir()  # By construction...
 
-            object_FilesystemKeyStorage = FilesystemKeyStorage(key_storage_folder)
+            filesystem_key_storage = FilesystemKeyStorage(key_storage_folder)
 
             for i in range(1, GENERATED_KEYS_COUNT+1):
                 #print(">WIP initialize_rsa_key", id)
@@ -126,7 +125,7 @@ class MainApp(MDApp):
                     key_type="RSA_OAEP",
                     passphrase=form_values["passphrase"]
                 )
-                object_FilesystemKeyStorage.set_keys(
+                filesystem_key_storage.set_keys(
                     keychain_uid=generate_uuid0(),
                     key_type="RSA_OAEP",
                     public_key=key_pair["public_key"],
@@ -149,14 +148,28 @@ class MainApp(MDApp):
         self.list_detected_devices()
         return self.screen
 
-    def show_authentication_device_info(self, list_item_obj, list_item_index):
+    def set_form_fields_status(self, enabled):
 
         keygen_panel_ids=self.keygen_panel.ids
-        text_fields = [
+        form_fields = [
             keygen_panel_ids.userfield,
             keygen_panel_ids.passphrasefield,
             keygen_panel_ids.passphrasehintfield,
         ]
+
+        for text_field in form_fields:
+            text_field.focus = False
+            text_field.disabled = not enabled
+            Animation.cancel_all(text_field, "fill_color", "_line_width", "_hint_y", "_hint_lbl_font_size")  # Unfocus triggered an animation, we must disable it
+            if enabled:
+                text_field.fill_color = [1, 1, 1, 0.4]
+                text_field.text = ""  # RESET
+            else:
+                text_field.fill_color = [0.3, 0.3, 0.3, 0.4]
+
+    def show_authentication_device_info(self, list_item_obj, list_item_index):
+
+        keygen_panel_ids=self.keygen_panel.ids
 
         authentication_device_list = self.authentication_device_list
         for i in keygen_panel_ids.scroll.children:
@@ -164,13 +177,6 @@ class MainApp(MDApp):
         list_item_obj.bg_color = [0.6, 0.6, 0.6, 1]
 
         keygen_panel_ids.button_initialize.disabled = False
-
-        for text_field in text_fields:
-            text_field.focus = False
-            text_field.disabled = False
-            Animation.cancel_all(text_field, "fill_color", "_line_width", "_hint_y", "_hint_lbl_font_size")  # Unfocus triggered an animation
-            text_field.fill_color = [1, 1, 1, 0.4]
-            text_field.text = ""
 
         self.status_title = Label(text="")
         self.status_message = Label(text="")
@@ -187,9 +193,7 @@ class MainApp(MDApp):
         if authentication_device["is_initialized"]:
             keygen_panel_ids.button_initialize.disabled = True
 
-            for text_field in text_fields:
-                text_field.disabled = True
-                text_field.fill_color = [0.3, 0.3, 0.3, 0.4]
+            self.set_form_fields_status(enabled=False)
 
             self.status_message = Label(
                 text="To reset the USB key, manually delete the key-storage folder on it"
@@ -203,6 +207,8 @@ class MainApp(MDApp):
                 keygen_panel_ids.passphrasehintfield.text = metadata.get("passphrase_hint", "")
 
         else:
+
+            self.set_form_fields_status(enabled=True)
 
             self.status_message = Label(
                 text="Please fill in the form below to initialize the usb key"
@@ -227,12 +233,17 @@ class MainApp(MDApp):
     def initialize_authentication_device(self, form_values):
         self.status_title.text = "Please wait a few seconds."
         self.status_message.text = "The operation is being processed."
+
         self.keygen_panel.ids.btn_refresh.disabled = True
+
         self.keygen_panel.ids.button_initialize.disabled = True
         self.keygen_panel.ids.passphrasefield.text = "***"  # PRIVACY
+
         for device_list_item in list(self.keygen_panel.ids.scroll.children):
             device_list_item.bg_color=[1, 1, 1, 0.4]
             device_list_item.unbind(on_release=device_list_item._onrelease_callback)
+
+        self.set_form_fields_status(enabled=False)
 
         THREAD_POOL_EXECUTOR.submit(self._offloaded_initialize_rsa_key, form_values=form_values)
 
