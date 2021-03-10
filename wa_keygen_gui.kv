@@ -1,10 +1,10 @@
+
 <ListItemWithCheckbox@ThreeLineIconListItem>:
 
 
+<KeygenPanel@BoxLayout>
 
-<Lists@BoxLayout>
-
-    name: "lists"
+    name: "keygen_panel"
     orientation: "vertical"
 
     canvas.before:
@@ -20,7 +20,7 @@
         anchor_y: 'top'
         size_hint: 1, 0.3
         MDToolbar:
-            title:"Select USB device to initialize with crypto keys"
+            title:"Select USB device to be initialized with crypto keys"
             size_hint: 1, 1
             md_bg_color: [0.1372, 0.2862, 0.5294, 1]
             elevation: 2
@@ -58,7 +58,7 @@
                 size: 150, 50
                 size_hint: None, None
                 on_release:
-                    app.refresh_list()
+                    app.list_detected_devices()
         GridLayout:
             rows:3
             size_hint: 0.4, 0.3
@@ -134,8 +134,6 @@
                     pos: 300,300
 
                     id: errors
-
-
 
             AnchorLayout:
                 padding: [20,20]
