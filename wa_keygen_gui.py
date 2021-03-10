@@ -1,48 +1,33 @@
-import sys, os
-
-#if sys.platform == "win32":
-#    os.environ["KIVY_GL_BACKEND"] = "angle_sdl2"
-
+import os
+import sys
 from concurrent.futures.thread import ThreadPoolExecutor
 from functools import partial
 
-from kivy.core.window import Window
 from kivy.animation import Animation
 from kivy.clock import Clock
+from kivy.core.window import Window
 from kivy.factory import Factory
-from kivy.uix.image import Image
 from kivymd.app import MDApp
-from kivymd.uix.list import IRightBodyTouch, ILeftBody
-from kivymd.uix.selectioncontrol import MDCheckbox
+from kivymd.uix.button import MDFlatButton
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.label import Label
+from kivymd.uix.screen import Screen
+
 from wacryptolib.authentication_device import (
     list_available_authentication_devices,
     initialize_authentication_device,
     _get_key_storage_folder_path, load_authentication_device_metadata,
 )
-from kivymd.uix.button import  MDFlatButton
-from kivymd.uix.screen import Screen
-from kivymd.uix.dialog import MDDialog
-from kivymd.uix.label import Label
 from wacryptolib.key_generation import generate_asymmetric_keypair
 from wacryptolib.key_storage import FilesystemKeyStorage
-
 from wacryptolib.utilities import generate_uuid0
 
-'''
-class MyCheckbox(IRightBodyTouch, MDCheckbox):
-    pass
-
-
-class MyAvatar(ILeftBody, Image):
-    pass
-'''
 
 THREAD_POOL_EXECUTOR = ThreadPoolExecutor(
     max_workers=1, thread_name_prefix="keygen_worker"  # SINGLE worker for now, to avoid concurrency
 )
 
 GENERATED_KEYS_COUNT = 7
-
 
 
 class MainApp(MDApp):
