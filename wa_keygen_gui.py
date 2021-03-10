@@ -91,14 +91,15 @@ class MainApp(MDApp):
         self.authentication_device_list = authentication_device_list
 
         for index, usb in enumerate(authentication_device_list):
-            self.lineCheck = Factory.ListItemWithCheckbox(
+            device_list_item = Factory.ListItemWithCheckbox(
                 text="[color=#FFFFFF][b]Path:[/b] %s[/color]" % (str(usb["path"])),
                 secondary_text="[color=#FFFFFF][b]Label:[/b] %s[/color]" % (str(usb["label"])),
                 bg_color=[0.1372, 0.2862, 0.5294, 1],
 
             )
-            self.lineCheck.bind(on_release=self.get_info_key_selected)
-            self.keygen_panel.ids.scroll.add_widget(self.lineCheck)
+            device_list_item._onrelease_callback = partial(self.get_info_key_selected, list_item_index=index)
+            device_list_item.bind(on_release=device_list_item._onrelease_callback)
+            self.keygen_panel.ids.scroll.add_widget(device_list_item)
         self.screen.add_widget(self.keygen_panel)
 
     def _offloaded_initialize_rsa_key(self, form_values):
@@ -148,7 +149,8 @@ class MainApp(MDApp):
         self.list_detected_devices()
         return self.screen
 
-    def get_info_key_selected(self, linelist):
+    def get_info_key_selected(self, list_item_obj, list_item_index):
+
         list_ids=self.keygen_panel.ids
         text_fields = [
             list_ids.userfield,
@@ -159,7 +161,7 @@ class MainApp(MDApp):
         authentication_device_list = self.authentication_device_list
         for i in list_ids.scroll.children:
             i.bg_color = [0.1372, 0.2862, 0.5294, 1]
-        linelist.bg_color = [0.6, 0.6, 0.6, 1]
+        list_item_obj.bg_color = [0.6, 0.6, 0.6, 1]
 
         list_ids.button_initialize.disabled = False
 
@@ -170,46 +172,47 @@ class MainApp(MDApp):
             text_field.fill_color = [1, 1, 1, 0.4]
             text_field.text = ""
 
-        self.l = Label(text="")
-        self.alertMessage = Label(text="")
+        self.status_title = Label(text="")
+        self.status_message = Label(text="")
         list_ids.labelInfoUsb1.clear_widgets()
         list_ids.label_alert.clear_widgets()
-        list_ids.labelInfoUsb1.add_widget(self.l)
-        list_ids.label_alert.add_widget(self.alertMessage)
-        for index, authentication_device in enumerate(authentication_device_list):
-            if linelist.text == "[color=#FFFFFF][b]Path:[/b] " + str(authentication_device["path"]) + "[/color]":  # FIXME
-                self.authentication_device_selected = authentication_device
-                if authentication_device["is_initialized"]:
-                    list_ids.button_initialize.disabled = True
+        list_ids.labelInfoUsb1.add_widget(self.status_title)
+        list_ids.label_alert.add_widget(self.status_message)
 
-                    for text_field in text_fields:
-                        text_field.disabled = True
-                        text_field.fill_color = [0.3, 0.3, 0.3, 0.4]
+        authentication_device = authentication_device_list[list_item_index]
+        self.authentication_device_selected = authentication_device
 
-                    self.alertMessage = Label(
-                        text="To reset the USB key, manually delete the key-storage folder on it"
-                    )
-                    try:
-                        metadata = load_authentication_device_metadata(authentication_device)
-                    except FileNotFoundError:
-                        pass  # User has removed the key or folder in the meantime...
-                    else:
-                        list_ids.userfield.text = metadata["user"]
-                        list_ids.passphrasehintfield.text = metadata.get("passphrase_hint", "")
+        if authentication_device["is_initialized"]:
+            list_ids.button_initialize.disabled = True
 
-                else:
+            for text_field in text_fields:
+                text_field.disabled = True
+                text_field.fill_color = [0.3, 0.3, 0.3, 0.4]
 
-                    self.alertMessage = Label(
-                        text="Please fill in the form below to initialize the usb key"
-                    )
-                    list_ids.userfield.text = ""
+            self.status_message = Label(
+                text="To reset the USB key, manually delete the key-storage folder on it"
+            )
+            try:
+                metadata = load_authentication_device_metadata(authentication_device)
+            except FileNotFoundError:
+                pass  # User has removed the key or folder in the meantime...
+            else:
+                list_ids.userfield.text = metadata["user"]
+                list_ids.passphrasehintfield.text = metadata.get("passphrase_hint", "")
 
-                self.l = Label(
-                    text="USB key : size %s, fileystem %s, initialized=%s"
-                         % (authentication_device["size"], authentication_device["format"], authentication_device["is_initialized"])
-                )
-                list_ids.labelInfoUsb1.add_widget(self.l)
-                list_ids.label_alert.add_widget(self.alertMessage)
+        else:
+
+            self.status_message = Label(
+                text="Please fill in the form below to initialize the usb key"
+            )
+            list_ids.userfield.text = ""
+
+        self.status_title = Label(
+            text="USB key : size %s, fileystem %s, initialized=%s"
+                 % (authentication_device["size"], authentication_device["format"], authentication_device["is_initialized"])
+        )
+        list_ids.labelInfoUsb1.add_widget(self.status_title)
+        list_ids.label_alert.add_widget(self.status_message)
 
     def update_progress_bar(self, percent):
         #print(">>>>>update_progress_bar")
@@ -220,15 +223,14 @@ class MainApp(MDApp):
         self.keygen_panel.ids.barProgress.value = percent
 
     def initialize(self, form_values):
-        self.l.text = "Please wait a few seconds."
-        self.alertMessage.text = "The operation is being processed."
+        self.status_title.text = "Please wait a few seconds."
+        self.status_message.text = "The operation is being processed."
         self.keygen_panel.ids.btn_refresh.disabled = True
         self.keygen_panel.ids.button_initialize.disabled = True
         self.keygen_panel.ids.passphrasefield.text = "***"  # PRIVACY
-        for c in list(self.keygen_panel.ids.scroll.children):
-            c.bg_color=[1, 1, 1, 0.4]
-        #self.keygen_panel.ids.scroll.bg_color=[1, 0.2862, 0.5294, 1]
-        self.lineCheck.unbind(on_release=self.get_info_key_selected)
+        for device_list_item in list(self.keygen_panel.ids.scroll.children):
+            device_list_item.bg_color=[1, 1, 1, 0.4]
+            device_list_item.unbind(on_release=device_list_item._onrelease_callback)
 
         THREAD_POOL_EXECUTOR.submit(self._offloaded_initialize_rsa_key, form_values=form_values)
 
@@ -242,11 +244,11 @@ class MainApp(MDApp):
             #    Label(text="Initialization successful", font_size="28sp", color=[0, 1, 0, 1])
             #)
 
-            self.l.text = "Processing completed"
-            self.alertMessage.text = "Operation successful"
+            self.status_title.text = "Processing completed"
+            self.status_message.text = "Operation successful"
         else:
-            self.l.text = "Errors occurred"
-            self.alertMessage.text = "Operation failed, check logs"
+            self.status_title.text = "Errors occurred"
+            self.status_message.text = "Operation failed, check logs"
 
 
 def resourcePath():
