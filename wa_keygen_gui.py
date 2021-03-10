@@ -140,7 +140,7 @@ class MainApp(MDApp):
             success = True
 
         except Exception as exc:
-            print(">>>>>>>>>>>>>>>> ERROR IN THREAD", exc)  # FIXME add logging
+            print(">>>>>>>>>> ERROR IN THREAD", exc)  # FIXME add logging
 
         Clock.schedule_once(partial(self.finish_initialization, success=success))
 
