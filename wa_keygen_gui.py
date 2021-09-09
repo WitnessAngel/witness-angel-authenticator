@@ -1,3 +1,4 @@
+
 import os
 import sys
 from concurrent.futures.thread import ThreadPoolExecutor
@@ -148,6 +149,7 @@ class MainApp(MDApp):
 
     def build(self):
 
+        # FIXME - DUPLICATED WITH WAGUILIB NOW
         # Ensure that we don't need to click TWICE to gain focus on Kivy Window and then on widget!
         def force_window_focus(*args, **kwargs):
             Window.raise_window()
