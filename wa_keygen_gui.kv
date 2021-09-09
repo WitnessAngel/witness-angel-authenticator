@@ -2,6 +2,15 @@
 <ListItemWithCheckbox@ThreeLineIconListItem>:
 
 
+<LocalKeyStoreListItem@ThreeLineAvatarListItem>:
+    text: app.tr._("Three-line item with avatar")
+    secondary_text: app.tr._("Secondary text here")
+    tertiary_text: app.tr._("fit more text than usual")
+
+    ImageLeftWidget:
+        icon: "account-check"
+
+
 <KeygenPanel@BoxLayout>
 
     name: "keygen_panel"
@@ -37,10 +46,19 @@
                 id: table
                 size_hint: 1, 1
 
-                MDList:
-                    padding:[20,0,0,0]
+                #MDList:
+                #    padding:[20,0,0,0]
+                #    id: scroll
+                #    #bg_color: [1, 0, 0, 1]
+                MDSelectionList:
                     id: scroll
-                    #bg_color: [1, 0, 0, 1]
+                    selected_mode: True
+                    #spacing: "12dp"
+                    #overlay_color: app.overlay_color[:-1] + [.2]
+                    #icon_bg_color: app.overlay_color
+                    #on_selected: app.on_selected(*args)
+                    #on_unselected: app.on_unselected(*args)
+                    #on_selected_mode: app.set_selection_mode(*args)
 
             FloatLayout:  # what is this?
                 pos:(20, 20)

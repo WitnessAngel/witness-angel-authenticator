@@ -22,7 +22,7 @@ from wacryptolib.authentication_device import (
 from wacryptolib.key_generation import generate_asymmetric_keypair
 from wacryptolib.key_storage import FilesystemKeyStorage
 from wacryptolib.utilities import generate_uuid0
-
+from waguilib.widgets.layout_helpers import activate_widget_debug_outline
 
 THREAD_POOL_EXECUTOR = ThreadPoolExecutor(
     max_workers=1, thread_name_prefix="keygen_worker"  # SINGLE worker for now, to avoid concurrency
@@ -31,7 +31,17 @@ THREAD_POOL_EXECUTOR = ThreadPoolExecutor(
 GENERATED_KEYS_COUNT = 7
 
 
+class A:  # TODO put back translation tooling
+    def _(self, a):
+        return a
+
+
+
+activate_widget_debug_outline()
+
 class MainApp(MDApp):
+
+    tr = A()  # ("en")  # FIXME replace this with real trans
 
     kv_file = "wa_keygen_gui.kv"
     keygen_panel = None
@@ -88,6 +98,9 @@ class MainApp(MDApp):
         self.authentication_device_list = authentication_device_list
 
         first_device_list_item = None
+
+        local_key_store_list_item = Factory.LocalKeyStoreListItem()
+        self.keygen_panel.ids.scroll.add_widget(local_key_store_list_item)
 
         for index, authentication_device in enumerate(authentication_device_list):
             device_list_item = Factory.ListItemWithCheckbox(
