@@ -2,13 +2,38 @@
 <ListItemWithCheckbox@ThreeLineIconListItem>:
 
 
-<LocalKeyStoreListItem@ThreeLineAvatarListItem>:
+<UserKeyStoreListItem@ThreeLineAvatarListItem>:
     text: app.tr._("Three-line item with avatar")
     secondary_text: app.tr._("Secondary text here")
     tertiary_text: app.tr._("fit more text than usual")
 
-    ImageLeftWidget:
-        icon: "account-check"
+    IconLeftWidget:
+        icon: "account-box"
+
+
+
+<MyContainer@IRightBodyTouch+MDRectangleFlatIconButton>:
+    text: app.tr._("Find")
+    icon: "file-find-outline"
+
+
+<FolderKeyStoreListItem@ThreeLineAvatarIconListItem>:
+    text: app.tr._("Three-line item with avatar2")
+    secondary_text: app.tr._("Secondary text here2")
+    tertiary_text: app.tr._("fit more text than usual2")
+
+    on_size:
+        self.ids._right_container.width = mycontainer.width
+        self.ids._right_container.x = mycontainer.width
+        self.ids._right_container.height = mycontainer.height
+        #self.ids._right_container.x = mycontainer.width
+
+    IconLeftWidget:
+        icon: "folder"
+    MyContainer:
+        id: mycontainer
+
+
 
 
 <KeygenPanel@BoxLayout>
@@ -16,12 +41,12 @@
     name: "keygen_panel"
     orientation: "vertical"
 
-    canvas.before:
-        Color:
-            rgba: app.COLORS.DARKEST_BLUE
-        Rectangle:
-            pos: self.pos
-            size: self.size
+    #canvas.before:
+    #    Color:
+    #        rgba: app.COLORS.DARKEST_BLUE
+    #    Rectangle:
+    #        pos: self.pos
+    #        size: self.size
 
     AnchorLayout:
         padding: [0,10]
@@ -31,7 +56,7 @@
         MDToolbar:
             title:"Select USB device to be initialized with crypto keys"
             size_hint: 1, 1
-            md_bg_color: app.COLORS.DARKEST_BLUE
+            #md_bg_color: app.COLORS.DARKEST_BLUE
             elevation: 2
 
     GridLayout:
@@ -50,9 +75,8 @@
                 #    padding:[20,0,0,0]
                 #    id: scroll
                 #    #bg_color: [1, 0, 0, 1]
-                MDSelectionList:
+                MDList:
                     id: scroll
-                    selected_mode: True
                     #spacing: "12dp"
                     #overlay_color: app.overlay_color[:-1] + [.2]
                     #icon_bg_color: app.overlay_color
@@ -71,13 +95,17 @@
 
             Button:
                 id: btn_refresh
-                background_color: app.COLORS.BUTTON_BACKGROUND
-                color: app.COLORS.DARKEST_BLUE
+                #background_color: app.COLORS.BUTTON_BACKGROUND
+                #color: app.COLORS.DARKEST_BLUE
                 text: "Refresh"
                 size: 150, 50
                 size_hint: None, None
                 on_release:
                     app.list_detected_devices()
+            MDRectangleFlatButton:
+                text:"Hello, World"
+                pos_hint: {"center_x": 0.5, "center_y": 0.5}
+
         GridLayout:
             rows:3
             size_hint: 0.4, 0.3
@@ -113,11 +141,11 @@
                     width: 50
                     height: 20
                     color_mode: 'custom'
-                    line_color_focus: app.COLORS.WHITE
+                    #line_color_focus: app.COLORS.WHITE
                     mode: "fill"
                     disabled: True
-                    fill_color: app.COLORS.DARK_GREY
-                    current_hint_text_color: app.COLORS.WHITE
+                    #fill_color: app.COLORS.DARK_GREY
+                    #current_hint_text_color: app.COLORS.WHITE
 
                 MDTextField:
                     id: passphrasefield
@@ -127,11 +155,11 @@
                     #helper_text_mode: 'on_focus'
                     width: 50
                     color_mode: 'custom'
-                    line_color_focus: app.COLORS.WHITE
+                    #line_color_focus: app.COLORS.WHITE
                     mode: "fill"
                     disabled: True
-                    fill_color: app.COLORS.DARK_GREY
-                    current_hint_text_color: app.COLORS.WHITE
+                    #fill_color: app.COLORS.DARK_GREY
+                    #current_hint_text_color: app.COLORS.WHITE
 
                 MDTextField:
                     id: passphrasehintfield
@@ -141,11 +169,11 @@
                     #helper_text_mode: 'on_focus'
                     width: 50
                     color_mode: 'custom'
-                    line_color_focus: app.COLORS.WHITE
+                    #line_color_focus: app.COLORS.WHITE
                     mode: "fill"
                     disabled: True
-                    fill_color: app.COLORS.DARK_GREY
-                    current_hint_text_color: app.COLORS.WHITE
+                    #fill_color: app.COLORS.DARK_GREY
+                    #current_hint_text_color: app.COLORS.WHITE
 
                 AnchorLayout:
                     size_hint: 1, 1
@@ -161,8 +189,8 @@
 
                 Button:
                     id: button_initialize
-                    background_color: app.COLORS.BUTTON_BACKGROUND
-                    color: app.COLORS.DARKEST_BLUE
+                    #background_color: app.COLORS.BUTTON_BACKGROUND
+                    #color: app.COLORS.DARKEST_BLUE
                     text: "Initialize"
                     size: 150, 50
                     size_hint: None, None

@@ -49,7 +49,7 @@ class MainApp(MDApp):
     authentication_device_list = ()
     authentication_device_selected = None
 
-    class COLORS:
+    class COLORS:  # FIXME OBSOLETE
         LIGHT_GREY = [1, 1, 1, 0.4]
         MEDIUM_GREY = [0.6, 0.6, 0.6, 1]
         DARK_GREY = [0.3, 0.3, 0.3, 0.4]
@@ -99,14 +99,17 @@ class MainApp(MDApp):
 
         first_device_list_item = None
 
-        local_key_store_list_item = Factory.LocalKeyStoreListItem()
-        self.keygen_panel.ids.scroll.add_widget(local_key_store_list_item)
+        user_key_store_list_item = Factory.UserKeyStoreListItem()
+        self.keygen_panel.ids.scroll.add_widget(user_key_store_list_item)
+
+        folder_key_store_list_item = Factory.FolderKeyStoreListItem()
+        self.keygen_panel.ids.scroll.add_widget(folder_key_store_list_item)
 
         for index, authentication_device in enumerate(authentication_device_list):
             device_list_item = Factory.ListItemWithCheckbox(
-                text="[color=#FFFFFF][b]Path:[/b] %s[/color]" % (str(authentication_device["path"])),
-                secondary_text="[color=#FFFFFF][b]Label:[/b] %s[/color]" % (str(authentication_device["label"])),
-                bg_color=self.COLORS.DARK_BLUE,
+                text="[b]Path:[/b] %s" % (str(authentication_device["path"])),
+                secondary_text="[b]Label:[/b] %s" % (str(authentication_device["label"])),
+                #bg_color=self.COLORS.DARK_BLUE,
             )
             device_list_item._onrelease_callback = partial(self.show_authentication_device_info, list_item_index=index)
             device_list_item.bind(on_release=device_list_item._onrelease_callback)
@@ -162,6 +165,11 @@ class MainApp(MDApp):
 
     def build(self):
 
+        self.theme_cls.primary_palette = "Blue"
+        #self.theme_cls.theme_style = "Dark"  # "Light"
+        self.theme_cls.primary_hue = "900"  # "500"
+
+
         # FIXME - DUPLICATED WITH WAGUILIB NOW
         # Ensure that we don't need to click TWICE to gain focus on Kivy Window and then on widget!
         def force_window_focus(*args, **kwargs):
@@ -188,10 +196,10 @@ class MainApp(MDApp):
             text_field.disabled = not enabled
             Animation.cancel_all(text_field, "fill_color", "_line_width", "_hint_y", "_hint_lbl_font_size")  # Unfocus triggered an animation, we must disable it
             if enabled:
-                text_field.fill_color = self.COLORS.LIGHT_GREY
+                #text_field.fill_color = self.COLORS.LIGHT_GREY
                 text_field.text = ""  # RESET
             else:
-                text_field.fill_color = self.COLORS.DARK_GREY
+                pass #text_field.fill_color = self.COLORS.DARK_GREY
 
     def show_authentication_device_info(self, list_item_obj, list_item_index):
 
@@ -199,9 +207,9 @@ class MainApp(MDApp):
 
         authentication_device_list = self.authentication_device_list
         for i in keygen_panel_ids.scroll.children:
-            i.bg_color = self.COLORS.DARK_BLUE
+            pass #i.bg_color = self.COLORS.DARK_BLUE
 
-        list_item_obj.bg_color = self.COLORS.MEDIUM_GREY
+        #list_item_obj.bg_color = self.COLORS.MEDIUM_GREY
 
         keygen_panel_ids.button_initialize.disabled = False
 
