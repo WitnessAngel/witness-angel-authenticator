@@ -8,10 +8,12 @@ from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.factory import Factory
+from kivy.metrics import dp
 from kivymd.app import MDApp
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.label import Label
+from kivymd.uix.list import IconLeftWidget
 from kivymd.uix.screen import Screen
 
 from wacryptolib.authentication_device import (
@@ -93,7 +95,7 @@ class MainApp(MDApp):
         self.dialog.dismiss()
 
     def list_detected_devices(self):
-        self.keygen_panel = Factory.KeygenPanel()
+        self.keygen_panel = Factory.IdentityManagementPanel()
         authentication_device_list = list_available_authentication_devices()
         self.authentication_device_list = authentication_device_list
 
@@ -106,11 +108,13 @@ class MainApp(MDApp):
         self.keygen_panel.ids.scroll.add_widget(folder_key_store_list_item)
 
         for index, authentication_device in enumerate(authentication_device_list):
-            device_list_item = Factory.ListItemWithCheckbox(
+            device_list_item = Factory.ThinTwoLineAvatarIconListItem(
                 text="[b]Path:[/b] %s" % (str(authentication_device["path"])),
                 secondary_text="[b]Label:[/b] %s" % (str(authentication_device["label"])),
+                #_height=dp(60),
                 #bg_color=self.COLORS.DARK_BLUE,
             )
+            device_list_item.add_widget(IconLeftWidget(icon="usb-flash-drive"))
             device_list_item._onrelease_callback = partial(self.show_authentication_device_info, list_item_index=index)
             device_list_item.bind(on_release=device_list_item._onrelease_callback)
             self.keygen_panel.ids.scroll.add_widget(device_list_item)
@@ -202,6 +206,7 @@ class MainApp(MDApp):
                 pass #text_field.fill_color = self.COLORS.DARK_GREY
 
     def show_authentication_device_info(self, list_item_obj, list_item_index):
+        return  # TEMPORARY
 
         keygen_panel_ids=self.keygen_panel.ids
 
