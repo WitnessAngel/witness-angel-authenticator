@@ -22,3 +22,5 @@ Or if you're already inside the proper python virtualenv (e.g. in a `poetry shel
 To generate an executable version of the keygen (only tested on Windows)::
 
     $ python -m PyInstaller wa_keygen_gui.spec
+
+    Note that arguments like "--windowed --onefile" are overridden by the content of the spec
