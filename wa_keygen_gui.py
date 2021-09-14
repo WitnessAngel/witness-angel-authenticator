@@ -64,6 +64,18 @@ class MainApp(MDApp):
         self.title = "Witness Angel - WardProject"
         super(MainApp, self).__init__(**kwargs)
 
+    @property
+    def screen_manager(self):
+        if not self.root: return  # Early introspection
+        return self.root
+
+    @property
+    def keyring_selector_screen(self):
+        """Beware, here we lookup not the config file but the in-GUI data!"""
+        if not self.root:
+            return  # Early introspection
+        return self.screen_manager.get_screen("keyring_selector_screen")
+
     def get_form_values(self):
         return dict(user=self.keygen_panel.ids.userfield.text.strip(),
                     passphrase=self.keygen_panel.ids.passphrasefield.text.strip(),
@@ -93,39 +105,13 @@ class MainApp(MDApp):
 
     def close_dialog(self, obj):
         self.dialog.dismiss()
+            #if not first_device_list_item:
+            #    first_device_list_item = device_list_item
 
-    def list_detected_devices(self):
-        self.keygen_panel = Factory.IdentityManagementPanel()
-        authentication_device_list = list_available_authentication_devices()
-        self.authentication_device_list = authentication_device_list
+        #self.screen.add_widget(self.keygen_panel)
 
-        first_device_list_item = None
-
-        user_key_store_list_item = Factory.UserKeyStoreListItem()
-        self.keygen_panel.ids.scroll.add_widget(user_key_store_list_item)
-
-        folder_key_store_list_item = Factory.FolderKeyStoreListItem()
-        self.keygen_panel.ids.scroll.add_widget(folder_key_store_list_item)
-
-        for index, authentication_device in enumerate(authentication_device_list):
-            device_list_item = Factory.ThinTwoLineAvatarIconListItem(
-                text="[b]Path:[/b] %s" % (str(authentication_device["path"])),
-                secondary_text="[b]Label:[/b] %s" % (str(authentication_device["label"])),
-                #_height=dp(60),
-                #bg_color=self.COLORS.DARK_BLUE,
-            )
-            device_list_item.add_widget(IconLeftWidget(icon="usb-flash-drive"))
-            device_list_item._onrelease_callback = partial(self.show_authentication_device_info, list_item_index=index)
-            device_list_item.bind(on_release=device_list_item._onrelease_callback)
-            self.keygen_panel.ids.scroll.add_widget(device_list_item)
-
-            if not first_device_list_item:
-                first_device_list_item = device_list_item
-
-        self.screen.add_widget(self.keygen_panel)
-
-        if first_device_list_item:
-            self.show_authentication_device_info(first_device_list_item, list_item_index=0)
+        #if first_device_list_item:
+        #    self.show_authentication_device_info(first_device_list_item, list_item_index=0)
 
     def _offloaded_initialize_rsa_key(self, form_values):
 
@@ -182,9 +168,9 @@ class MainApp(MDApp):
 
         self.authentication_device_selected = None
         self.orientation = "vertical"
-        self.screen = Screen()
-        self.list_detected_devices()
-        return self.screen
+        #self.screen = Screen()
+        #self.list_detected_devices()
+        #return self.screen
 
     def set_form_fields_status(self, enabled):
 
@@ -211,7 +197,7 @@ class MainApp(MDApp):
         keygen_panel_ids=self.keygen_panel.ids
 
         authentication_device_list = self.authentication_device_list
-        for i in keygen_panel_ids.scroll.children:
+        for i in keygen_panel_ids.authentication_device_list.children:
             pass #i.bg_color = self.COLORS.DARK_BLUE
 
         #list_item_obj.bg_color = self.COLORS.MEDIUM_GREY
@@ -279,7 +265,7 @@ class MainApp(MDApp):
         self.keygen_panel.ids.button_initialize.disabled = True
         self.keygen_panel.ids.passphrasefield.text = "***"  # PRIVACY
 
-        for device_list_item in list(self.keygen_panel.ids.scroll.children):
+        for device_list_item in list(self.keygen_panel.ids.authentication_device_list.children):
             #device_list_item.bg_color=self.COLORS.LIGHT_GREY Nope
             device_list_item.unbind(on_release=device_list_item._onrelease_callback)
 

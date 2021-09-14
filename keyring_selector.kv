@@ -1,0 +1,121 @@
+
+
+<KeyringSelectorScreen>:
+
+    on_pre_enter: root.refresh_keyring_lists()
+
+    MDBoxLayout:
+
+        orientation: "vertical"
+
+        ScrollView:
+            orientation: "vertical"
+
+            MDGridLayout:
+                cols: 1
+
+                MDToolbar:
+                    title: app.tr._("Manage KeyGuardian keyrings")
+                    right_action_items: [["refresh", lambda x: root.refresh_keyring_list()], ["dots-vertical", lambda x: app.callback_1()]]
+
+                ScrollView:
+                    #size_hint: 1, 0.3
+                    #size_hint_max_y: dp(300)
+                    #height: dp(300)
+                    #size_hint_min_y: dp(200)
+                    #size_hint_max_y: dp(300)
+
+                    bar_width: 5
+                    bar_inactive_color: self.bar_color
+
+                    #MDList:
+                    #    padding:[20,0,0,0]
+                    #    id: scroll
+                    #    #bg_color: [1, 0, 0, 1]
+                    MDList:
+                        id: authentication_device_list
+                        #spacing: "12dp"
+                        #overlay_color: app.overlay_color[:-1] + [.2]
+                        #icon_bg_color: app.overlay_color
+                        #on_selected: app.on_selected(*args)
+                        #on_unselected: app.on_unselected(*args)
+                        #on_selected_mode: app.set_selection_mode(*args)
+
+                #ScrollView:
+                #    size_hint: 1, 0.7
+                #    size_hint_max_y: dp(300)
+
+                MDLabel:
+                    id: authentication_device_information
+                    padding: [10,10]
+                    text: "MDLabel\nsdsdsdsdqsd\nqsdqsd\nqsdqsd\nqsdqsdqsd\nqsdqsds\nqsdqsdqd\nqsdqsdqsd\nsddazveg\nzerzerzero\njlfff\nzezerzer\naldjs\nzzzzzzzzzzz\naaaaaaaaaaa\nfffff\nsdkazhazkdz\nMDBOTTOM"
+
+                    halign: "left"
+                    #valign: "top"
+                    #theme_text_color: "Error"
+                    md_bg_color: [1, 0, 0, 1]  #self.theme_cls.bg_dark
+
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+        #canvas.before:
+        #    Color:
+        #        rgba: app.COLORS.DARKEST_BLUE
+        #    Rectangle:
+        #        pos: self.pos
+        #        size: self.size
+
+        #AnchorLayout:
+        #    padding: [0,10]
+        #    anchor_x: 'center'
+        #    anchor_y: 'top'
+        #    size_hint: 1, 0.3
+        #    MDToolbar:
+        #        title:"Select USB device to be initialized with crypto keys"
+        #        size_hint: 1, 1
+        #        #md_bg_color: app.COLORS.DARKEST_BLUE
+        #        elevation: 2
+
+        #GridLayout:
+        #    cols:2
+        #    rows: 3
+        #    GridLayout:
+        #        size_hint: 1, 1
+        #        rows:5
+        #        id: grid
+        #        FloatLayout:  # what is this?
+        #            pos:(20, 20)
+        #            id: barProgressWIP
+        #            size_hint: 1, 0.1
+
+            #AnchorLayout:
+            #    padding: [0, 20, 20, 0]
+            #    size_hint: 0.5, 1
+
+            #    Button:
+            #        id: btn_refresh
+            #        #background_color: app.COLORS.BUTTON_BACKGROUND
+            #        #color: app.COLORS.DARKEST_BLUE
+            #        text: "Refresh"
+            #        size: 150, 50
+            #        size_hint: None, None
+            #        on_release:
+            #            app.list_detected_devices()
+            #    #MDRectangleFlatButton:
+            #    #    text:"Hello, World"
+            #    #    pos_hint: {"center_x": 0.5, "center_y": 0.5}
+
+            #GridLayout:
+            #    rows:3
+            #    size_hint: 0.4, 0.3
+            #    AnchorLayout:
+            #        padding: [20,20]
+            #        size_hint: 0.4, 0.3
+            #        id: status_title_layout
+            #    AnchorLayout:
+            #        padding: [20,20]
+            #        size_hint: 0.4, 0.3
+            #        id: status_message_layout
+
+
