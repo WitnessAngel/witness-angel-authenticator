@@ -191,63 +191,6 @@ class MainApp(MDApp):
             else:
                 pass #text_field.fill_color = self.COLORS.DARK_GREY
 
-    def show_authentication_device_info(self, list_item_obj, list_item_index):
-        return  # TEMPORARY
-
-        keygen_panel_ids=self.keygen_panel.ids
-
-        authentication_device_list = self.authentication_device_list
-        for i in keygen_panel_ids.authentication_device_list.children:
-            pass #i.bg_color = self.COLORS.DARK_BLUE
-
-        #list_item_obj.bg_color = self.COLORS.MEDIUM_GREY
-
-        keygen_panel_ids.button_initialize.disabled = False
-
-        self.status_title = Label(text="")
-        self.status_message = Label(text="")
-
-        keygen_panel_ids.status_title_layout.clear_widgets()
-        keygen_panel_ids.status_title_layout.add_widget(self.status_title)
-
-        keygen_panel_ids.status_message_layout.clear_widgets()
-        keygen_panel_ids.status_message_layout.add_widget(self.status_message)
-
-        authentication_device = authentication_device_list[list_item_index]
-        self.authentication_device_selected = authentication_device
-
-        if authentication_device["is_initialized"]:
-            keygen_panel_ids.button_initialize.disabled = True
-
-            self.set_form_fields_status(enabled=False)
-
-            self.status_message = Label(
-                text="To reset the USB key, manually delete the key-storage folder on it"
-            )
-            try:
-                metadata = load_authentication_device_metadata(authentication_device)
-            except FileNotFoundError:
-                pass  # User has removed the key or folder in the meantime...
-            else:
-                keygen_panel_ids.userfield.text = metadata["user"]
-                keygen_panel_ids.passphrasehintfield.text = metadata.get("passphrase_hint", "")
-
-        else:
-
-            self.set_form_fields_status(enabled=True)
-
-            self.status_message = Label(
-                text="Please fill in the form below to initialize the usb key"
-            )
-            keygen_panel_ids.userfield.text = ""
-
-        self.status_title = Label(
-            text="USB key : size %s, fileystem %s, initialized=%s"
-                 % (authentication_device["size"], authentication_device["format"], authentication_device["is_initialized"])
-        )
-        keygen_panel_ids.status_title_layout.add_widget(self.status_title)
-        keygen_panel_ids.status_message_layout.add_widget(self.status_message)
-
     def update_progress_bar(self, percent):
         #print(">>>>>update_progress_bar")
         Clock.schedule_once(partial(self._do_update_progress_bar, percent))
