@@ -1,5 +1,6 @@
 import logging
 from enum import Enum, unique
+from textwrap import dedent
 
 from functools import partial
 
@@ -9,7 +10,7 @@ from pathlib import Path
 
 from kivy.factory import Factory
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, BooleanProperty
 from kivy.uix import boxlayout
 from kivy.uix.screenmanager import Screen
 from kivy.uix.button import Button
@@ -30,7 +31,11 @@ from kivymd.uix.list import OneLineIconListItem, MDList, IconLeftWidget
 from kivymd.uix.screen import Screen
 from kivymd.uix.snackbar import Snackbar
 
-from wacryptolib.authentication_device import list_available_authentication_devices
+from wacryptolib.authentication_device import list_available_authentication_devices, \
+    get_authenticator_path_for_authentication_device
+from wacryptolib.authenticator import is_authenticator_initialized, load_authenticator_metadata
+from waguilib.importable_settings import INTERNAL_AUTHENTICATOR_DIR
+from waguilib.utilities import convert_bytes_to_human_representation
 
 Builder.load_file(str(Path(__file__).parent / 'keyring_selector.kv'))
 
@@ -44,11 +49,12 @@ class KeyringType(Enum):
 
 class KeyringSelectorScreen(Screen):
 
-    keyring_list_entries = None  # Pairs (widget, metadata)
+    ##keyring_list_entries = None  # Pairs (widget, metadata)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         Clock.schedule_once(lambda *args, **kwargs: self.refresh_keyring_list())
+        self._app = MDApp.get_running_app()
 
 
     def refresh_keyring_list(self):
@@ -75,9 +81,13 @@ class KeyringSelectorScreen(Screen):
 
 
         for index, authentication_device in enumerate(authentication_device_list):
+
+            device_size = convert_bytes_to_human_representation(authentication_device["size"])
+            filesystem = authentication_device["format"].upper()
+
             keyring_widget = Factory.ThinTwoLineAvatarIconListItem(
-                text="[b]Path:[/b] %s" % (str(authentication_device["path"])),
-                secondary_text="[b]Label:[/b] %s" % (str(authentication_device["label"])),
+                text="[b]Drive:[/b] %s (%s)" % (authentication_device["path"], authentication_device["label"]),
+                secondary_text="Size: %s, Filesystem: %s" % (device_size, filesystem),
                 #_height=dp(60),
                 #bg_color=self.COLORS.DARK_BLUE,
             )
@@ -93,11 +103,20 @@ class KeyringSelectorScreen(Screen):
             authentication_device_list_widget.add_widget(keyring_widget)
 
 
+    authenticator_status = BooleanProperty(None)
+    authenticator_status_message = StringProperty()
+
+    AUTHENTICATOR_INITIALIZATION_STATUS_ICONS = {
+        True: "check-circle-outline",  # or check-bold
+        False: "checkbox-blank-off-outline",
+        None: "file-question-outline",
+    }
+
     def display_keyring_info(self, keyring_widget, keyring_metadata): ##list_item_obj, list_item_index):
 
         print(">>>>> IN refresh_keyring_list")
 
-        authentication_device_list_widget = self.ids.authentication_device_list
+        authentication_device_list_widget = self.ids.authentication_device_list  # FIXME rename to authenticator
 
         for child in authentication_device_list_widget.children:
             assert hasattr(child, "opposite_colors"), child
@@ -105,9 +124,52 @@ class KeyringSelectorScreen(Screen):
         print(">>>keyring_widget", keyring_widget.bg_color)
         keyring_widget.bg_color = keyring_widget.theme_cls.bg_darkest
 
-        textarea = self.ids.authentication_device_information
+        keyring_type = keyring_metadata["keyring_type"]
 
-        textarea.text = str(keyring_metadata)
+
+        authenticator_info_text = ""
+
+        authenticator_path = ""
+
+        if keyring_type == KeyringType.USER_PROFILE:
+            authenticator_path = INTERNAL_AUTHENTICATOR_DIR
+
+        elif keyring_type == KeyringType.CUSTOM_FOLDER:
+            pass  # TODO
+
+        else:
+            assert keyring_type == KeyringType.USB_DEVICE
+
+            authenticator_path = get_authenticator_path_for_authentication_device(keyring_metadata)
+
+        # FIXMe handle OS errors here
+        if not authenticator_path:
+            authenticator_info_text = self._app.tr._("Please select an authenticator folder")
+
+        elif not is_authenticator_initialized(authenticator_path):
+            authenticator_info_text = self._app.tr._("Authenticator is not initialized\nFull path: %s") % authenticator_path
+
+        elif is_authenticator_initialized(authenticator_path):
+
+            authenticator_metadata = load_authenticator_metadata(authenticator_path)
+
+            displayed_values = dict(
+                authenticator_path=authenticator_path,
+                authenticator_uid=authenticator_metadata["device_uid"],
+                authenticator_user=authenticator_metadata["user"],
+                authenticator_passphrase_hint=authenticator_metadata["passphrase_hint"],
+            )
+
+            authenticator_info_text = dedent(self._app.tr._("""\
+                AUTHENTICATOR INFORMATION
+                ID: {authenticator_uid}
+                Full path: {authenticator_path}
+                User: {authenticator_user}
+                Password hint: {authenticator_passphrase_hint}
+            """)).format(**displayed_values)
+
+        textarea = self.ids.authentication_device_information
+        textarea.text = authenticator_info_text
 
         """
         keygen_panel_ids=self.keygen_panel.ids

@@ -16,7 +16,7 @@
 
                 MDToolbar:
                     title: app.tr._("Manage KeyGuardian keyrings")
-                    right_action_items: [["refresh", lambda x: root.refresh_keyring_list()], ["dots-vertical", lambda x: app.callback_1()]]
+                    right_action_items: [["refresh", lambda x: root.refresh_keyring_list()]]  # ["dots-vertical", lambda x: app.callback_1()]
 
                 ScrollView:
                     #size_hint: 1, 0.3
@@ -45,19 +45,41 @@
                 #    size_hint: 1, 0.7
                 #    size_hint_max_y: dp(300)
 
-                MDLabel:
-                    id: authentication_device_information
-                    padding: [10,10]
-                    text: "MDLabel\nsdsdsdsdqsd\nqsdqsd\nqsdqsd\nqsdqsdqsd\nqsdqsds\nqsdqsdqd\nqsdqsdqsd\nsddazveg\nzerzerzero\njlfff\nzezerzer\naldjs\nzzzzzzzzzzz\naaaaaaaaaaa\nfffff\nsdkazhazkdz\nMDBOTTOM"
-
-                    halign: "left"
-                    #valign: "top"
-                    #theme_text_color: "Error"
-                    md_bg_color: [1, 0, 0, 1]  #self.theme_cls.bg_dark
-
+                MDBoxLayout:
+                    height: dp(30)
                     size_hint_y: None
-                    text_size: self.width, None
-                    height: self.texture_size[1]
+
+                    md_bg_color: [1, 0, 0, 1]
+
+                    MDIcon:
+                        icon: root.AUTHENTICATOR_INITIALIZATION_STATUS_ICONS[root.authenticator_status] # "language-python"
+                        halign: "center"
+                        width: dp(90)
+                        size_hint_x: None
+
+                    MDLabel:
+                        text: root.authenticator_status_message or "No authenticator selected"
+                        halign: "center"
+
+                ScrollView:
+                    id: scrlv
+                    TextInput:  #MDLabel:
+                        id: authentication_device_information
+                        readonly: True
+                        padding: [10,10]
+                        text: "MDLabel\nsdsdsdsdqsd\nqsdqsd\nqsdqsd\nqsdqsdqsd\nqsdqsds\nqsdqsdqd\nqsdqsdqsd\nsddazveg\nzerzerzero\njlfff\nzezerzer\naldjs\nzzzzzzzzzzz\naaaaaaaaaaa\nfffff\nsdkazhazkdz\nMDBOTTOM"
+
+                        halign: "left"
+                        #valign: "top"
+                        #theme_text_color: "Error"
+                        md_bg_color: app.theme_cls.bg_darkest
+
+                        #size_hint_y: None
+                        #height: dp(150)
+                        #text_size: self.width, None
+                        #height: self.texture_size[1]
+                        size_hint: 1, None
+                        height: max( (len(self._lines)+1) * self.line_height, scrlv.height)
 
         #canvas.before:
         #    Color:
