@@ -51,11 +51,43 @@ class KeyringSelectorScreen(Screen):
 
     ##keyring_list_entries = None  # Pairs (widget, metadata)
 
+    # Used to reselect same entry after e.g. a refresh
+    previously_selected_authenticator_path = None
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         Clock.schedule_once(lambda *args, **kwargs: self.refresh_keyring_list())
         self._app = MDApp.get_running_app()
 
+    def _get_authenticator_path(self,keyring_metadata):
+        authenticator_path = INTERNAL_AUTHENTICATOR_DIR
+        keyring_type = keyring_metadata["keyring_type"]
+        if keyring_type == KeyringType.USER_PROFILE:
+            authenticator_path = INTERNAL_AUTHENTICATOR_DIR
+        elif keyring_type == KeyringType.CUSTOM_FOLDER:
+            authenticator_path = None  # TODO
+        else:
+            assert keyring_type == KeyringType.USB_DEVICE
+            authenticator_path = get_authenticator_path_for_authentication_device(keyring_metadata)
+        return authenticator_path
+
+    def reselect_previously_selected_authenticator(self):
+        print(">>>>> IN reselect_previously_selected_authenticator")
+        previously_selected_authenticator_path = self.previously_selected_authenticator_path
+        if previously_selected_authenticator_path:
+            result = self._select_matching_authenticator_entry(previously_selected_authenticator_path)
+            if not result:
+                self.previously_selected_authenticator_path = None  # RESET since no entry matches this anymore
+
+    def _select_matching_authenticator_entry(self, authenticator_path):
+        print(">>>>> IN _select_matching_authenticator_entry")
+        authentication_device_list_widget = self.ids.authentication_device_list
+        for authenticator_widget in authentication_device_list_widget.children:
+            target_authenticator_path = self._get_authenticator_path(authenticator_widget._keyring_metadata)
+            if target_authenticator_path == authenticator_path:
+                authenticator_widget._onrelease_callback(authenticator_widget)
+                return True
+        return False
 
     def refresh_keyring_list(self):
         #return
@@ -98,9 +130,12 @@ class KeyringSelectorScreen(Screen):
             #####device_list_item.bind(on_release=device_list_item._onrelease_callback)
 
         for (keyring_widget, keyring_metadata) in keyring_list_entries:
+            keyring_widget._keyring_metadata = keyring_metadata
             keyring_widget._onrelease_callback = partial(self.display_keyring_info, keyring_metadata=keyring_metadata)
             keyring_widget.bind(on_release=keyring_widget._onrelease_callback)
             authentication_device_list_widget.add_widget(keyring_widget)
+
+        self.reselect_previously_selected_authenticator()  # Preserve previous selection across refreshes
 
 
     authenticator_status = BooleanProperty(None)
@@ -124,23 +159,24 @@ class KeyringSelectorScreen(Screen):
         print(">>>keyring_widget", keyring_widget.bg_color)
         keyring_widget.bg_color = keyring_widget.theme_cls.bg_darkest
 
-        keyring_type = keyring_metadata["keyring_type"]
+        #keyring_type = keyring_metadata["keyring_type"]
 
 
         authenticator_info_text = ""
 
-        authenticator_path = ""
+        authenticator_path = self._get_authenticator_path(keyring_metadata)
 
+        '''
         if keyring_type == KeyringType.USER_PROFILE:
-            authenticator_path = INTERNAL_AUTHENTICATOR_DIR
+            pass
 
         elif keyring_type == KeyringType.CUSTOM_FOLDER:
             pass  # TODO
 
         else:
             assert keyring_type == KeyringType.USB_DEVICE
-
             authenticator_path = get_authenticator_path_for_authentication_device(keyring_metadata)
+            '''
 
         # FIXMe handle OS errors here
         if not authenticator_path:
@@ -170,6 +206,8 @@ class KeyringSelectorScreen(Screen):
 
         textarea = self.ids.authentication_device_information
         textarea.text = authenticator_info_text
+
+        self.previously_selected_authenticator_path = authenticator_path  # Might be None
 
         """
         keygen_panel_ids=self.keygen_panel.ids
