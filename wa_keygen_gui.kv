@@ -21,15 +21,16 @@
 <FolderKeyStoreListItem@ThinTwoLineAvatarIconListItem>:
     #_height: dp(60)
 
-    text: app.tr._("Three-line item with avatar2")
-    secondary_text: app.tr._("Secondary text here2")
+    selected_path: None
+    text: app.tr._("Custom authenticator folder")
+    secondary_text: str(self.selected_path) or app.tr._("Please select a folder")
     #tertiary_text: app.tr._("fit more text than usual2")
 
     on_size:
         self.ids._right_container.width = mycontainer.width
         self.ids._right_container.x = mycontainer.width
         self.ids._right_container.height = mycontainer.height
-        #self.ids._right_container.x = mycontainer.width
+        self.ids._right_container.y = root.y + root.height/2 - mycontainer.height/2 - dp(10)
 
     IconLeftWidget:
         icon: "folder"
