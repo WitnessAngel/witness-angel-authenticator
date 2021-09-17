@@ -114,6 +114,23 @@
                         size_hint: 1, None
                         height: max( (len(self._lines)+1) * self.line_height, scrlv.height)
 
+                MDGridLayout:
+                    id: authenticator_actions
+                    cols: 2
+                    adaptive_height: True
+                    size_hint_x: 1
+
+                    MDRectangleFlatIconButton:
+                        icon: "android"
+                        text: "button1"
+                        size_hint_x: 1
+                        on_press: root.manager.current = "authenticator_creation_screen"
+
+                    MDRectangleFlatIconButton:
+                        icon: "android"
+                        text: "button2"
+                        size_hint_x: 1
+
         #canvas.before:
         #    Color:
         #        rgba: app.COLORS.DARKEST_BLUE
