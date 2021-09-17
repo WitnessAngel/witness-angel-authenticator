@@ -152,7 +152,7 @@ class KeyringSelectorScreen(Screen):
         ##def set_child_selected_path(p):
         ##    folder_keyring_widget.selected_path = str(p)
         self.bind(_selected_custom_folder_path=folder_keyring_widget.setter('selected_path'))
-        folder_keyring_widget.ids.mycontainer.bind(on_press=self.file_manager_open)  #
+        folder_keyring_widget.ids.open_folder_btn.bind(on_press=self.file_manager_open)  #
         keyring_list_entries.append((folder_keyring_widget, dict(keyring_type=KeyringType.CUSTOM_FOLDER)))
 
 
