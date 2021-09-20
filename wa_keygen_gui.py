@@ -48,7 +48,7 @@ class MainApp(MDApp):
     kv_file = "wa_keygen_gui.kv"
     keygen_panel = None
 
-    authentication_device_list = ()
+    #authentication_device_list = ()
     authentication_device_selected = None
 
     class COLORS:  # FIXME OBSOLETE
@@ -77,9 +77,9 @@ class MainApp(MDApp):
         return self.screen_manager.get_screen("keyring_selector_screen")
 
     def get_form_values(self):
-        return dict(user=self.keygen_panel.ids.userfield.text.strip(),
-                    passphrase=self.keygen_panel.ids.passphrasefield.text.strip(),
-                    passphrase_hint=self.keygen_panel.ids.passphrasehintfield.text.strip())
+        return dict(user=self.keygen_panel.ids.formfield_username.text.strip(),
+                    passphrase=self.keygen_panel.ids.formfield_passphrase.text.strip(),
+                    passphrase_hint=self.keygen_panel.ids.formfield_passphrasehint.text.strip())
 
     def show_validate(self):
 
@@ -91,7 +91,7 @@ class MainApp(MDApp):
         if all(form_values.values()):
             self.initialize_authentication_device(form_values=form_values)
         else:
-            user_error = "Please enter a username, passphrase and passphrase_hint."
+            user_error = "Please enter a username, passphrase and passphrase hint."
             self.open_dialog(user_error)
 
     def open_dialog(self, main_text, title_dialog="Please fill in empty fields"):
@@ -176,9 +176,9 @@ class MainApp(MDApp):
 
         keygen_panel_ids=self.keygen_panel.ids
         form_fields = [
-            keygen_panel_ids.userfield,
-            keygen_panel_ids.passphrasefield,
-            keygen_panel_ids.passphrasehintfield,
+            keygen_panel_ids.formfield_username,
+            keygen_panel_ids.formfield_passphrase,
+            keygen_panel_ids.formfield_passphrasehint,
         ]
 
         for text_field in form_fields:
@@ -206,7 +206,7 @@ class MainApp(MDApp):
         self.keygen_panel.ids.btn_refresh.disabled = True
 
         self.keygen_panel.ids.button_initialize.disabled = True
-        self.keygen_panel.ids.passphrasefield.text = "***"  # PRIVACY
+        self.keygen_panel.ids.formfield_passphrase.text = "***"  # PRIVACY
 
         for device_list_item in list(self.keygen_panel.ids.authentication_device_list.children):
             #device_list_item.bg_color=self.COLORS.LIGHT_GREY Nope

@@ -133,7 +133,7 @@ class KeyringSelectorScreen(Screen):
         print(">>>>> IN refresh_keyring_list")
 
         authentication_device_list = list_available_authentication_devices()  # TODO rename to usb devices?
-        self.authentication_device_list = authentication_device_list
+        #self.authentication_device_list = authentication_device_list
 
         #first_device_list_item = None
 
