@@ -26,7 +26,7 @@
         self.ids._right_container.width = open_folder_btn.width
         self.ids._right_container.x = open_folder_btn.width
         self.ids._right_container.height = open_folder_btn.height
-        self.ids._right_container.y = root.y + root.height/2 - open_folder_btn.height/2 - dp(10)
+        self.ids._right_container.y = root.y + root.height/2 - open_folder_btn.height/2 # - dp(10)
 
     IconLeftWidget:
         icon: "folder"
@@ -35,7 +35,7 @@
 
 <KeyringSelectorScreen>:
 
-    on_pre_enter: root.refresh_keyring_lists()
+    on_pre_enter: root.refresh_keyring_list()
 
     MDBoxLayout:
 
@@ -116,10 +116,35 @@
                         height: max( (len(self._lines)+1) * self.line_height, scrlv.height)
 
                 MDGridLayout:
-                    id: authenticator_actions
-                    cols: 2
-                    adaptive_height: True
+                    id: authenticator_actions_create
+                    cols: 3
+                    ###adaptive_height: True if root.authenticator_status else False
                     size_hint_x: 1
+                    size_hint_y: None
+                    height: self.minimum_height if not root.authenticator_status else 0
+                    disabled: root.authenticator_status
+                    opacity: 0 if root.authenticator_status else 1
+
+                    Widget:
+
+                    MDRectangleFlatIconButton:
+                        anchor_x: "right"
+                        halign: "center"
+                        icon: "account-key-outline"
+                        text: "Initialize"
+                        size_hint_x: 1
+                        on_press: root.manager.current = "authenticator_creation_screen"
+
+                    Widget:
+
+                MDGridLayout:
+                    id: authenticator_actions_modify
+                    cols: 2
+                    size_hint_x: 1
+                    size_hint_y: None
+                    height: self.minimum_height if root.authenticator_status else 0
+                    disabled: not root.authenticator_status
+                    opacity: 1 if root.authenticator_status else 0
 
                     MDRectangleFlatIconButton:
                         icon: "android"

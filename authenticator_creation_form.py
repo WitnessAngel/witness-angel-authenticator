@@ -20,4 +20,6 @@ Builder.load_file(str(Path(__file__).parent / 'authenticator_creation_form.kv'))
 
 
 class AuthenticatorCreationScreen(Screen):
-    pass
+
+    def go_to_home_screen(self):
+        self.manager.current = "keyring_selector_screen"

@@ -1,11 +1,12 @@
 #:import KeyringSelectorScreen keyring_selector.KeyringSelectorScreen
 #:import AuthenticatorCreationScreen authenticator_creation_form.AuthenticatorCreationScreen
-
+# #:import SwapTransition kivy.uix.screenmanager.SwapTransition
 
 
 ScreenManager:
 
     id: screen_manager
+    #transition: SwapTransition()
 
     KeyringSelectorScreen:
         name: "keyring_selector_screen"
