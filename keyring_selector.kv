@@ -3,8 +3,8 @@
     _height: dp(60)
 
 <UserKeyStoreListItem@ThinTwoLineAvatarIconListItem>:
-    text: app.tr._("Three-line item with avatar")
-    secondary_text: app.tr._("Secondary text here")
+    text: app.tr._("User Profile")
+    secondary_text: app.tr._("Stored inside system disk")
     #tertiary_text: app.tr._("fit more text than usual")
 
     IconLeftWidget:
@@ -18,7 +18,7 @@
     #_height: dp(60)
 
     selected_path: None
-    text: app.tr._("Custom authenticator folder")
+    text: app.tr._("Custom authenticator location")
     secondary_text: str(self.selected_path) if self.selected_path else app.tr._("Please select a folder")
     #tertiary_text: app.tr._("fit more text than usual2")
 
@@ -48,7 +48,7 @@
                 cols: 1
 
                 MDToolbar:
-                    title: app.tr._("Manage KeyGuardian keyrings")
+                    title: app.tr._("Manage Authenticators")
                     right_action_items: [["refresh", lambda x: root.refresh_keyring_list()]]  # ["dots-vertical", lambda x: app.callback_1()]
 
                 ScrollView:
@@ -82,7 +82,8 @@
                     height: dp(30)
                     size_hint_y: None
 
-                    md_bg_color: [1, 0, 0, 1]
+                    #md_bg_color: [1, 0, 0, 1]
+                    md_bg_color: app.theme_cls.bg_darkest
 
                     MDIcon:
                         icon: root.AUTHENTICATOR_INITIALIZATION_STATUS_ICONS[root.authenticator_status] # "language-python"
@@ -91,7 +92,7 @@
                         size_hint_x: None
 
                     MDLabel:
-                        text: root.authenticator_status_message or "No authenticator selected"
+                        text: root.get_authenticator_status_message(root.authenticator_status)
                         halign: "center"
 
                 ScrollView:

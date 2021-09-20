@@ -182,14 +182,23 @@ class KeyringSelectorScreen(Screen):
         self.reselect_previously_selected_authenticator()  # Preserve previous selection across refreshes
 
 
-    authenticator_status = BooleanProperty(None)
-    authenticator_status_message = StringProperty()
+    authenticator_status = ObjectProperty(None, allownone=True)
+    ###authenticator_status_message = StringProperty()
 
     AUTHENTICATOR_INITIALIZATION_STATUS_ICONS = {
         True: "check-circle-outline",  # or check-bold
         False: "checkbox-blank-off-outline",
         None: "file-question-outline",
     }
+
+    def get_authenticator_status_message(self, authenticator_status):
+        _ = self._app.tr._
+        if authenticator_status is None:
+            return _("No valid authenticator location selected")
+        elif not authenticator_status:
+            return _("Authenticator is not yet initialized")
+        else:
+            return _("Authenticator is initialized")
 
     def display_keyring_info(self, keyring_widget, keyring_metadata): ##list_item_obj, list_item_index):
 
@@ -225,15 +234,18 @@ class KeyringSelectorScreen(Screen):
         # FIXMe handle OS errors here
         if not authenticator_path:
             authenticator_info_text = self._app.tr._("Please select an authenticator folder")
+            authenticator_status = None
 
         elif not authenticator_path.exists():
             authenticator_info_text = self._app.tr._("Selected authenticator folder is invalid\nFull path: %s" % authenticator_path)
+            authenticator_status = None
 
         elif not is_authenticator_initialized(authenticator_path):
-            authenticator_info_text = self._app.tr._("Authenticator is not initialized\nFull path: %s") % authenticator_path
+            authenticator_info_text = self._app.tr._("Full path: %s") % authenticator_path
+            authenticator_status = False
 
         elif is_authenticator_initialized(authenticator_path):
-
+            authenticator_status = True
             authenticator_metadata = load_authenticator_metadata(authenticator_path)
 
             displayed_values = dict(
@@ -255,6 +267,7 @@ class KeyringSelectorScreen(Screen):
         textarea.text = authenticator_info_text
 
         self._selected_authenticator_path = authenticator_path  # Might be None
+        self.authenticator_status = authenticator_status
 
         """
         keygen_panel_ids=self.keygen_panel.ids
