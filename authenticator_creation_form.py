@@ -70,6 +70,7 @@ class AuthenticatorCreationScreen(Screen):
         self.ids.button_initialize.disabled = False
         self.operation_status = ""
         self._do_update_progress_bar(0)
+        self.ids.initialization_form_toolbar.disabled = False
 
     def get_form_values(self):
         return dict(user=self.ids.formfield_username.text.strip(),
@@ -104,6 +105,7 @@ class AuthenticatorCreationScreen(Screen):
     def open_dialog(self, text, title, on_release=None):
         on_release = on_release or self.close_dialog
         self._dialog = MDDialog(
+            auto_dismiss=False,
             title=title,
             text=text,
             #size_hint=(0.8, 1),
@@ -210,6 +212,7 @@ class AuthenticatorCreationScreen(Screen):
             #device_list_item.unbind(on_release=device_list_item._onrelease_callback)
 
         self.set_form_fields_status(enabled=False)
+        self.ids.initialization_form_toolbar.disabled = True
 
         THREAD_POOL_EXECUTOR.submit(self._offloaded_initialize_authenticator,
                                     form_values=form_values,
