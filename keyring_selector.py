@@ -398,11 +398,30 @@ class KeyringSelectorScreen(Screen):
         _ = self._app.tr._
         passphrase = self._dialog.content_cls.ids.tester_passphrase.text
         self.close_dialog()
-        result = self._test_authenticator_password(authenticator_path=authenticator_path, passphrase=passphrase)
+        result_dict = self._test_authenticator_password(authenticator_path=authenticator_path, passphrase=passphrase)
+
+        keypair_count= result_dict["keypair_count"]
+        missing_private_keys = result_dict["missing_private_keys"]
+        undecodable_private_keys = result_dict["undecodable_private_keys"]
+
+        def shorten_uid(uid):
+            return "..." + str(uid).split("-")[-1]
+
+        if keypair_count and not missing_private_keys and not undecodable_private_keys:
+            result = _("Success")
+            details = _("Keypairs successfully tested: %s") % keypair_count
+        else:
+            result = _("Failure")
+            missing_private_keys_cast = [shorten_uid(k) for k in missing_private_keys]
+            undecodable_private_keys_cast = [shorten_uid(k) for k in undecodable_private_keys]
+            details = (_("Keypairs tested: %s\nMissing private keys: %s\nWrong passphrase: %s") %
+                        (keypair_count, missing_private_keys_cast, undecodable_private_keys_cast))
+
+
         MDDialog(
-             auto_dismiss=True,
-                title=_("Checkup result"),
-                text=_("Result: %s") % str(result),
+            auto_dismiss=True,
+            title=_("Checkup result: %s") % result,
+            text=details,
             ).open()
 
     def _test_authenticator_password(self, authenticator_path, passphrase):
