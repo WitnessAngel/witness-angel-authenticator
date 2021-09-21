@@ -33,6 +33,20 @@
     OpenFolderButton:
         id: open_folder_btn
 
+
+<AuthenticatorTesterContent@MDBoxLayout>
+    orientation: "vertical"
+    spacing: "12dp"
+    size_hint_y: None
+    height: "80dp"
+
+    MDLabel:
+        text: app.tr._("Test integrity and passphrase of authenticator.")
+    MDTextField:
+        id: tester_passphrase
+        hint_text: app.tr._("Passphrase")
+
+
 <KeyringSelectorScreen>:
 
     on_pre_enter: root.refresh_keyring_list()
@@ -153,9 +167,10 @@
                         on_press: root.show_authenticator_destroy_confirmation_dialog()
 
                     MDRectangleFlatIconButton:
-                        icon: "android"
-                        text: "button2"
+                        icon: "crosshairs-question"
+                        text: "Check"
                         size_hint_x: 1
+                        on_press: root.show_checkup_dialog()
 
         #canvas.before:
         #    Color:

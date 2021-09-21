@@ -36,6 +36,9 @@ from kivymd.uix.snackbar import Snackbar
 from wacryptolib.authentication_device import list_available_authentication_devices, \
     get_authenticator_path_for_authentication_device
 from wacryptolib.authenticator import is_authenticator_initialized, load_authenticator_metadata
+from wacryptolib.exceptions import KeyLoadingError
+from wacryptolib.key_generation import load_asymmetric_key_from_pem_bytestring
+from wacryptolib.key_storage import FilesystemKeyStorage
 from wacryptolib.utilities import get_metadata_file_path
 from waguilib.importable_settings import INTERNAL_AUTHENTICATOR_DIR, EXTERNAL_APP_ROOT
 from waguilib.utilities import convert_bytes_to_human_representation
@@ -351,7 +354,7 @@ class KeyringSelectorScreen(Screen):
             text=_("Beware, it will make all encrypted data using these keys impossible to read."),
             #size_hint=(0.8, 1),
             buttons=[MDFlatButton(text="I'm sure", on_release=lambda *args: self.close_dialog_and_destroy_authenticator(authenticator_path)),
-                     MDFlatButton(text="Cancel", on_release=lambda *args: self._dialog.dismiss())],
+                     MDFlatButton(text="Cancel", on_release=lambda *args: self.close_dialog())],
         )
         self._dialog.open()
 
@@ -376,5 +379,57 @@ class KeyringSelectorScreen(Screen):
         self.close_dialog()
         print("IN close_dialog_and_destroy_authenticator")
         self._delete_authenticator_data(authenticator_path=authenticator_path)
+
+    def show_checkup_dialog(self):
+        _ = self._app.tr._
+        authenticator_path = self._selected_authenticator_path
+        self._dialog = MDDialog(
+            auto_dismiss=True,
+            title=_("Sanity check"),
+            type="custom",
+            content_cls=Factory.AuthenticatorTesterContent(),
+            #size_hint=(0.8, 1),
+            buttons=[MDFlatButton(text="Check", on_release=lambda *args: self.close_dialog_and_check_authenticator(authenticator_path)),
+                     MDFlatButton(text="Cancel", on_release=lambda *args: self.close_dialog())],
+        )
+        self._dialog.open()
+
+    def close_dialog_and_check_authenticator(self, authenticator_path):
+        _ = self._app.tr._
+        passphrase = self._dialog.content_cls.ids.tester_passphrase.text
+        self.close_dialog()
+        result = self._test_authenticator_password(authenticator_path=authenticator_path, passphrase=passphrase)
+        MDDialog(
+             auto_dismiss=True,
+                title=_("Checkup result"),
+                text=_("Result: %s") % str(result),
+            ).open()
+
+    def _test_authenticator_password(self, authenticator_path, passphrase):
+        filesystem_key_storage = FilesystemKeyStorage(authenticator_path)
+
+        missing_private_keys = []
+        undecodable_private_keys = []
+
+        keypair_identifiers = filesystem_key_storage.list_keypair_identifiers()
+
+        for key_information in keypair_identifiers:
+            keychain_uid = key_information["keychain_uid"]
+            key_type = key_information["key_type"]
+            if not key_information["private_key_present"]:
+                missing_private_keys.append(keychain_uid)
+                continue
+            private_key_pem = filesystem_key_storage.get_private_key(keychain_uid=keychain_uid, key_type=key_type)
+            try:
+                key_obj = load_asymmetric_key_from_pem_bytestring(
+                   key_pem=private_key_pem, key_type=key_type, passphrase=passphrase
+                )
+                assert key_obj, key_obj
+            except KeyLoadingError:
+                undecodable_private_keys.append(keychain_uid)
+
+        return dict(keypair_count=len(keypair_identifiers),
+                    missing_private_keys=missing_private_keys,
+                    undecodable_private_keys=undecodable_private_keys)
 
 
