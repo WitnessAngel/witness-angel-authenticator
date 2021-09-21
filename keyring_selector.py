@@ -80,7 +80,7 @@ class KeyringSelectorScreen(Screen):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        Clock.schedule_once(lambda *args, **kwargs: self.refresh_keyring_list())
+        Clock.schedule_once(lambda *args, **kwargs: self.refresh_keyring_list())  # "on_pre_enter" is not called for 1st screen
         self._app = MDApp.get_running_app()
         self._file_manager = MDFileManager(
             selector="folder",

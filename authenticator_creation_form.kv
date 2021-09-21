@@ -2,7 +2,7 @@
 
 <AuthenticatorCreationScreen>:
 
-    #on_pre_enter: root.refresh_keyring_list()
+    on_pre_enter: root.reset_initialization_form()
 
     ##_selected_authenticator_path: None  # root.manager.get_screen("keyring_selector_screen")._selected_authenticator_path
 
@@ -81,21 +81,20 @@
 
                 disabled: False
                 on_release:
-                    app.show_validate()
+                    root.request_authenticator_initialization()
 
         AnchorLayout:
             size_hint: 1, 1
 
             pos: 300,300
 
-            id: errors
-
             MDLabel:
-                text: "ceci est une erreur!!!"
+                id: operation_status_label
+                text: root.operation_status
 
         MDProgressBar:
             size_hint_y: None
             height: dp(10)
             padding: [20,200]
-            id: barProgress
-            value: 30
+            id: progress_bar
+            value: 0
