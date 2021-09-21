@@ -22,6 +22,7 @@ from kivy.uix.button import Button
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.screenmanager import ScreenManager
 from kivy.uix.textinput import TextInput
+from kivy.uix.widget import Widget
 from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.textfield import MDTextField
 from kivymd.app import MDApp
@@ -53,13 +54,29 @@ class FolderKeyStoreListItem(TwoLineAvatarIconListItem):  #
         raise XXXXXXXX
 """
 
+class FolderKeyStoreListItem(Factory.ThinTwoLineAvatarIconListItem):
+
+    ''' FAILED attempt at fixing button position
+    def __init__(self):
+        super().__init__()
+        #print(">>>>>>>>>>>>>>", self._EventDispatcher__event_stack)
+        print(">>>>>>>>>>>>>>>>>>", self.size, self.__class__.__mro__, "\n", self.__class__, "\n", self.__dict__, hex(id(self)))
+        ##Clock.schedule_once(lambda x: self.dispatch('on_focus'))
+        def force_reset(*args):
+            prop = self.property('size')
+            # dispatch this property on the button instance
+            prop.dispatch(self)
+        Clock.schedule_once(force_reset, timeout=1)
+    '''
+
 class KeyringSelectorScreen(Screen):
 
     ##keyring_list_entries = None  # Pairs (widget, metadata)
 
     # Used to reselect same entry after e.g. a refresh
-    _selected_authenticator_path = None # Path hcorresponding to a selected authenticator entry
-    _selected_custom_folder_path = ObjectProperty(None)  # Custom folder selected for FolderKeyStoreListItem entry
+    # FIXME MAKE THEM PUBLIC!!!!!!!!!
+    _selected_authenticator_path = ObjectProperty(None, allownone=True) # Path corresponding to a selected authenticator entry
+    _selected_custom_folder_path = ObjectProperty(None, allownone=True)  # Custom folder selected for FolderKeyStoreListItem entry
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

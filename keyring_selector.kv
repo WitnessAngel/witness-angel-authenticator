@@ -14,7 +14,7 @@
     text: app.tr._("Find")
     icon: "file-find-outline"
 
-<FolderKeyStoreListItem@ThinTwoLineAvatarIconListItem>:
+<FolderKeyStoreListItem>:
     #_height: dp(60)
 
     selected_path: None
@@ -121,9 +121,9 @@
                     ###adaptive_height: True if root.authenticator_status else False
                     size_hint_x: 1
                     size_hint_y: None
-                    height: self.minimum_height if not root.authenticator_status else 0
+                    height: self.minimum_height if root.authenticator_status is False else 0
                     disabled: root.authenticator_status
-                    opacity: 0 if root.authenticator_status else 1
+                    opacity: 1 if root.authenticator_status is False else 0
 
                     Widget:
 

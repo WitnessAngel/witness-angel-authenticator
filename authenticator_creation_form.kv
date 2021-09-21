@@ -2,6 +2,10 @@
 
 <AuthenticatorCreationScreen>:
 
+    #on_pre_enter: root.refresh_keyring_list()
+
+    ##_selected_authenticator_path: None  # root.manager.get_screen("keyring_selector_screen")._selected_authenticator_path
+
     GridLayout:
         padding: [10, 10, 10, 10]
         spacing: [20, 20]
@@ -12,7 +16,7 @@
             left_action_items: [["arrow-left", lambda x: root.go_to_home_screen()]]
 
         MDLabel:
-            text: app.tr._("here you can do that etc.")
+            text: app.tr._("here you can do that etc.") + str(root._selected_authenticator_path)
             halign: "center"
 
         MDTextField:

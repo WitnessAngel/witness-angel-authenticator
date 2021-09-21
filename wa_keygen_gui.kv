@@ -9,7 +9,10 @@ ScreenManager:
     #transition: SwapTransition()
 
     KeyringSelectorScreen:
+        id: keyring_selector_screen_id
         name: "keyring_selector_screen"
 
     AuthenticatorCreationScreen:
+        id: authenticator_creation_screen_id
         name: "authenticator_creation_screen"
+        _selected_authenticator_path: keyring_selector_screen_id._selected_authenticator_path
