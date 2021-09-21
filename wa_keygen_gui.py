@@ -45,7 +45,7 @@ class MainApp(MDApp):
     keygen_panel = None
 
     #authentication_device_list = ()
-    authentication_device_selected = None
+    #authentication_device_selected = None
 
     class COLORS:  # FIXME OBSOLETE
         LIGHT_GREY = [1, 1, 1, 0.4]
@@ -84,8 +84,8 @@ class MainApp(MDApp):
             Window.raise_window()
         Window.bind(on_cursor_enter=force_window_focus)
 
-        self.authentication_device_selected = None
-        self.orientation = "vertical"
+        #self.authentication_device_selected = None
+        #self.orientation = "vertical"
         #self.screen = Screen()
         #self.list_detected_devices()
         #return self.screen
