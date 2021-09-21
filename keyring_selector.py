@@ -36,6 +36,7 @@ from kivymd.uix.snackbar import Snackbar
 from wacryptolib.authentication_device import list_available_authentication_devices, \
     get_authenticator_path_for_authentication_device
 from wacryptolib.authenticator import is_authenticator_initialized, load_authenticator_metadata
+from wacryptolib.utilities import get_metadata_file_path
 from waguilib.importable_settings import INTERNAL_AUTHENTICATOR_DIR, EXTERNAL_APP_ROOT
 from waguilib.utilities import convert_bytes_to_human_representation
 
@@ -340,3 +341,40 @@ class KeyringSelectorScreen(Screen):
         keygen_panel_ids.status_title_layout.add_widget(self.status_title)
         keygen_panel_ids.status_message_layout.add_widget(self.status_message)
         """
+
+    def show_authenticator_destroy_confirmation_dialog(self):
+        _ = self._app.tr._
+        authenticator_path = self._selected_authenticator_path
+        self._dialog = MDDialog(
+            auto_dismiss=True,
+            title=_("Destroy authenticator"),
+            text=_("Beware, it will make all encrypted data using these keys impossible to read."),
+            #size_hint=(0.8, 1),
+            buttons=[MDFlatButton(text="I'm sure", on_release=lambda *args: self.close_dialog_and_destroy_authenticator(authenticator_path)),
+                     MDFlatButton(text="Cancel", on_release=lambda *args: self._dialog.dismiss())],
+        )
+        self._dialog.open()
+
+    def close_dialog(self):
+        self._dialog.dismiss()
+
+    def _delete_authenticator_data(self, authenticator_path):
+        # FIXME protect against any OSERROR here!!
+        _ = self._app.tr._
+        metadata_file_path = get_metadata_file_path(authenticator_path)
+        key_files = authenticator_path.glob("*.pem")
+        for filepath in [metadata_file_path] + list(key_files):
+            filepath.unlink(missing_ok=True)
+        MDDialog(
+             auto_dismiss=True,
+                title=_("Destruction is over"),
+                text=_("All authentication data from folder %s has been removed.") % authenticator_path,
+            ).open()
+        self.refresh_keyring_list()
+
+    def close_dialog_and_destroy_authenticator(self, authenticator_path):
+        self.close_dialog()
+        print("IN close_dialog_and_destroy_authenticator")
+        self._delete_authenticator_data(authenticator_path=authenticator_path)
+
+
