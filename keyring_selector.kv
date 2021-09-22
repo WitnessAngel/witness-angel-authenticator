@@ -131,7 +131,7 @@
 
                 MDGridLayout:
                     id: authenticator_actions_create
-                    cols: 3
+                    cols: 2
                     ###adaptive_height: True if root.authenticator_status else False
                     size_hint_x: 1
                     size_hint_y: None
@@ -139,7 +139,7 @@
                     disabled: root.authenticator_status is not False
                     #opacity: 1 if root.authenticator_status is False else 0
 
-                    Widget:
+                    #Widget:
 
                     MDRectangleFlatIconButton:
                         anchor_x: "right"
@@ -149,7 +149,13 @@
                         size_hint_x: 1
                         on_press: root.manager.current = "authenticator_creation_screen"
 
-                    Widget:
+                    MDRectangleFlatIconButton:
+                        icon: "database-import-outline"
+                        text: "Import"
+                        size_hint_x: 1
+                        on_press: root.archive_chooser_open()
+
+                    #Widget:
 
                 MDGridLayout:
                     id: authenticator_actions_modify
@@ -161,22 +167,16 @@
                     #opacity: 1 if root.authenticator_status else 0
 
                     MDRectangleFlatIconButton:
-                        icon: "database-import-outline"
-                        text: "Import"
+                        icon: "database-export-outline"
+                        text: "Export"
                         size_hint_x: 1
-                        on_press: root.archive_chooser_open()
+                        on_press: root.export_authenticator_to_archive()
 
                     MDRectangleFlatIconButton:
                         icon: "crosshairs-question"
                         text: "Check"
                         size_hint_x: 1
                         on_press: root.show_checkup_dialog()
-
-                    MDRectangleFlatIconButton:
-                        icon: "database-export-outline"
-                        text: "Export"
-                        size_hint_x: 1
-                        on_press: root.export_authenticator_to_archive()
 
                     MDRectangleFlatIconButton:
                         icon: "delete-alert-outline"
