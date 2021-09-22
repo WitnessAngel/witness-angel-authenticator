@@ -172,6 +172,12 @@
                         size_hint_x: 1
                         on_press: root.show_checkup_dialog()
 
+                    MDRectangleFlatIconButton:
+                        icon: "database-export-outline"
+                        text: "Export"
+                        size_hint_x: 1
+                        on_press: root.export_authenticator_to_archive()
+
         #canvas.before:
         #    Color:
         #        rgba: app.COLORS.DARKEST_BLUE
