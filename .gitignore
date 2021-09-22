@@ -3,6 +3,9 @@
 # Git style-guide:
 # https://github.com/agis-/git-style-guide
 
+#### GETTEXT ####
+_messages.pot
+
 #####=== OSX ===#####
 .DS_Store
 .AppleDouble
