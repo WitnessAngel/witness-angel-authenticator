@@ -231,5 +231,20 @@ class AuthenticatorCreationScreen(Screen):
             self.open_dialog(self._app.tr._("Operation failed, check logs."),
                              title=self._app.tr._("Failure"), on_release=on_release)
 
+    def display_help_popup(self):
+        _ = self._app.tr._
+        help_text = dedent(_("""\
+        On this page, you can initialize an authenticator inside an empty folder; this authenticator actually consists in metadata files as well as a set of asymmetric keypairs.
+        
+        To proceed, you have to input your user name or pseudo, a long passphrase (e.g. consisting of 4 different words), and a public hint to help your remember your passphrase later.
+        
+        You should keep your passphrase somewhere safe (in a digital password manager, on a paper in a vault...), because if you forget any of its aspects (upper/lower case, accents, spaces...), there is no way to recover it.
+        """))
+        MDDialog(
+            auto_dismiss=True,
+            title=_("Authenticator creation page"),
+            text=help_text,
+            ).open()
+
 
 

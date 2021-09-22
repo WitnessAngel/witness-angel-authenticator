@@ -63,7 +63,7 @@
 
                 MDToolbar:
                     title: app.tr._("Manage Authenticators")
-                    right_action_items: [["refresh", lambda x: root.refresh_keyring_list()]]  # ["dots-vertical", lambda x: app.callback_1()]
+                    right_action_items: [["refresh", lambda x: root.refresh_keyring_list()], ["help-circle-outline", lambda x: root.display_help_popup()]]
 
                 ScrollView:
                     #size_hint: 1, 0.3
@@ -93,11 +93,12 @@
                 #    size_hint_max_y: dp(300)
 
                 MDBoxLayout:
-                    height: dp(30)
+                    height: dp(40)
                     size_hint_y: None
 
                     #md_bg_color: [1, 0, 0, 1]
                     md_bg_color: app.theme_cls.bg_darkest
+                    line_color: [0.2, 0.2, 0.2, 1]
 
                     MDIcon:
                         icon: root.AUTHENTICATOR_INITIALIZATION_STATUS_ICONS[root.authenticator_status] # "language-python"
@@ -115,12 +116,13 @@
                         id: authentication_device_information
                         readonly: True
                         padding: [10,10]
+                        #border: [4, 4, 4, 4]
                         text: "MDLabel\nsdsdsdsdqsd\nqsdqsd\nqsdqsd\nqsdqsdqsd\nqsdqsds\nqsdqsdqd\nqsdqsdqsd\nsddazveg\nzerzerzero\njlfff\nzezerzer\naldjs\nzzzzzzzzzzz\naaaaaaaaaaa\nfffff\nsdkazhazkdz\nMDBOTTOM"
 
                         halign: "left"
                         #valign: "top"
                         #theme_text_color: "Error"
-                        md_bg_color: app.theme_cls.bg_darkest
+                        #md_bg_color: app.theme_cls.bg_dark
 
                         #size_hint_y: None
                         #height: dp(150)
