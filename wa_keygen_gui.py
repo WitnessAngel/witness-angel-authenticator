@@ -35,7 +35,7 @@ class A:  # TODO put back translation tooling
 
 
 
-activate_widget_debug_outline()
+#activate_widget_debug_outline()
 
 class MainApp(MDApp):
 

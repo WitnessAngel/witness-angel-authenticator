@@ -377,7 +377,7 @@ class KeyringSelectorScreen(Screen):
         self._dialog = MDDialog(
             auto_dismiss=True,
             title=_("Destroy authenticator"),
-            text=_("Beware, it will make all encrypted data using these keys impossible to read."),
+            text=_("Beware, it might make encrypted data using these keys impossible to decrypt."),
             #size_hint=(0.8, 1),
             buttons=[MDFlatButton(text="I'm sure", on_release=lambda *args: self.close_dialog_and_destroy_authenticator(authenticator_path)),
                      MDFlatButton(text="Cancel", on_release=lambda *args: self.close_dialog())],
@@ -513,4 +513,23 @@ class KeyringSelectorScreen(Screen):
             ).open()
 
         self.refresh_keyring_list()
+
+    def display_help_popup(self):
+        _ = self._app.tr._
+        help_text = dedent(_("""\
+        On this page, you can manage your authenticators, which are actually digital keychains identified by unique IDs.
+        
+        These keychains contain both public keys, which can be freely shared, and their corresponding private keys, protected by passphrases, which must be kept hidden.
+        
+        Authenticators can be stored in your user profile or in a custom folder, especially at the root of removable devices.
+        
+        You can initialize new authenticators from scratch, import/export them from/to ZIP archives, or check their integrity by providing their passphrases.
+        
+        Note that if you destroy an authenticator and all its exported ZIP archives, the WitnessAngel recordings which used it as a trusted third party might not be decryptable anymore (unless they used a shared secret with other trusted third parties).
+        """))
+        MDDialog(
+            auto_dismiss=True,
+            title=_("Authenticator management page"),
+            text=help_text,
+            ).open()
 
