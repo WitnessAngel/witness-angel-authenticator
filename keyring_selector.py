@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from enum import Enum, unique
 from textwrap import dedent
 
@@ -32,6 +33,7 @@ from kivymd.uix.dialog import MDDialog
 from kivymd.uix.list import OneLineIconListItem, MDList, IconLeftWidget, TwoLineAvatarIconListItem
 from kivymd.uix.screen import Screen
 from kivymd.uix.snackbar import Snackbar
+from kivymd.toast import toast
 
 from wacryptolib.authentication_device import list_available_authentication_devices, \
     get_authenticator_path_for_authentication_device
@@ -40,8 +42,9 @@ from wacryptolib.exceptions import KeyLoadingError
 from wacryptolib.key_generation import load_asymmetric_key_from_pem_bytestring
 from wacryptolib.key_storage import FilesystemKeyStorage
 from wacryptolib.utilities import get_metadata_file_path
-from waguilib.importable_settings import INTERNAL_AUTHENTICATOR_DIR, EXTERNAL_APP_ROOT
+from waguilib.importable_settings import INTERNAL_AUTHENTICATOR_DIR, EXTERNAL_APP_ROOT, EXTERNAL_DATA_EXPORTS_DIR
 from waguilib.utilities import convert_bytes_to_human_representation
+from kivymd.toast import toast
 
 Builder.load_file(str(Path(__file__).parent / 'keyring_selector.kv'))
 
@@ -87,7 +90,7 @@ class KeyringSelectorScreen(Screen):
         Clock.schedule_once(lambda *args, **kwargs: self.refresh_keyring_list())  # "on_pre_enter" is not called for 1st screen
         self._app = MDApp.get_running_app()
         self._file_manager = MDFileManager(
-            selector="folder",
+            selector="file",
             exit_manager=self._file_manager_exit,
             select_path=self._file_manager_select_path,
         )
@@ -424,7 +427,7 @@ class KeyringSelectorScreen(Screen):
             text=details,
             ).open()
 
-    def _test_authenticator_password(self, authenticator_path, passphrase):
+    def _test_authenticator_password(self, authenticator_path, passphrase):  # FIXME rename this
         filesystem_key_storage = FilesystemKeyStorage(authenticator_path)
 
         missing_private_keys = []
@@ -452,3 +455,19 @@ class KeyringSelectorScreen(Screen):
                     undecodable_private_keys=undecodable_private_keys)
 
 
+    def export_authenticator_to_archive(self):
+        _ = self._app.tr._
+        authenticator_path = self._selected_authenticator_path
+
+        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        EXTERNAL_DATA_EXPORTS_DIR.mkdir(exist_ok=True)  # FIXME beware permissions on smartphone!!!
+        target_path_base = EXTERNAL_DATA_EXPORTS_DIR.joinpath("%s_authenticator_export" % timestamp)
+
+        target_path = shutil.make_archive(base_name=target_path_base, format="zip",
+                            root_dir=authenticator_path)
+
+        MDDialog(
+            auto_dismiss=True,
+            title=_("Export successful"),
+            text=_("Authenticator archive exported to %s") % target_path,
+            ).open()
