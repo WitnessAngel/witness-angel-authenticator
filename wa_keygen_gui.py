@@ -24,22 +24,23 @@ from wacryptolib.authentication_device import (
 from wacryptolib.key_generation import generate_asymmetric_keypair
 from wacryptolib.key_storage import FilesystemKeyStorage
 from wacryptolib.utilities import generate_uuid0
+from waguilib.i18n import Lang
 from waguilib.widgets.layout_helpers import activate_widget_debug_outline
 
 
 
-
+"""
 class A:  # TODO put back translation tooling
     def _(self, a):
         return a
-
-
+"""
+LOCALE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "locale")
 
 #activate_widget_debug_outline()
 
 class MainApp(MDApp):
 
-    tr = A()  # ("en")  # FIXME replace this with real trans
+    tr = Lang("fr", locale_dir=LOCALE_DIR)  # ("en")  # FIXME replace this with real trans
 
     kv_file = "wa_keygen_gui.kv"
     keygen_panel = None
