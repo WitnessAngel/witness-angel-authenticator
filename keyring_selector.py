@@ -85,34 +85,52 @@ class KeyringSelectorScreen(Screen):
     _selected_authenticator_path = ObjectProperty(None, allownone=True) # Path corresponding to a selected authenticator entry
     _selected_custom_folder_path = ObjectProperty(None, allownone=True)  # Custom folder selected for FolderKeyStoreListItem entry
 
+    ARCHIVE_FORMAT = "zip"
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         Clock.schedule_once(lambda *args, **kwargs: self.refresh_keyring_list())  # "on_pre_enter" is not called for 1st screen
         self._app = MDApp.get_running_app()
-        self._file_manager = MDFileManager(
+        self._folder_chooser = MDFileManager(
+            selector="folder",
+            exit_manager=self._folder_chooser_exit,
+            select_path=self._folder_chooser_select_path,
+        )
+        self._archive_chooser = MDFileManager(
             selector="file",
-            exit_manager=self._file_manager_exit,
-            select_path=self._file_manager_select_path,
+            ext=["." + self.ARCHIVE_FORMAT],
+            exit_manager=self._archive_chooser_exit,
+            select_path=self._close_archive_chooser_and_import_authenticator_from_archive,
         )
 
-    def _file_manager_exit(self, *args):
-        print(">>>>>>>> _file_manager_exit ")
-        self._file_manager.close()
+    def _folder_chooser_exit(self, *args):
+        print(">>>>>>>> _folder_chooser_exit ")
+        self._folder_chooser.close()
 
-    def _file_manager_select_path(self, path, *args):
+    def _folder_chooser_select_path(self, path, *args):
         self._selected_custom_folder_path = Path(path)
-        self._file_manager.close()
+        self._folder_chooser.close()
         authenticator_widget = self.ids.authentication_device_list.children[-2]  # AUTOSELECT "custom folder" item
         authenticator_widget._onrelease_callback(authenticator_widget)
         print(">>>>>>>> _selected_authenticator_path = ", path)
 
-    def file_manager_open(self, widget, *args):
-        print(">>>>>>> OPENING file_manager_open via widget", widget)
+    def folder_chooser_open(self, widget, *args):
+        print(">>>>>>> OPENING folder_chooser via widget", widget)
         file_manager_path = EXTERNAL_APP_ROOT
         previously_selected_custom_folder_path = self._selected_custom_folder_path
         if previously_selected_custom_folder_path and previously_selected_custom_folder_path.is_dir():
             file_manager_path = previously_selected_custom_folder_path
-        self._file_manager.show(str(file_manager_path))  # Soon use .show_disks!!
+        self._folder_chooser.show(str(file_manager_path))  # Soon use .show_disks!!
+
+
+    def _archive_chooser_exit(self, *args):
+        print(">>>>>>>> _archive_chooser_exit ")
+        self._archive_chooser.close()
+
+    def archive_chooser_open(self, *args):
+        print(">>>>>>> OPENING archive_chooser_opent")
+        file_manager_path = EXTERNAL_APP_ROOT
+        self._archive_chooser.show(str(file_manager_path))  # Soon use .show_disks!!
 
     def _get_authenticator_path(self,keyring_metadata):
         authenticator_path = INTERNAL_AUTHENTICATOR_DIR
@@ -176,7 +194,7 @@ class KeyringSelectorScreen(Screen):
         ##def set_child_selected_path(p):
         ##    folder_keyring_widget.selected_path = str(p)
         self.bind(_selected_custom_folder_path=folder_keyring_widget.setter('selected_path'))
-        folder_keyring_widget.ids.open_folder_btn.bind(on_press=self.file_manager_open)  #
+        folder_keyring_widget.ids.open_folder_btn.bind(on_press=self.folder_chooser_open)  #
         keyring_list_entries.append((folder_keyring_widget, dict(keyring_type=KeyringType.CUSTOM_FOLDER)))
 
 
@@ -461,13 +479,34 @@ class KeyringSelectorScreen(Screen):
 
         timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
         EXTERNAL_DATA_EXPORTS_DIR.mkdir(exist_ok=True)  # FIXME beware permissions on smartphone!!!
-        target_path_base = EXTERNAL_DATA_EXPORTS_DIR.joinpath("%s_authenticator_export" % timestamp)
+        archive_path_base = EXTERNAL_DATA_EXPORTS_DIR.joinpath("%s_authenticator_export" % timestamp)
 
-        target_path = shutil.make_archive(base_name=target_path_base, format="zip",
+        archive_path = shutil.make_archive(base_name=archive_path_base, format=self.ARCHIVE_FORMAT,
                             root_dir=authenticator_path)
 
         MDDialog(
             auto_dismiss=True,
             title=_("Export successful"),
-            text=_("Authenticator archive exported to %s") % target_path,
+            text=_("Authenticator archive exported to %s") % archive_path,
             ).open()
+
+    def _close_archive_chooser_and_import_authenticator_from_archive(self, archive_path):
+
+        self._archive_chooser.close()
+
+        _ = self._app.tr._
+
+        archive_path = Path(archive_path)
+        authenticator_path = self._selected_authenticator_path
+
+        # BEWARE - might destroy target data!
+        shutil.unpack_archive(archive_path, extract_dir=authenticator_path, format=self.ARCHIVE_FORMAT)
+
+        MDDialog(
+            auto_dismiss=True,
+            title=_("Import successful"),
+            text=_("Authenticator archive unpacked from %s, its integrity has to be checked though.") % archive_path.name,
+            ).open()
+
+        self.refresh_keyring_list()
+

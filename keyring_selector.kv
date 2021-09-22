@@ -161,10 +161,10 @@
                     #opacity: 1 if root.authenticator_status else 0
 
                     MDRectangleFlatIconButton:
-                        icon: "delete-alert-outline"
-                        text: "Destroy"
+                        icon: "database-import-outline"
+                        text: "Import"
                         size_hint_x: 1
-                        on_press: root.show_authenticator_destroy_confirmation_dialog()
+                        on_press: root.archive_chooser_open()
 
                     MDRectangleFlatIconButton:
                         icon: "crosshairs-question"
@@ -177,6 +177,16 @@
                         text: "Export"
                         size_hint_x: 1
                         on_press: root.export_authenticator_to_archive()
+
+                    MDRectangleFlatIconButton:
+                        icon: "delete-alert-outline"
+                        text: "Destroy"
+                        size_hint_x: 1
+                        on_press: root.show_authenticator_destroy_confirmation_dialog()
+
+
+
+
 
         #canvas.before:
         #    Color:
