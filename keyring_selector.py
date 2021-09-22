@@ -55,6 +55,11 @@ class KeyringType(Enum):
    CUSTOM_FOLDER = 2
    USB_DEVICE = 3
 
+
+def shorten_uid(uid):
+   return str(uid).split("-")[-1]
+
+
 """
 class FolderKeyStoreListItem(TwoLineAvatarIconListItem):  # 
     def __init__(self):
@@ -391,7 +396,7 @@ class KeyringSelectorScreen(Screen):
             filepath.unlink(missing_ok=True)
         MDDialog(
              auto_dismiss=True,
-                title=_("Destruction is over"),
+                title=_("Deletion is over"),
                 text=_("All authentication data from folder %s has been removed.") % authenticator_path,
             ).open()
         self.refresh_keyring_list()
@@ -425,9 +430,6 @@ class KeyringSelectorScreen(Screen):
         missing_private_keys = result_dict["missing_private_keys"]
         undecodable_private_keys = result_dict["undecodable_private_keys"]
 
-        def shorten_uid(uid):
-            return "..." + str(uid).split("-")[-1]
-
         if keypair_count and not missing_private_keys and not undecodable_private_keys:
             result = _("Success")
             details = _("Keypairs successfully tested: %s") % keypair_count
@@ -435,8 +437,8 @@ class KeyringSelectorScreen(Screen):
             result = _("Failure")
             missing_private_keys_cast = [shorten_uid(k) for k in missing_private_keys]
             undecodable_private_keys_cast = [shorten_uid(k) for k in undecodable_private_keys]
-            details = (_("Keypairs tested: %s\nMissing private keys: %s\nWrong passphrase: %s") %
-                        (keypair_count, missing_private_keys_cast, undecodable_private_keys_cast))
+            details = (_("Keypairs tested: %s\nMissing private keys: %s\nWrong passphrase for keys: %s") %
+                        (keypair_count, ", ".join(missing_private_keys_cast) or "-", ", ".join(undecodable_private_keys_cast) or "-"))
 
 
         MDDialog(
@@ -478,8 +480,10 @@ class KeyringSelectorScreen(Screen):
         authenticator_path = self._selected_authenticator_path
 
         timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        authenticator_metadata = load_authenticator_metadata(authenticator_path)
+        device_uid = shorten_uid(authenticator_metadata["device_uid"])
         EXTERNAL_DATA_EXPORTS_DIR.mkdir(exist_ok=True)  # FIXME beware permissions on smartphone!!!
-        archive_path_base = EXTERNAL_DATA_EXPORTS_DIR.joinpath("%s_authenticator_export" % timestamp)
+        archive_path_base = EXTERNAL_DATA_EXPORTS_DIR.joinpath("authenticator_uid%s_%s" % (device_uid, timestamp))
 
         archive_path = shutil.make_archive(base_name=archive_path_base, format=self.ARCHIVE_FORMAT,
                             root_dir=authenticator_path)
@@ -505,7 +509,7 @@ class KeyringSelectorScreen(Screen):
         MDDialog(
             auto_dismiss=True,
             title=_("Import successful"),
-            text=_("Authenticator archive unpacked from %s, its integrity has to be checked though.") % archive_path.name,
+            text=_("Authenticator archive unpacked from %s, its integrity has not been checked though.") % archive_path.name,
             ).open()
 
         self.refresh_keyring_list()
