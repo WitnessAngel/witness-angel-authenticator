@@ -18,6 +18,9 @@ from wacryptolib.key_generation import generate_asymmetric_keypair
 from wacryptolib.key_storage import FilesystemKeyStorage
 from wacryptolib.utilities import generate_uuid0
 
+from wa_keygen_gui import tr
+
+
 Builder.load_file(str(Path(__file__).parent / 'authenticator_creation_form.kv'))
 
 
@@ -55,12 +58,11 @@ class AuthenticatorCreationScreen(Screen):
                     passphrase_hint=self.ids.formfield_passphrasehint.text.strip())
 
     def validate_form_values(self, form_values):
-        _ = self._app.tr._
         form_error = None
         if not all(form_values.values()):
-            form_error = _("Please enter a username, passphrase and passphrase hint.")
+            form_error = tr._("Please enter a username, passphrase and passphrase hint.")
         elif len(form_values["passphrase"]) < PASSPHRASE_MIN_LENGTH:
-            form_error = _("Passphrase must be at least %s characters long.") % PASSPHRASE_MIN_LENGTH
+            form_error = tr._("Passphrase must be at least %s characters long.") % PASSPHRASE_MIN_LENGTH
         if form_error:
             raise ValueError(form_error)
 
@@ -70,7 +72,7 @@ class AuthenticatorCreationScreen(Screen):
         try :
             self.validate_form_values(form_values)
         except ValueError as exc:
-            self.open_dialog(str(exc), title=self._app.tr._("Validation error"))
+            self.open_dialog(str(exc), title=tr._("Validation error"))
             return
 
         self._launch_authenticator_initialization(form_values=form_values)
@@ -156,7 +158,7 @@ class AuthenticatorCreationScreen(Screen):
 
         self.ids.button_initialize.disabled = True
         self.ids.formfield_passphrase.text = "***"  # PRIVACY
-        self.operation_status = self._app.tr._("Please wait a few seconds, initialization is in process.")
+        self.operation_status = tr._("Please wait a few seconds, initialization is in process.")
 
         self.set_form_fields_status(enabled=False)
         self.ids.initialization_form_toolbar.disabled = True
@@ -168,15 +170,14 @@ class AuthenticatorCreationScreen(Screen):
     def finish_initialization(self, *args, success, **kwargs):
         on_release = self.close_dialog_and_leave
         if success:
-            self.open_dialog(self._app.tr._("Initialization successfully completed."),
-                             title=self._app.tr._("Success"), on_release=on_release)
+            self.open_dialog(tr._("Initialization successfully completed."),
+                             title=tr._("Success"), on_release=on_release)
         else:
-            self.open_dialog(self._app.tr._("Operation failed, check logs."),
-                             title=self._app.tr._("Failure"), on_release=on_release)
+            self.open_dialog(tr._("Operation failed, check logs."),
+                             title=tr._("Failure"), on_release=on_release)
 
     def display_help_popup(self):
-        _ = self._app.tr._
-        help_text = dedent(_("""\
+        help_text = dedent(tr._("""\
         On this page, you can initialize an authenticator inside an empty folder; this authenticator actually consists in metadata files as well as a set of asymmetric keypairs.
         
         To proceed, you have to input your user name or pseudo, a long passphrase (e.g. consisting of 4 different words), and a public hint to help your remember your passphrase later.
@@ -185,7 +186,7 @@ class AuthenticatorCreationScreen(Screen):
         """))
         MDDialog(
             auto_dismiss=True,
-            title=_("Authenticator creation page"),
+            title=tr._("Authenticator creation page"),
             text=help_text,
             ).open()
 
