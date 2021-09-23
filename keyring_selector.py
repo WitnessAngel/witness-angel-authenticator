@@ -1,41 +1,21 @@
-import logging
 from datetime import datetime
 from enum import Enum, unique
+from pathlib import Path
 from textwrap import dedent
-
+import shutil
 from functools import partial
 
-
-import shutil
-import functools
-from pathlib import Path
-
+from kivy.clock import Clock
 from kivy.factory import Factory
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty, BooleanProperty
-from kivy.uix import boxlayout
-from kivy.uix.screenmanager import Screen
-from kivy.uix.button import Button
-from kivy.clock import Clock
-from kivy.config import Config
-from kivy.properties import StringProperty, ListProperty
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
-from kivy.uix.checkbox import CheckBox
-from kivy.uix.screenmanager import ScreenManager
-from kivy.uix.textinput import TextInput
-from kivy.uix.widget import Widget
-from kivymd.uix.filemanager import MDFileManager
-from kivymd.uix.menu import MDDropdownMenu
-from kivymd.uix.textfield import MDTextField
+from kivy.properties import ObjectProperty
 from kivymd.app import MDApp
-from kivymd.theming import ThemableBehavior
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.dialog import MDDialog
-from kivymd.uix.list import OneLineIconListItem, MDList, IconLeftWidget, TwoLineAvatarIconListItem
+from kivymd.uix.filemanager import MDFileManager
+from kivymd.uix.list import IconLeftWidget
+from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.screen import Screen
-from kivymd.uix.snackbar import Snackbar
-from kivymd.toast import toast
 
 from wacryptolib.authentication_device import list_available_authentication_devices, \
     get_authenticator_path_for_authentication_device
@@ -46,7 +26,6 @@ from wacryptolib.key_storage import FilesystemKeyStorage
 from wacryptolib.utilities import get_metadata_file_path
 from waguilib.importable_settings import INTERNAL_AUTHENTICATOR_DIR, EXTERNAL_APP_ROOT, EXTERNAL_DATA_EXPORTS_DIR
 from waguilib.utilities import convert_bytes_to_human_representation
-from kivymd.toast import toast
 
 Builder.load_file(str(Path(__file__).parent / 'keyring_selector.kv'))
 
@@ -62,15 +41,8 @@ def shorten_uid(uid):
    return str(uid).split("-")[-1]
 
 
-"""
-class FolderKeyStoreListItem(TwoLineAvatarIconListItem):  # 
-    def __init__(self):
-        raise XXXXXXXX
-"""
-
 class FolderKeyStoreListItem(Factory.ThinTwoLineAvatarIconListItem):
-
-    ''' FAILED attempt at fixing button position
+    ''' FAILED attempt at fixing button position on this item
     def __init__(self):
         super().__init__()
         #print(">>>>>>>>>>>>>>", self._EventDispatcher__event_stack)
@@ -85,14 +57,11 @@ class FolderKeyStoreListItem(Factory.ThinTwoLineAvatarIconListItem):
 
 class KeyringSelectorScreen(Screen):
 
-    ##keyring_list_entries = None  # Pairs (widget, metadata)
-
-    # Used to reselect same entry after e.g. a refresh
     # FIXME MAKE THEM PUBLIC!!!!!!!!!
     _selected_authenticator_path = ObjectProperty(None, allownone=True) # Path corresponding to a selected authenticator entry
     _selected_custom_folder_path = ObjectProperty(None, allownone=True)  # Custom folder selected for FolderKeyStoreListItem entry
 
-    ARCHIVE_FORMAT = "zip"
+    AUTHENTICATOR_ARCHIVE_FORMAT = "zip"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -105,7 +74,7 @@ class KeyringSelectorScreen(Screen):
         )
         self._archive_chooser = MDFileManager(
             selector="file",
-            ext=["." + self.ARCHIVE_FORMAT],
+            ext=["." + self.AUTHENTICATOR_ARCHIVE_FORMAT],
             exit_manager=self._archive_chooser_exit,
             select_path=self._close_archive_chooser_and_import_authenticator_from_archive,
         )
@@ -135,9 +104,7 @@ class KeyringSelectorScreen(Screen):
         self._language_selector_menu.dismiss()
         self._app.tr.switch_lang(lang_code)
 
-
     def _folder_chooser_exit(self, *args):
-        print(">>>>>>>> _folder_chooser_exit ")
         self._folder_chooser.close()
 
     def _folder_chooser_select_path(self, path, *args):
@@ -145,28 +112,22 @@ class KeyringSelectorScreen(Screen):
         self._folder_chooser.close()
         authenticator_widget = self.ids.authentication_device_list.children[-2]  # AUTOSELECT "custom folder" item
         authenticator_widget._onrelease_callback(authenticator_widget)
-        print(">>>>>>>> _selected_authenticator_path = ", path)
 
     def folder_chooser_open(self, widget, *args):
-        print(">>>>>>> OPENING folder_chooser via widget", widget)
         file_manager_path = EXTERNAL_APP_ROOT
         previously_selected_custom_folder_path = self._selected_custom_folder_path
         if previously_selected_custom_folder_path and previously_selected_custom_folder_path.is_dir():
             file_manager_path = previously_selected_custom_folder_path
         self._folder_chooser.show(str(file_manager_path))  # Soon use .show_disks!!
 
-
     def _archive_chooser_exit(self, *args):
-        print(">>>>>>>> _archive_chooser_exit ")
         self._archive_chooser.close()
 
     def archive_chooser_open(self, *args):
-        print(">>>>>>> OPENING archive_chooser_opent")
         file_manager_path = EXTERNAL_APP_ROOT
         self._archive_chooser.show(str(file_manager_path))  # Soon use .show_disks!!
 
     def _get_authenticator_path(self,keyring_metadata):
-        authenticator_path = INTERNAL_AUTHENTICATOR_DIR
         keyring_type = keyring_metadata["keyring_type"]
         if keyring_type == KeyringType.USER_PROFILE:
             authenticator_path = INTERNAL_AUTHENTICATOR_DIR
@@ -178,7 +139,6 @@ class KeyringSelectorScreen(Screen):
         return authenticator_path
 
     def reselect_previously_selected_authenticator(self):
-        print(">>>>> IN reselect_previously_selected_authenticator")
         previously_selected_authenticator_path = self._selected_authenticator_path
         if previously_selected_authenticator_path:
             result = self._select_matching_authenticator_entry(previously_selected_authenticator_path)
@@ -193,7 +153,6 @@ class KeyringSelectorScreen(Screen):
         authenticator_widget._onrelease_callback(authenticator_widget)
 
     def _select_matching_authenticator_entry(self, authenticator_path):
-        print(">>>>> IN _select_matching_authenticator_entry")
         authentication_device_list_widget = self.ids.authentication_device_list
         for authenticator_widget in authentication_device_list_widget.children:  # Starts from bottom of list so!
             target_authenticator_path = self._get_authenticator_path(authenticator_widget._keyring_metadata)
@@ -203,14 +162,8 @@ class KeyringSelectorScreen(Screen):
         return False
 
     def refresh_keyring_list(self):
-        #return
-        #self.keygen_panel = Factory.IdentityManagementPanel()
-        print(">>>>> IN refresh_keyring_list")
 
         authentication_device_list = list_available_authentication_devices()  # TODO rename to usb devices?
-        #self.authentication_device_list = authentication_device_list
-
-        #first_device_list_item = None
 
         authentication_device_list_widget = self.ids.authentication_device_list  # FIXME rename this
         authentication_device_list_widget.clear_widgets()
@@ -220,16 +173,12 @@ class KeyringSelectorScreen(Screen):
         # TODO rename key_store to keyring
         profile_keyring_widget = Factory.UserKeyStoreListItem()
         keyring_list_entries.append((profile_keyring_widget, dict(keyring_type=KeyringType.USER_PROFILE)))
-        ##profile_keyring_widget.bind(on_touch_up=self.file_manager_open)  # .ids.mycontainer
 
-        folder_keyring_widget = Factory.FolderKeyStoreListItem()  # FIXME bug of Kivy, can't put selected_path here
-        folder_keyring_widget.selected_path=self._selected_custom_folder_path
-        ##def set_child_selected_path(p):
-        ##    folder_keyring_widget.selected_path = str(p)
-        self.bind(_selected_custom_folder_path=folder_keyring_widget.setter('selected_path'))
+        folder_keyring_widget = Factory.FolderKeyStoreListItem()  # FIXME bug of Kivy, can't put selected_path here as argument
+        folder_keyring_widget.selected_path = self._selected_custom_folder_path
+        self.bind(_selected_custom_folder_path = folder_keyring_widget.setter('selected_path'))
         folder_keyring_widget.ids.open_folder_btn.bind(on_press=self.folder_chooser_open)  #
         keyring_list_entries.append((folder_keyring_widget, dict(keyring_type=KeyringType.CUSTOM_FOLDER)))
-
 
         for index, authentication_device in enumerate(authentication_device_list):
 
@@ -239,14 +188,9 @@ class KeyringSelectorScreen(Screen):
             keyring_widget = Factory.ThinTwoLineAvatarIconListItem(
                 text=self._app.tr._("Drive: %s (%s)") % (authentication_device["path"], authentication_device["label"]),
                 secondary_text=self._app.tr._("Size: %s, Filesystem: %s") % (device_size, filesystem),
-                #_height=dp(60),
-                #bg_color=self.COLORS.DARK_BLUE,
             )
             keyring_widget.add_widget(IconLeftWidget(icon="usb-flash-drive"))
             keyring_list_entries.append((keyring_widget, dict(keyring_type=KeyringType.USB_DEVICE, **authentication_device)))
-
-            #####device_list_item._onrelease_callback = partial(self.show_authentication_device_info, list_item_index=index)
-            #####device_list_item.bind(on_release=device_list_item._onrelease_callback)
 
         for (keyring_widget, keyring_metadata) in keyring_list_entries:
             keyring_widget._keyring_metadata = keyring_metadata
@@ -256,9 +200,7 @@ class KeyringSelectorScreen(Screen):
 
         self.reselect_previously_selected_authenticator()  # Preserve previous selection across refreshes
 
-
     authenticator_status = ObjectProperty(None, allownone=True)
-    ###authenticator_status_message = StringProperty()
 
     AUTHENTICATOR_INITIALIZATION_STATUS_ICONS = {
         True: "check-circle-outline",  # or check-bold
@@ -277,34 +219,15 @@ class KeyringSelectorScreen(Screen):
 
     def display_keyring_info(self, keyring_widget, keyring_metadata): ##list_item_obj, list_item_index):
 
-        print(">>>>> IN refresh_keyring_list")
-
         authentication_device_list_widget = self.ids.authentication_device_list  # FIXME rename to authenticator
 
         for child in authentication_device_list_widget.children:
             assert hasattr(child, "opposite_colors"), child
             child.bg_color = keyring_widget.theme_cls.bg_light
-        print(">>>keyring_widget", keyring_widget.bg_color)
         keyring_widget.bg_color = keyring_widget.theme_cls.bg_darkest
 
-        #keyring_type = keyring_metadata["keyring_type"]
-
-
         authenticator_info_text = ""
-
         authenticator_path = self._get_authenticator_path(keyring_metadata)
-
-        '''
-        if keyring_type == KeyringType.USER_PROFILE:
-            pass
-
-        elif keyring_type == KeyringType.CUSTOM_FOLDER:
-            pass  # TODO
-
-        else:
-            assert keyring_type == KeyringType.USB_DEVICE
-            authenticator_path = get_authenticator_path_for_authentication_device(keyring_metadata)
-            '''
 
         # FIXMe handle OS errors here
         if not authenticator_path:
@@ -331,9 +254,8 @@ class KeyringSelectorScreen(Screen):
             )
 
             authenticator_info_text = dedent(self._app.tr._("""\
-                AUTHENTICATOR INFORMATION
-                ID: {authenticator_uid}
                 Full path: {authenticator_path}
+                ID: {authenticator_uid}
                 User: {authenticator_user}
                 Password hint: {authenticator_passphrase_hint}
             """)).format(**displayed_values)
@@ -343,61 +265,6 @@ class KeyringSelectorScreen(Screen):
 
         self._selected_authenticator_path = authenticator_path  # Might be None
         self.authenticator_status = authenticator_status
-
-        """
-        keygen_panel_ids=self.keygen_panel.ids
-
-        authentication_device_list = self.authentication_device_list
-
-
-        #list_item_obj.bg_color = self.COLORS.MEDIUM_GREY
-
-        keygen_panel_ids.button_initialize.disabled = False
-
-        self.status_title = Label(text="")
-        self.status_message = Label(text="")
-
-        keygen_panel_ids.status_title_layout.clear_widgets()
-        keygen_panel_ids.status_title_layout.add_widget(self.status_title)
-
-        keygen_panel_ids.status_message_layout.clear_widgets()
-        keygen_panel_ids.status_message_layout.add_widget(self.status_message)
-
-        authentication_device = authentication_device_list[list_item_index]
-        self.authentication_device_selected = authentication_device
-
-        if authentication_device["is_initialized"]:
-            keygen_panel_ids.button_initialize.disabled = True
-
-            self.set_form_fields_status(enabled=False)
-
-            self.status_message = Label(
-                text="To reset the USB key, manually delete the key-storage folder on it"
-            )
-            try:
-                metadata = load_authentication_device_metadata(authentication_device)
-            except FileNotFoundError:
-                pass  # User has removed the key or folder in the meantime...
-            else:
-                keygen_panel_ids.userfield.text = metadata["user"]
-                keygen_panel_ids.passphrasehintfield.text = metadata.get("passphrase_hint", "")
-
-        else:
-
-            self.set_form_fields_status(enabled=True)
-
-            self.status_message = Label(
-                text="Please fill in the form below to initialize the usb key"
-            )
-            keygen_panel_ids.userfield.text = ""
-
-        self.status_title = Label(
-            text="USB key : size %s, fileystem %s, initialized=%s"
-                 % (authentication_device["size"], authentication_device["format"], authentication_device["is_initialized"])
-        )
-        keygen_panel_ids.status_title_layout.add_widget(self.status_title)
-        keygen_panel_ids.status_message_layout.add_widget(self.status_message)
-        """
 
     def show_authenticator_destroy_confirmation_dialog(self):
         _ = self._app.tr._
@@ -431,7 +298,6 @@ class KeyringSelectorScreen(Screen):
 
     def close_dialog_and_destroy_authenticator(self, authenticator_path):
         self.close_dialog()
-        print("IN close_dialog_and_destroy_authenticator")
         self._delete_authenticator_data(authenticator_path=authenticator_path)
 
     def show_checkup_dialog(self):
@@ -442,10 +308,12 @@ class KeyringSelectorScreen(Screen):
             title=_("Sanity check"),
             type="custom",
             content_cls=Factory.AuthenticatorTesterContent(),
-            #size_hint=(0.8, 1),
             buttons=[MDFlatButton(text="Check", on_release=lambda *args: self.close_dialog_and_check_authenticator(authenticator_path)),
                      MDFlatButton(text="Cancel", on_release=lambda *args: self.close_dialog())],
         )
+        def _set_focus_on_passphrase(*args):
+            self._dialog.content_cls.ids.tester_passphrase.focus = True
+        self._dialog.bind(on_open=_set_focus_on_passphrase)
         self._dialog.open()
 
     def close_dialog_and_check_authenticator(self, authenticator_path):
@@ -467,7 +335,6 @@ class KeyringSelectorScreen(Screen):
             undecodable_private_keys_cast = [shorten_uid(k) for k in undecodable_private_keys]
             details = (_("Keypairs tested: %s\nMissing private keys: %s\nWrong passphrase for keys: %s") %
                         (keypair_count, ", ".join(missing_private_keys_cast) or "-", ", ".join(undecodable_private_keys_cast) or "-"))
-
 
         MDDialog(
             auto_dismiss=True,
@@ -502,7 +369,6 @@ class KeyringSelectorScreen(Screen):
                     missing_private_keys=missing_private_keys,
                     undecodable_private_keys=undecodable_private_keys)
 
-
     def export_authenticator_to_archive(self):
         _ = self._app.tr._
         authenticator_path = self._selected_authenticator_path
@@ -513,7 +379,7 @@ class KeyringSelectorScreen(Screen):
         EXTERNAL_DATA_EXPORTS_DIR.mkdir(exist_ok=True)  # FIXME beware permissions on smartphone!!!
         archive_path_base = EXTERNAL_DATA_EXPORTS_DIR.joinpath("authenticator_uid%s_%s" % (device_uid, timestamp))
 
-        archive_path = shutil.make_archive(base_name=archive_path_base, format=self.ARCHIVE_FORMAT,
+        archive_path = shutil.make_archive(base_name=archive_path_base, format=self.AUTHENTICATOR_ARCHIVE_FORMAT,
                             root_dir=authenticator_path)
 
         MDDialog(
@@ -531,8 +397,8 @@ class KeyringSelectorScreen(Screen):
         archive_path = Path(archive_path)
         authenticator_path = self._selected_authenticator_path
 
-        # BEWARE - might destroy target data!
-        shutil.unpack_archive(archive_path, extract_dir=authenticator_path, format=self.ARCHIVE_FORMAT)
+        # BEWARE - might override target files!
+        shutil.unpack_archive(archive_path, extract_dir=authenticator_path, format=self.AUTHENTICATOR_ARCHIVE_FORMAT)
 
         MDDialog(
             auto_dismiss=True,
@@ -560,4 +426,3 @@ class KeyringSelectorScreen(Screen):
             title=_("Authenticator management page"),
             text=help_text,
             ).open()
-
