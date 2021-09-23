@@ -1,3 +1,4 @@
+import locale
 
 import os
 import sys
@@ -38,9 +39,14 @@ LOCALE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "locale")
 
 #activate_widget_debug_outline()
 
+# VERY rough detection of user language, will often not work under Windows but it's OK
+_lang_code, _charset = locale.getlocale()
+DEFAULT_LANGUAGE = "fr" if "fr" in _lang_code.lower() else "en"
+
 class MainApp(MDApp):
 
-    tr = Lang("fr", locale_dir=LOCALE_DIR)  # ("en")  # FIXME replace this with real trans
+
+    tr = Lang(DEFAULT_LANGUAGE, locale_dir=LOCALE_DIR)  # ("en")  # FIXME replace this with real trans
 
     kv_file = "wa_keygen_gui.kv"
     keygen_panel = None
@@ -58,7 +64,7 @@ class MainApp(MDApp):
         WHITE = [1, 1, 1, 1]
 
     def __init__(self, **kwargs):
-        self.title = "Witness Angel - WardProject"
+        self.title = "Witness Angel - Guardian Authenticator"
         super(MainApp, self).__init__(**kwargs)
 
     @property

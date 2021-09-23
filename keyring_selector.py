@@ -5,6 +5,7 @@ from textwrap import dedent
 
 from functools import partial
 
+
 import shutil
 import functools
 from pathlib import Path
@@ -25,6 +26,7 @@ from kivy.uix.screenmanager import ScreenManager
 from kivy.uix.textinput import TextInput
 from kivy.uix.widget import Widget
 from kivymd.uix.filemanager import MDFileManager
+from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.textfield import MDTextField
 from kivymd.app import MDApp
 from kivymd.theming import ThemableBehavior
@@ -107,6 +109,32 @@ class KeyringSelectorScreen(Screen):
             exit_manager=self._archive_chooser_exit,
             select_path=self._close_archive_chooser_and_import_authenticator_from_archive,
         )
+
+        language_menu_items = [
+            {
+                "text": lang,
+                "viewclass": "OneLineListItem",
+                "on_release": lambda x=lang_code: self.language_menu_select(x),
+            } for (lang, lang_code) in [("English", "en"), ("French", "fr")]
+        ]
+        self._language_selector_menu = MDDropdownMenu(
+            header_cls=Factory.LanguageMenuHeader(),
+            #caller=self.screen.ids.button,
+            items=language_menu_items,
+            width_mult=2,
+            position="bottom",
+            ver_growth="down",
+            max_height="110dp",
+        )
+
+    def language_menu_open(self, button):
+        self._language_selector_menu.caller = button
+        self._language_selector_menu.open()
+
+    def language_menu_select(self, lang_code):
+        self._language_selector_menu.dismiss()
+        self._app.tr.switch_lang(lang_code)
+
 
     def _folder_chooser_exit(self, *args):
         print(">>>>>>>> _folder_chooser_exit ")
@@ -209,8 +237,8 @@ class KeyringSelectorScreen(Screen):
             filesystem = authentication_device["format"].upper()
 
             keyring_widget = Factory.ThinTwoLineAvatarIconListItem(
-                text="[b]Drive:[/b] %s (%s)" % (authentication_device["path"], authentication_device["label"]),
-                secondary_text="Size: %s, Filesystem: %s" % (device_size, filesystem),
+                text=self._app.tr._("Drive: %s (%s)") % (authentication_device["path"], authentication_device["label"]),
+                secondary_text=self._app.tr._("Size: %s, Filesystem: %s") % (device_size, filesystem),
                 #_height=dp(60),
                 #bg_color=self.COLORS.DARK_BLUE,
             )
