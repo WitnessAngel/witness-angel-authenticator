@@ -1,6 +1,10 @@
-import locale
 
 import os
+
+os.environ["WACLIENT_TYPE"] = "APPLICATION"  # IMPORTANT
+from waguilib import kivy_presetup  # IMPORTANT
+
+import locale
 import sys
 from concurrent.futures.thread import ThreadPoolExecutor
 from functools import partial
@@ -25,9 +29,9 @@ from wacryptolib.authentication_device import (
 from wacryptolib.key_generation import generate_asymmetric_keypair
 from wacryptolib.key_storage import FilesystemKeyStorage
 from wacryptolib.utilities import generate_uuid0
+
 from waguilib.i18n import Lang
 from waguilib.widgets.layout_helpers import activate_widget_debug_outline
-
 
 
 """
@@ -82,14 +86,11 @@ class MainApp(MDApp):
     def build(self):
 
         self.theme_cls.primary_palette = "Blue"
-        #self.theme_cls.theme_style = "Dark"  # "Light"
+        #self.theme_cls.theme_style = "Dark"  # or "Light"
         self.theme_cls.primary_hue = "900"  # "500"
 
         # FIXME - DUPLICATED WITH WAGUILIB NOW
-        # Ensure that we don't need to click TWICE to gain focus on Kivy Window and then on widget!
-        def force_window_focus(*args, **kwargs):
-            Window.raise_window()
-        Window.bind(on_cursor_enter=force_window_focus)
+
 
         #self.authentication_device_selected = None
         #self.orientation = "vertical"
@@ -102,7 +103,6 @@ def resourcePath():
     '''Returns path containing content - either locally or in pyinstaller tmp file'''
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS)
-
     return os.path.join(os.path.abspath("."))
 
 
