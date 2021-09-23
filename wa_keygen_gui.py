@@ -7,15 +7,15 @@ del kivy_presetup
 
 import sys
 from kivymd.app import MDApp
-from waguilib.i18n import Lang, DEFAULT_LANGUAGE
-
+from waguilib.i18n import tr
+from waguilib.locale import LOCALE_DIR as GUILIB_LOCALE_DIR  # DEFAULT LOCALE
 
 # IF NEEDED TO DEBUG
 #activate_widget_debug_outline()
 
 
 LOCALE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "locale")
-tr = Lang(DEFAULT_LANGUAGE, locale_dir=LOCALE_DIR)  # ("en")  # FIXME replace this with real trans
+tr.add_locale_dirs(LOCALE_DIR, GUILIB_LOCALE_DIR)
 
 
 class MainApp(MDApp):
