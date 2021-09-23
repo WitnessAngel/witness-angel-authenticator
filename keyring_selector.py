@@ -2,8 +2,8 @@ from datetime import datetime
 from enum import Enum, unique
 from pathlib import Path
 from textwrap import dedent
-import shutil
 from functools import partial
+import shutil
 
 from kivy.clock import Clock
 from kivy.factory import Factory
@@ -26,6 +26,9 @@ from wacryptolib.key_storage import FilesystemKeyStorage
 from wacryptolib.utilities import get_metadata_file_path
 from waguilib.importable_settings import INTERNAL_AUTHENTICATOR_DIR, EXTERNAL_APP_ROOT, EXTERNAL_DATA_EXPORTS_DIR
 from waguilib.utilities import convert_bytes_to_human_representation
+
+from wa_keygen_gui import tr
+
 
 Builder.load_file(str(Path(__file__).parent / 'keyring_selector.kv'))
 
@@ -102,7 +105,7 @@ class KeyringSelectorScreen(Screen):
 
     def language_menu_select(self, lang_code):
         self._language_selector_menu.dismiss()
-        self._app.tr.switch_lang(lang_code)
+        tr.switch_lang(lang_code)
 
     def _folder_chooser_exit(self, *args):
         self._folder_chooser.close()
@@ -186,8 +189,8 @@ class KeyringSelectorScreen(Screen):
             filesystem = authentication_device["format"].upper()
 
             keyring_widget = Factory.ThinTwoLineAvatarIconListItem(
-                text=self._app.tr._("Drive: %s (%s)") % (authentication_device["path"], authentication_device["label"]),
-                secondary_text=self._app.tr._("Size: %s, Filesystem: %s") % (device_size, filesystem),
+                text=tr._("Drive: %s (%s)") % (authentication_device["path"], authentication_device["label"]),
+                secondary_text=tr._("Size: %s, Filesystem: %s") % (device_size, filesystem),
             )
             keyring_widget.add_widget(IconLeftWidget(icon="usb-flash-drive"))
             keyring_list_entries.append((keyring_widget, dict(keyring_type=KeyringType.USB_DEVICE, **authentication_device)))
@@ -209,13 +212,12 @@ class KeyringSelectorScreen(Screen):
     }
 
     def get_authenticator_status_message(self, authenticator_status):
-        _ = self._app.tr._
         if authenticator_status is None:
-            return _("No valid authenticator location selected")
+            return tr._("No valid authenticator location selected")
         elif not authenticator_status:
-            return _("Authenticator is not yet initialized")
+            return tr._("Authenticator is not yet initialized")
         else:
-            return _("Authenticator is initialized")
+            return tr._("Authenticator is initialized")
 
     def display_keyring_info(self, keyring_widget, keyring_metadata): ##list_item_obj, list_item_index):
 
@@ -231,15 +233,15 @@ class KeyringSelectorScreen(Screen):
 
         # FIXMe handle OS errors here
         if not authenticator_path:
-            authenticator_info_text = self._app.tr._("Please select an authenticator folder")
+            authenticator_info_text = tr._("Please select an authenticator folder")
             authenticator_status = None
 
         elif not authenticator_path.exists():
-            authenticator_info_text = self._app.tr._("Selected authenticator folder is invalid\nFull path: %s" % authenticator_path)
+            authenticator_info_text = tr._("Selected authenticator folder is invalid\nFull path: %s" % authenticator_path)
             authenticator_status = None
 
         elif not is_authenticator_initialized(authenticator_path):
-            authenticator_info_text = self._app.tr._("Full path: %s") % authenticator_path
+            authenticator_info_text = tr._("Full path: %s") % authenticator_path
             authenticator_status = False
 
         elif is_authenticator_initialized(authenticator_path):
@@ -253,7 +255,7 @@ class KeyringSelectorScreen(Screen):
                 authenticator_passphrase_hint=authenticator_metadata["passphrase_hint"],
             )
 
-            authenticator_info_text = dedent(self._app.tr._("""\
+            authenticator_info_text = dedent(tr._("""\
                 Full path: {authenticator_path}
                 ID: {authenticator_uid}
                 User: {authenticator_user}
@@ -267,12 +269,11 @@ class KeyringSelectorScreen(Screen):
         self.authenticator_status = authenticator_status
 
     def show_authenticator_destroy_confirmation_dialog(self):
-        _ = self._app.tr._
         authenticator_path = self._selected_authenticator_path
         self._dialog = MDDialog(
             auto_dismiss=True,
-            title=_("Destroy authenticator"),
-            text=_("Beware, it might make encrypted data using these keys impossible to decrypt."),
+            title=tr._("Destroy authenticator"),
+            text=tr._("Beware, it might make encrypted data using these keys impossible to decrypt."),
             #size_hint=(0.8, 1),
             buttons=[MDFlatButton(text="I'm sure", on_release=lambda *args: self.close_dialog_and_destroy_authenticator(authenticator_path)),
                      MDFlatButton(text="Cancel", on_release=lambda *args: self.close_dialog())],
@@ -284,15 +285,14 @@ class KeyringSelectorScreen(Screen):
 
     def _delete_authenticator_data(self, authenticator_path):
         # FIXME protect against any OSERROR here!!
-        _ = self._app.tr._
         metadata_file_path = get_metadata_file_path(authenticator_path)
         key_files = authenticator_path.glob("*.pem")
         for filepath in [metadata_file_path] + list(key_files):
             filepath.unlink(missing_ok=True)
         MDDialog(
              auto_dismiss=True,
-                title=_("Deletion is over"),
-                text=_("All authentication data from folder %s has been removed.") % authenticator_path,
+                title=tr._("Deletion is over"),
+                text=tr._("All authentication data from folder %s has been removed.") % authenticator_path,
             ).open()
         self.refresh_keyring_list()
 
@@ -301,11 +301,10 @@ class KeyringSelectorScreen(Screen):
         self._delete_authenticator_data(authenticator_path=authenticator_path)
 
     def show_checkup_dialog(self):
-        _ = self._app.tr._
         authenticator_path = self._selected_authenticator_path
         self._dialog = MDDialog(
             auto_dismiss=True,
-            title=_("Sanity check"),
+            title=tr._("Sanity check"),
             type="custom",
             content_cls=Factory.AuthenticatorTesterContent(),
             buttons=[MDFlatButton(text="Check", on_release=lambda *args: self.close_dialog_and_check_authenticator(authenticator_path)),
@@ -317,7 +316,6 @@ class KeyringSelectorScreen(Screen):
         self._dialog.open()
 
     def close_dialog_and_check_authenticator(self, authenticator_path):
-        _ = self._app.tr._
         passphrase = self._dialog.content_cls.ids.tester_passphrase.text
         self.close_dialog()
         result_dict = self._test_authenticator_password(authenticator_path=authenticator_path, passphrase=passphrase)
@@ -327,18 +325,18 @@ class KeyringSelectorScreen(Screen):
         undecodable_private_keys = result_dict["undecodable_private_keys"]
 
         if keypair_count and not missing_private_keys and not undecodable_private_keys:
-            result = _("Success")
-            details = _("Keypairs successfully tested: %s") % keypair_count
+            result = tr._("Success")
+            details = tr._("Keypairs successfully tested: %s") % keypair_count
         else:
-            result = _("Failure")
+            result = tr._("Failure")
             missing_private_keys_cast = [shorten_uid(k) for k in missing_private_keys]
             undecodable_private_keys_cast = [shorten_uid(k) for k in undecodable_private_keys]
-            details = (_("Keypairs tested: %s\nMissing private keys: %s\nWrong passphrase for keys: %s") %
+            details = (tr._("Keypairs tested: %s\nMissing private keys: %s\nWrong passphrase for keys: %s") %
                         (keypair_count, ", ".join(missing_private_keys_cast) or "-", ", ".join(undecodable_private_keys_cast) or "-"))
 
         MDDialog(
             auto_dismiss=True,
-            title=_("Checkup result: %s") % result,
+            title=tr._("Checkup result: %s") % result,
             text=details,
             ).open()
 
@@ -370,7 +368,6 @@ class KeyringSelectorScreen(Screen):
                     undecodable_private_keys=undecodable_private_keys)
 
     def export_authenticator_to_archive(self):
-        _ = self._app.tr._
         authenticator_path = self._selected_authenticator_path
 
         timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
@@ -378,21 +375,17 @@ class KeyringSelectorScreen(Screen):
         device_uid = shorten_uid(authenticator_metadata["device_uid"])
         EXTERNAL_DATA_EXPORTS_DIR.mkdir(exist_ok=True)  # FIXME beware permissions on smartphone!!!
         archive_path_base = EXTERNAL_DATA_EXPORTS_DIR.joinpath("authenticator_uid%s_%s" % (device_uid, timestamp))
-
         archive_path = shutil.make_archive(base_name=archive_path_base, format=self.AUTHENTICATOR_ARCHIVE_FORMAT,
                             root_dir=authenticator_path)
 
         MDDialog(
             auto_dismiss=True,
-            title=_("Export successful"),
-            text=_("Authenticator archive exported to %s") % archive_path,
+            title=tr._("Export successful"),
+            text=tr._("Authenticator archive exported to %s") % archive_path,
             ).open()
 
     def _close_archive_chooser_and_import_authenticator_from_archive(self, archive_path):
-
         self._archive_chooser.close()
-
-        _ = self._app.tr._
 
         archive_path = Path(archive_path)
         authenticator_path = self._selected_authenticator_path
@@ -402,15 +395,14 @@ class KeyringSelectorScreen(Screen):
 
         MDDialog(
             auto_dismiss=True,
-            title=_("Import successful"),
-            text=_("Authenticator archive unpacked from %s, its integrity has not been checked though.") % archive_path.name,
+            title=tr._("Import successful"),
+            text=tr._("Authenticator archive unpacked from %s, its integrity has not been checked though.") % archive_path.name,
             ).open()
 
         self.refresh_keyring_list()
 
     def display_help_popup(self):
-        _ = self._app.tr._
-        help_text = dedent(_("""\
+        help_text = dedent(tr._("""\
         On this page, you can manage your authenticators, which are actually digital keychains identified by unique IDs.
         
         These keychains contain both public keys, which can be freely shared, and their corresponding private keys, protected by passphrases, which must be kept hidden.
@@ -423,6 +415,6 @@ class KeyringSelectorScreen(Screen):
         """))
         MDDialog(
             auto_dismiss=True,
-            title=_("Authenticator management page"),
+            title=tr._("Authenticator management page"),
             text=help_text,
             ).open()

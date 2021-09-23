@@ -15,16 +15,15 @@ from waguilib.i18n import Lang, DEFAULT_LANGUAGE
 
 
 LOCALE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "locale")
+tr = Lang(DEFAULT_LANGUAGE, locale_dir=LOCALE_DIR)  # ("en")  # FIXME replace this with real trans
 
 
 class MainApp(MDApp):
 
-    tr = Lang(DEFAULT_LANGUAGE, locale_dir=LOCALE_DIR)  # ("en")  # FIXME replace this with real trans
-
     kv_file = "wa_keygen_gui.kv"
 
     def __init__(self, **kwargs):
-        self.title = "Witness Angel - Guardian Authenticator"
+        self.title = "Witness Angel - Guardian Authenticator"  # Untranslated
         super(MainApp, self).__init__(**kwargs)
 
     def build(self):

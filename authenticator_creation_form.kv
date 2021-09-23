@@ -1,3 +1,4 @@
+#:import tr wa_keygen_gui.tr
 
 
 <AuthenticatorCreationScreen>:
@@ -10,13 +11,13 @@
         cols: 1
 
         MDToolbar:
-            title: app.tr._("Create authenticator")
+            title: tr._("Create authenticator")
             id: initialization_form_toolbar
             left_action_items: [["arrow-left", lambda x: root.go_to_home_screen()]]
             right_action_items: [["help-circle-outline", lambda x: root.display_help_popup()]]
 
         MDLabel:
-            text: app.tr._("Target:") + " " + str(root._selected_authenticator_path)
+            text: tr._("Target:") + " " + str(root._selected_authenticator_path)
             halign: "center"
 
         MDTextField:

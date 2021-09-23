@@ -1,10 +1,12 @@
+#:import tr wa_keygen_gui.tr
+
 
 <LanguageMenuHeader@MDBoxLayout>:
     orientation: "vertical"
     adaptive_size: True
     padding: "10dp"
     MDLabel:
-        text: app.tr._("Language")
+        text: tr._("Language")
         font_style: "H6"
         adaptive_size: True
         pos_hint: {"center_y": .5}
@@ -14,23 +16,23 @@
     _height: dp(60)
 
 <UserKeyStoreListItem@ThinTwoLineAvatarIconListItem>:
-    text: app.tr._("User Profile")
-    secondary_text: app.tr._("Stored inside system disk")
-    #tertiary_text: app.tr._("fit more text than usual")
+    text: tr._("User Profile")
+    secondary_text: tr._("Stored inside system disk")
+    #tertiary_text: tr._("fit more text than usual")
 
     IconLeftWidget:
         icon: "account-box"
 
 <OpenFolderButton@IRightBodyTouch+MDRectangleFlatIconButton>:
-    text: app.tr._("Find")
+    text: tr._("Find")
     icon: "file-find-outline"
 
 <FolderKeyStoreListItem>:
 
     selected_path: None
-    text: app.tr._("Custom location")
-    secondary_text: str(self.selected_path) if self.selected_path else app.tr._("Please select a folder")
-    #tertiary_text: app.tr._("fit more text than usual2")
+    text: tr._("Custom location")
+    secondary_text: str(self.selected_path) if self.selected_path else tr._("Please select a folder")
+    #tertiary_text: tr._("fit more text than usual2")
 
     on_size:
         self.ids._right_container.width = open_folder_btn.width
@@ -51,10 +53,10 @@
     height: "80dp"
 
     MDLabel:
-        text: app.tr._("Test integrity and passphrase of authenticator.")
+        text: tr._("Test integrity and passphrase of authenticator.")
     MDTextField:
         id: tester_passphrase
-        hint_text: app.tr._("Passphrase")
+        hint_text: tr._("Passphrase")
 
 
 <KeyringSelectorScreen>:
@@ -72,7 +74,7 @@
                 cols: 1
 
                 MDToolbar:
-                    title: app.tr._("Manage Authenticators")
+                    title: tr._("Manage Authenticators")
                     right_action_items: [["refresh", lambda x: root.refresh_keyring_list()], ["earth", lambda x: root.language_menu_open(x)], ["help-circle-outline", lambda x: root.display_help_popup()]]
 
                 ScrollView:
