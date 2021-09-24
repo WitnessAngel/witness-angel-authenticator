@@ -1,4 +1,4 @@
-#:import KeyringSelectorScreen waguilib.screens.authenticator_management.KeyringSelectorScreen
+#:import KeyringSelectorScreen waguilib.screens.authenticator_management.AuthenticatorSelectorScreen
 #:import AuthenticatorCreationScreen waguilib.screens.authenticator_creation_form.AuthenticatorCreationScreen
 # #:import SwapTransition kivy.uix.screenmanager.SwapTransition
 
@@ -8,11 +8,11 @@ ScreenManager:
     id: screen_manager
     #transition: SwapTransition()
 
-    KeyringSelectorScreen:
-        id: keyring_selector_screen_id
-        name: "keyring_selector_screen"
+    AuthenticatorSelectorScreen:
+        id: authenticator_selector_screen_id
+        name: "authenticator_selector_screen"
 
     AuthenticatorCreationScreen:
         id: authenticator_creation_screen_id
         name: "authenticator_creation_screen"
-        _selected_authenticator_path: keyring_selector_screen_id._selected_authenticator_path
+        _selected_authenticator_path: authenticator_selector_screen_id._selected_authenticator_path
