@@ -1,6 +1,4 @@
 
-print(">>>> WE LIVE IN", __file__)
-
 import os
 
 os.environ["WACLIENT_TYPE"] = "APPLICATION"  # IMPORTANT
