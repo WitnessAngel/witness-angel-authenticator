@@ -21,6 +21,6 @@ Or if you're already inside the proper python virtualenv (e.g. in a `poetry shel
 
 To generate an executable version of the program (only tested on Windows)::
 
-    $ python -m PyInstaller wa_authenticator_gui.spec
+    $ python -m PyInstaller pyinstaller.spec
 
     Note that arguments like "--windowed --onefile" are overridden by the content of the spec file
