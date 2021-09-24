@@ -4,13 +4,13 @@ build-backend = "poetry.masonry.api"
 
 
 [tool.poetry]
-name = "wakeygen"
-description = "Witness Angel Keygen"
+name = "witness-angel-authenticator"
+description = "Witness Angel Authenticator"
 version = "0.1"
 license = "MIT"
 readme = "Readme.rst"
 authors = ["Pascal Chambon", "Akram Bourichi"]
-homepage = "https://github.com/WitnessAngel/witness-angel-keygen"
+homepage = "https://github.com/WitnessAngel/witness-angel-authenticator"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -35,8 +35,10 @@ python = ">=3.6,<4"
 # Cryptography
 wacryptolib = "^0.5.2"
 
+# Dependencies of WAGUILIB
 Kivy = {version = "^2.0.0", extras = ["base"]}
 kivymd = "^0.104.1"
+psutil = "^5.8.0"
 
 
 [tool.poetry.dev-dependencies]
