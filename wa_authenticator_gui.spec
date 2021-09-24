@@ -5,11 +5,14 @@ block_cipher = None
 from kivy_deps import sdl2, glew
 from kivymd import hooks_path as kivymd_hooks_path
 
-a = Analysis(['wa_keygen_gui.py'],
+from PyInstaller.utils.hooks import collect_submodules, collect_data_files
+
+
+a = Analysis(['main.py'],
              pathex=['.'],
              binaries=[],
-             datas=[("wa_keygen_gui.kv", ".")],
-             hiddenimports=["kivymd"],
+             datas=[("wa_authenticator_gui.kv", ".")] + collect_data_files("waguilib"),
+             hiddenimports=collect_submodules("waguilib") + collect_submodules("plyer"),
              hookspath=[kivymd_hooks_path],
              runtime_hooks=[],
              excludes=['_tkinter', 'Tkinter', "cv2", "numpy", "pygame"],
@@ -29,14 +32,14 @@ exe = EXE(pyz,
           *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
           #[],
           #exclude_binaries=True,
-          name='witness_angel_keygen',
+          name='witness_angel_authenticator',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
           runtime_tmpdir=None,
           console=True,
-          icon='./favicon_white_on_black.ico')
+          icon='./bundle_favicon.ico')
 
 ''' UNUSED
 coll = COLLECT(exe,
@@ -47,5 +50,5 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                upx_exclude=[],
-               name='witness_angel_keygen')
+               name='witness_angel_authenticator')
 '''
