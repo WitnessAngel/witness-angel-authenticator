@@ -20,20 +20,16 @@ LOCALE_DIR = ROOT_DIR / "locale"
 tr.add_locale_dirs(LOCALE_DIR, GUILIB_LOCALE_DIR)
 
 
-class MainApp(MDApp):
+class WaAuthenticatorApp(MDApp):
 
-    kv_file = "wa_keygen_gui.kv"
+    kv_file = "wa_authenticator_gui.kv"
     icon = resource_find("icons/witness_angel_logo_blue_32x32.png")
 
     def __init__(self, **kwargs):
         self.title = "Witness Angel - Guardian Authenticator"  # Untranslated
-        super(MainApp, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def build(self):
         self.theme_cls.primary_palette = "Blue"
         #self.theme_cls.theme_style = "Dark"  # or "Light"
         self.theme_cls.primary_hue = "900"  # "500"
-
-
-if __name__ == "__main__":
-    MainApp().run()
