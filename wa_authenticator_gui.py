@@ -12,8 +12,11 @@ from kivy.resources import resource_find
 from waguilib.i18n import tr
 from waguilib.locale import LOCALE_DIR as GUILIB_LOCALE_DIR  # DEFAULT LOCALE
 
-# IF NEEDED TO DEBUG
-#activate_widget_debug_outline()
+
+if False:  #  ACTIVATE IF NEEDED TO DEBUG
+    from waguilib.widgets.layout_helpers import activate_widget_debug_outline
+    activate_widget_debug_outline()
+
 
 ROOT_DIR = Path(__file__).parent
 LOCALE_DIR = ROOT_DIR / "locale"
