@@ -36,7 +36,7 @@ version.filename = pyproject.toml
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy==2.0.0,pycryptodome,plyer,decorator,docutils,pymongo,multitimer,uuid0,pytz,psutil,Kivy,kivymd,Pillow
+requirements = kivy,kivymd,pycryptodome,plyer,decorator,docutils,pymongo,multitimer,uuid0,pytz,psutil,pillow,base62
 
 # (list) Garden requirements
 #garden_requirements =
@@ -118,9 +118,6 @@ android.minapi = 26
 # (str) ANT directory (if empty, it will be automatically downloaded.)
 #android.ant_path =
 
-# (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
-# p4a.source_dir = /home/vbox/fork_python-for-android
-
 # (list) python-for-android whitelist
 #android.p4a_whitelist =
 
@@ -198,14 +195,14 @@ android.minapi = 26
 # android.add_compile_options = "sourceCompatibility = 1.8", "targetCompatibility = 1.8"
 
 # (list) Gradle repositories to add {can be necessary for some android.gradle_dependencies}
-# please enclose in double quotes 
+# please enclose in double quotes
 # e.g. android.gradle_repositories = "maven { url 'https://kotlin.bintray.com/ktor' }"
 #android.add_gradle_repositories =
 
-# (list) packaging options to add 
+# (list) packaging options to add
 # see https://google.github.io/android-gradle-dsl/current/com.android.build.gradle.internal.dsl.PackagingOptions.html
 # can be necessary to solve conflicts in gradle_dependencies
-# please enclose in double quotes 
+# please enclose in double quotes
 # e.g. android.add_packaging_options = "exclude 'META-INF/common.kotlin_module'", "exclude 'META-INF/*.kotlin_module'"
 #android.add_packaging_options =
 
@@ -297,7 +294,7 @@ android.allow_backup = True
 #p4a.commit = HEAD
 
 # (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
-#p4a.source_dir =
+p4a.source_dir = /home/osboxes/fork_python-for-android
 
 # (str) The directory in which python-for-android should look for your own build recipes (if any)
 #p4a.local_recipes =
