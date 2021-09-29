@@ -3,16 +3,21 @@
 # #:import SwapTransition kivy.uix.screenmanager.SwapTransition
 
 
-ScreenManager:
+RelativeLayout:
 
-    id: screen_manager
-    #transition: SwapTransition()
+    ScreenManager:
 
-    AuthenticatorSelectorScreen:
-        id: authenticator_selector_screen_id
-        name: "authenticator_selector_screen"
+        id: screen_manager
+        #transition: SwapTransition()
 
-    AuthenticatorCreationScreen:
-        id: authenticator_creation_screen_id
-        name: "authenticator_creation_screen"
-        _selected_authenticator_path: authenticator_selector_screen_id._selected_authenticator_path
+        AuthenticatorSelectorScreen:
+            id: authenticator_selector_screen_id
+            name: "authenticator_selector_screen"
+
+        AuthenticatorCreationScreen:
+            id: authenticator_creation_screen_id
+            name: "authenticator_creation_screen"
+            _selected_authenticator_path: authenticator_selector_screen_id._selected_authenticator_path
+
+    WaitSpinner:
+        id: wait_spinner
