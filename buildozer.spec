@@ -43,7 +43,7 @@ requirements = kivy,kivymd,pycryptodome,plyer,decorator,docutils,pymongo,multiti
 # requirements.source.kivy = ../../kivy
 
 # (str) Presplash of the application
-#presplash.filename = %(source.dir)s/data/presplash.png
+presplash.filename = %(source.dir)s/android_presplash_512px.png
 
 # (str) Icon of the application
 #icon.filename = %(source.dir)s/data/icons/witness_angel_logo_512.png
@@ -59,7 +59,7 @@ orientation = portrait
 #
 
 #
-# author = © Copyright Info
+# author = Copyright Info
 
 # change the major version of python used by the app
 osx.python_version = 3
