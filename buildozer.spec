@@ -38,9 +38,6 @@ version.filename = pyproject.toml
 # comma separated e.g. requirements = sqlite3,kivy
 requirements = kivy,kivymd,pycryptodome,plyer,decorator,docutils,pymongo,multitimer,uuid0,pytz,psutil,pillow,pybase62
 
-# (list) Garden requirements
-#garden_requirements =
-
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
 # requirements.source.kivy = ../../kivy
@@ -56,9 +53,19 @@ orientation = portrait
 
 # (list) List of service to declare
 #services = NAME:ENTRYPOINT_TO_PY,NAME2:ENTRYPOINT2_TO_PY
-#services = recordingservice:service.py
-##:sticky:foreground
 
+#
+# OSX Specific
+#
+
+#
+# author = © Copyright Info
+
+# change the major version of python used by the app
+osx.python_version = 3
+
+# Kivy version to use
+osx.kivy_version = 1.9.1
 
 #
 # Android specific
@@ -118,9 +125,6 @@ android.minapi = 26
 # (str) ANT directory (if empty, it will be automatically downloaded.)
 #android.ant_path =
 
-# (list) python-for-android whitelist
-#android.p4a_whitelist =
-
 # (bool) If True, then skip trying to update the Android sdk
 # This can be useful to avoid excess Internet downloads or save time
 # when an update is due and you just want to test/build your package
@@ -131,7 +135,6 @@ android.minapi = 26
 # the default, you will be shown the license when first running
 # buildozer.
 # android.accept_sdk_license = False
-
 
 # (str) Android entry point, default is ok for Kivy-based app
 #android.entrypoint = org.renpy.android.PythonActivity
@@ -173,10 +176,6 @@ android.minapi = 26
 # (list) List of Java files to add to the android project (can be java or a
 # directory containing the files)
 #android.add_src =
-
-# (str) python-for-android branch to use, if not master, useful to try
-# not yet merged features.
-#android.branch = master
 
 # (list) Android AAR archives to add
 #android.add_aars =
@@ -316,7 +315,6 @@ p4a.source_dir = /home/osboxes/fork_python-for-android
 #p4a.setup_py = false
 
 
-
 #
 # iOS specific
 #
@@ -332,7 +330,7 @@ ios.kivy_ios_branch = master
 #ios.ios_deploy_dir = ../ios_deploy
 # Or specify URL and branch
 ios.ios_deploy_url = https://github.com/phonegap/ios-deploy
-ios.ios_deploy_branch = 1.7.0
+ios.ios_deploy_branch = 1.10.0
 
 # (bool) Whether or not to sign the code
 ios.codesign.allowed = false
