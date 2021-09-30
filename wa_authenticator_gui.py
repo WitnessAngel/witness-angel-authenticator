@@ -1,6 +1,8 @@
 
 import os
 
+from waguilib.key_codes import KeyCodes
+from waguilib.widgets.popups import has_current_dialog, close_current_dialog
 
 os.environ["WACLIENT_TYPE"] = "APPLICATION"  # IMPORTANT
 from waguilib import kivy_presetup  # IMPORTANT
@@ -8,6 +10,7 @@ del kivy_presetup
 
 from pathlib import Path
 
+from kivy.core.window import Window
 from kivymd.app import MDApp
 from kivy.resources import resource_find, resource_add_path
 
@@ -40,8 +43,25 @@ class WaAuthenticatorApp(MDApp):
     def __init__(self, **kwargs):
         self.title = "Witness Angel - Authenticator Manager"  # Untranslated
         super().__init__(**kwargs)
+        Window.bind(on_keyboard=self.handle_back_button)
 
     def build(self):
         self.theme_cls.primary_palette = "Blue"
         #self.theme_cls.theme_style = "Dark"  # or "Light"
         self.theme_cls.primary_hue = "900"  # "500"
+
+    def handle_back_button(self, widget, key, *args):
+
+        if key == KeyCodes.ESCAPE:  # Also means BACK button on android
+
+            # Close the current open popup or file browser, if any
+            if has_current_dialog():
+                close_current_dialog()
+                return True
+
+            # Go back to main page,
+            if self.root.ids.screen_manager.current != "authenticator_selector_screen":
+                self.root.ids.screen_manager.current = "authenticator_selector_screen"
+                return True
+
+            # Else, let the key propagate (and app close if necessary)
