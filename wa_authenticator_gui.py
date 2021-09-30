@@ -63,3 +63,7 @@ class WaAuthenticatorApp(MDApp):
                 return True
 
             # Else, let the key propagate (and app close if necessary)
+
+    def on_pause(self):
+        # FIXME move this to new base class in WAGUILIB
+        return True
