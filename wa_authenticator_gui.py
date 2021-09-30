@@ -1,8 +1,12 @@
 
 import os
 
-os.environ["WACLIENT_TYPE"] = "APPLICATION"  # IMPORTANT
-from waguilib import kivy_presetup  # IMPORTANT
+os.environ["WACLIENT_TYPE"] = "APPLICATION"  # IMPORTANT before anything
+
+from waguilib.common_presetup import setup_generic_app
+setup_generic_app('wa_authenticator_gui')  # Trigger general setup
+
+from waguilib import kivy_presetup  # IMPORTANT, kivy setup
 del kivy_presetup
 
 from pathlib import Path
@@ -11,29 +15,23 @@ from kivy.core.window import Window
 from kivymd.app import MDApp
 from kivy.resources import resource_find, resource_add_path
 
-from waguilib.android_helpers import patch_ctypes_module
 from waguilib.i18n import tr
-from waguilib.importable_settings import IS_ANDROID
-from waguilib.locale import LOCALE_DIR as GUILIB_LOCALE_DIR  # DEFAULT LOCALE
+from waguilib.locale import LOCALE_DIR as GUILIB_LOCALE_DIR  # DEFAULT LOCALE DIR
 from waguilib.key_codes import KeyCodes
 from waguilib.widgets.popups import has_current_dialog, close_current_dialog
-from waguilib.widgets.layout_helpers import activate_widget_debug_outline, load_layout_helper_widgets
 
 
-if False:  #  ACTIVATE IF NEEDED TO DEBUG
+if False:  #  ACTIVATE TO DEBUG GUI
     activate_widget_debug_outline()
-
-load_layout_helper_widgets()
-
-if IS_ANDROID:
-    patch_ctypes_module()  # Necessary for wacryptolib
 
 
 ROOT_DIR = Path(__file__).parent
+
 LOCALE_DIR = ROOT_DIR / "locale"
 tr.add_locale_dirs(LOCALE_DIR, GUILIB_LOCALE_DIR)
 
 resource_add_path(ROOT_DIR)
+
 
 class WaAuthenticatorApp(MDApp):
 
