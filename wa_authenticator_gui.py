@@ -1,9 +1,6 @@
 
 import os
 
-from waguilib.key_codes import KeyCodes
-from waguilib.widgets.popups import has_current_dialog, close_current_dialog
-
 os.environ["WACLIENT_TYPE"] = "APPLICATION"  # IMPORTANT
 from waguilib import kivy_presetup  # IMPORTANT
 del kivy_presetup
@@ -18,12 +15,15 @@ from waguilib.android_helpers import patch_ctypes_module
 from waguilib.i18n import tr
 from waguilib.importable_settings import IS_ANDROID
 from waguilib.locale import LOCALE_DIR as GUILIB_LOCALE_DIR  # DEFAULT LOCALE
+from waguilib.key_codes import KeyCodes
+from waguilib.widgets.popups import has_current_dialog, close_current_dialog
+from waguilib.widgets.layout_helpers import activate_widget_debug_outline, load_layout_helper_widgets
 
 
 if False:  #  ACTIVATE IF NEEDED TO DEBUG
-    from waguilib.widgets.layout_helpers import activate_widget_debug_outline
     activate_widget_debug_outline()
 
+load_layout_helper_widgets()
 
 if IS_ANDROID:
     patch_ctypes_module()  # Necessary for wacryptolib
