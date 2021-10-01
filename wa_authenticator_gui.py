@@ -21,7 +21,8 @@ from waguilib.key_codes import KeyCodes
 from waguilib.widgets.popups import has_current_dialog, close_current_dialog
 
 
-if False:  #  ACTIVATE TO DEBUG GUI
+if True:  #  ACTIVATE TO DEBUG GUI
+    from waguilib.widgets.layout_helpers import activate_widget_debug_outline
     activate_widget_debug_outline()
 
 
