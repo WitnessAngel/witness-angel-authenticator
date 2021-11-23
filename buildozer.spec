@@ -36,14 +36,14 @@ version.filename = pyproject.toml
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = kivy,kivymd,pycryptodome,plyer,decorator,docutils,pymongo,multitimer,uuid0,pytz,psutil,pillow,pybase62
+requirements = kivy,kivymd,pycryptodome,plyer,decorator,docutils,pymongo,multitimer,uuid0,pytz,psutil,pillow,pybase62,wacryptolib
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
 # requirements.source.kivy = ../../kivy
 
 # (str) Presplash of the application
-presplash.filename = %(source.dir)s/android_presplash_512px.png
+presplash.filename = %(source.dir)s/android_presplash_authenticator_512px.png
 
 # (str) Icon of the application
 #icon.filename = %(source.dir)s/data/icons/witness_angel_logo_512.png
