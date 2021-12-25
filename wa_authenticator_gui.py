@@ -35,7 +35,9 @@ tr.add_locale_dirs(LOCALE_DIR, GUILIB_LOCALE_DIR)
 resource_add_path(ROOT_DIR)
 
 
-load_layout_helper_widgets()
+if False:
+    load_layout_helper_widgets()
+
 
 class WaAuthenticatorApp(MDApp):
 
