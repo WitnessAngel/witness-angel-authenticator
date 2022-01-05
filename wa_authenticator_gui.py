@@ -19,7 +19,6 @@ from waguilib.i18n import tr
 from waguilib.locale import LOCALE_DIR as GUILIB_LOCALE_DIR  # DEFAULT LOCALE DIR
 from waguilib.key_codes import KeyCodes
 from waguilib.widgets.popups import has_current_dialog, close_current_dialog
-from waguilib.widgets.layout_helpers import load_layout_helper_widgets
 
 
 if False:  #  ACTIVATE TO DEBUG GUI
