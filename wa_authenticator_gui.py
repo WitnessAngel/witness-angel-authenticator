@@ -2,7 +2,7 @@
 import os
 
 
-from waguilib.application._app_presetup import _presetup_app_environment
+from wacomponents.application._app_presetup import _presetup_app_environment
 os.environ["WACLIENT_TYPE"] = "APPLICATION"  # IMPORTANT before anything
 _presetup_app_environment(setup_kivy=True)
 
@@ -12,15 +12,15 @@ from pathlib import Path
 from kivy.core.window import Window
 from kivy.resources import resource_find, resource_add_path
 
-from waguilib.i18n import tr
-from waguilib.locale import LOCALE_DIR as GUILIB_LOCALE_DIR  # DEFAULT LOCALE DIR
-from waguilib.devices.keyboard_codes import KeyCodes
-from waguilib.widgets.popups import has_current_dialog, close_current_dialog
+from wacomponents.i18n import tr
+from wacomponents.locale import LOCALE_DIR as GUILIB_LOCALE_DIR  # DEFAULT LOCALE DIR
+from wacomponents.devices.keyboard_codes import KeyCodes
+from wacomponents.widgets.popups import has_current_dialog, close_current_dialog
 
-from waguilib.application.generic_gui import WaGenericGui
+from wacomponents.application.generic_gui import WaGenericGui
 
 if False:  #  ACTIVATE TO DEBUG GUI
-    from waguilib.widgets.layout_components import activate_widget_debug_outline
+    from wacomponents.widgets.layout_components import activate_widget_debug_outline
     activate_widget_debug_outline()
 
 

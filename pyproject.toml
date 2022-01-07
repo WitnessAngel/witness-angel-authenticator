@@ -35,7 +35,7 @@ python = ">=3.6,<4"
 # Cryptography
 wacryptolib = "^0.5.2"
 
-# Dependencies of WAGUILIB
+# Dependencies of Wacomponents
 Kivy = {version = "^2.0.0", extras = ["base"]}
 kivymd = "^0.104.1"
 psutil = "^5.8.0"
