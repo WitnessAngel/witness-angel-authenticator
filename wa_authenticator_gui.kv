@@ -1,5 +1,6 @@
 #:import AuthenticatorSelectorScreen wacomponents.screens.authenticator_management.AuthenticatorSelectorScreen
 #:import AuthenticatorCreationScreen wacomponents.screens.authenticator_creation_form.AuthenticatorCreationScreen
+#:import AuthenticatorSynchronizationScreen wacomponents.screens.authenticator_synchronization_form.AuthenticatorSynchronizationScreen
 # #:import SwapTransition kivy.uix.screenmanager.SwapTransition
 
 
@@ -18,6 +19,12 @@ RelativeLayout:
             id: authenticator_creation_screen_id
             name: "authenticator_creation_screen"
             selected_authenticator_dir: authenticator_selector_screen_id.selected_authenticator_dir
+
+        AuthenticatorSynchronizationScreen:
+            id: authenticator_synchronization_screen_id
+            name: "authenticator_synchronization_screen"
+            selected_authenticator_dir: authenticator_selector_screen_id._selected_authenticator_path
+
 
     WaitSpinner:
         id: wait_spinner
