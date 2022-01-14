@@ -486,6 +486,21 @@ python-versions = "*"
 pybase62 = "*"
 
 [[package]]
+name = "wacomponents"
+version = "0.1"
+description = "Witness Angel Components"
+category = "main"
+optional = false
+python-versions = ">=3.7, <=3.10"
+develop = false
+
+[package.source]
+type = "git"
+url = "https://github.com/WitnessAngel/witness-angel-components.git"
+reference = "wanvr_stable"
+resolved_reference = "4222e8700fde7309b5fa3a5ca06d008861d11d0d"
+
+[[package]]
 name = "wacryptolib"
 version = "0.7"
 description = "Witness Angel Cryptolib"
@@ -542,7 +557,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7, <=3.10"
-content-hash = "4de7b9cec2d4c87e3a540e92dce9492c0522b31a4b828ac9dea5cdcf4f787377"
+content-hash = "95b590b68d85c915743487db95dc4c96b82ac494c96559260ddc1cd01d112e8a"
 
 [metadata.files]
 altgraph = [
@@ -969,6 +984,7 @@ uuid0 = [
     {file = "uuid0-0.2.7-py2.py3-none-any.whl", hash = "sha256:b200bd88098010cef5f4445ac0f1c6fe60e021f0478fb3968e943adc1e89b902"},
     {file = "uuid0-0.2.7.tar.gz", hash = "sha256:835da1b868078eadfd63de24d17b9ea3bd1c655497f99e1b8b84f6e4117e6c2b"},
 ]
+wacomponents = []
 wacryptolib = [
     {file = "wacryptolib-0.7-py3-none-any.whl", hash = "sha256:dc7a75634d6467e61e74ff15da0e21db7ac525910771ce50f38ec1b75c1e9023"},
     {file = "wacryptolib-0.7.tar.gz", hash = "sha256:8f48664a9348a6f0536a5226628d54beaf4916b1506fb08795256e0a3c111f9a"},
