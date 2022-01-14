@@ -30,10 +30,10 @@ exclude = []
 
 
 [tool.poetry.dependencies]
-python = ">=3.6,<4"
+python = ">=3.7, <=3.10"
 
 # Cryptography
-wacryptolib = "^0.5.2"
+wacryptolib = "^0.7"
 
 # Dependencies of Wacomponents
 Kivy = {version = "^2.0.0", extras = ["base"]}
