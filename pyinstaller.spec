@@ -39,7 +39,7 @@ exe = EXE(pyz,
           upx=True,
           runtime_tmpdir=None,
           console=True,
-          icon='./bundle_favicon.ico')
+          icon='./bundle_favicon.ico')  ###FIXME UGLY
 
 ''' UNUSED
 coll = COLLECT(exe,
