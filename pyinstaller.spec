@@ -11,7 +11,7 @@ from PyInstaller.utils.hooks import collect_submodules, collect_data_files
 a = Analysis(['main.py'],
              pathex=['.'],
              binaries=[],
-             datas=[("wa_authenticator_gui.kv", ".") + ("config_schema.json", ".") + ("config_template.ini", ".")] + collect_data_files("wacomponents"),
+             datas=[("wa_authenticator_gui.kv", "."), ("config_schema.json", "."), ("config_template.ini", ".")] + collect_data_files("wacomponents"),
              hiddenimports=collect_submodules("wacomponents") + collect_submodules("plyer"),
              hookspath=[kivymd_hooks_path],
              runtime_hooks=[],
