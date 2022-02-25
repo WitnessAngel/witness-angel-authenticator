@@ -1,7 +1,6 @@
 [
-    {"type": "title", "title": "Settings for Keygen"},
     {
-        "key": "witness_angel_gateway_url",
+        "key": "wagateway_url",
         "type": "string",
         "title": "Witness Angel Gateway URL",
         "desc": "Server where authenticators can be published",

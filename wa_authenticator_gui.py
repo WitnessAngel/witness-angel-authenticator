@@ -76,8 +76,8 @@ class WaAuthenticatorApp(WaGenericGui):
 
             # Else, let the key propagate (and app close if necessary)
 
-    def get_witness_angel_gateway_url(self):
-        return self.config.get("keygen", "witness_angel_gateway_url")
+    def get_wagateway_url(self):
+        return self.config.get("keygen", "wagateway_url")
 
     def get_custom_authenticator_dir(self):
         raw_value = self.config.get("keygen", "custom_authenticator_dir").strip()
