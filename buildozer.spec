@@ -36,7 +36,8 @@ version.filename = pyproject.toml
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = kivy,kivymd,pycryptodome,plyer,decorator,docutils,pymongo==4.0.1,multitimer,uuid0,pytz,psutil,pillow,pybase62,schema,jsonschema,click,git+https://github.com/witnessangel/witness-angel-cryptolib.git@wakeygen_stable,git+https://github.com/witnessangel/witness-angel-components.git@wakeygen_stable
+# Modules requests/urllib3/etc. necessary for crashdumps!!
+requirements = kivy,kivymd,pycryptodome,plyer,decorator,docutils,pymongo==4.0.1,jsonrpc-requests,multitimer,uuid0,pytz,psutil,pillow,pybase62,schema,jsonschema,click,git+https://github.com/witnessangel/witness-angel-cryptolib.git@wakeygen_stable,git+https://github.com/witnessangel/witness-angel-components.git@wakeygen_stable,requests,urllib3,charset_normalizer,chardet,idna,certifi
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -46,7 +47,7 @@ requirements = kivy,kivymd,pycryptodome,plyer,decorator,docutils,pymongo==4.0.1,
 presplash.filename = %(source.dir)s/android_presplash_authenticator_512px.png
 
 # (str) Icon of the application
-icon.filename = %(source.dir)s/windows_icon_authenticator_64x64.ico
+icon.filename = %(source.dir)s/android_icon_authenticator_64x64.png
 
 # (str) Supported orientation (one of landscape, portrait or all)
 orientation = portrait
