@@ -46,7 +46,7 @@ requirements = kivy,kivymd,pycryptodome,plyer,decorator,docutils,pymongo==4.0.1,
 presplash.filename = %(source.dir)s/android_presplash_authenticator_512px.png
 
 # (str) Icon of the application
-icon.filename = %(source.dir)s/android_icon_authenticator_64x64.png
+icon.filename = %(source.dir)s/windows_icon_authenticator_64x64.ico
 
 # (str) Supported orientation (one of landscape, portrait or all)
 orientation = portrait
