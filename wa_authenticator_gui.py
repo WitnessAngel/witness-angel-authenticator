@@ -82,3 +82,7 @@ class WaAuthenticatorApp(WaGenericGui):
     def get_custom_authenticator_dir(self):
         raw_value = self.config.get("keygen", "custom_authenticator_dir").strip()
         return Path(raw_value).absolute() if raw_value else None  # Beware, "" must not be interpreted as "./"
+
+
+def main():
+    WaAuthenticatorApp().run()
