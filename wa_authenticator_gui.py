@@ -61,6 +61,7 @@ class WaAuthenticatorApp(WaGenericGui):
         self.save_config()
 
     def handle_back_button(self, widget, key, *args):
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
         if key == KeyCodes.ESCAPE:  # Also means BACK button on android
 
