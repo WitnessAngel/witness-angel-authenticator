@@ -36,7 +36,7 @@ version.filename = pyproject.toml
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = kivy,kivymd,pycryptodome,plyer,decorator,docutils,pymongo==3.12.1,multitimer,uuid0,pytz,psutil,pillow,pybase62,schema,jsonschema,click,git+https://github.com/witnessangel/witness-angel-cryptolib.git@wakeygen_stable,git+https://github.com/witnessangel/witness-angel-components.git@wakeygen_stable
+requirements = kivy,kivymd,pycryptodome,plyer,decorator,docutils,pymongo==4.0.1,multitimer,uuid0,pytz,psutil,pillow,pybase62,schema,jsonschema,click,git+https://github.com/witnessangel/witness-angel-cryptolib.git@wakeygen_stable,git+https://github.com/witnessangel/witness-angel-components.git@wakeygen_stable
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes

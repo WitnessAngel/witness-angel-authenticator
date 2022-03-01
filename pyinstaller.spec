@@ -39,7 +39,7 @@ exe = EXE(pyz,
           upx=True,
           runtime_tmpdir=None,
           console=True,
-          icon='./bundle_favicon.ico')  ###FIXME UGLY
+          icon='./android_icon_authenticator_64x64.ico')
 
 ''' UNUSED
 coll = COLLECT(exe,
