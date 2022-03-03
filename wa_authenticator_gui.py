@@ -83,6 +83,16 @@ class WaAuthenticatorApp(WaGenericGui):
         raw_value = self.config.get("keygen", "custom_authenticator_dir").strip()
         return Path(raw_value).absolute() if raw_value else None  # Beware, "" must not be interpreted as "./"
 
+    def get_config_schema_data(self):
+        return [
+            {
+                "key": "wagateway_url",
+                "type": "string",
+                "title": tr._("Witness Angel Gateway URL"),
+                "desc": tr._("Server where authenticators can be published"),
+                "section": "keygen",
+            }
+        ]
 
 def main():
     WaAuthenticatorApp().run()
