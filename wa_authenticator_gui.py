@@ -87,7 +87,7 @@ class WaAuthenticatorApp(WaGenericGui):
         return [
             {
                 "key": "wagateway_url",
-                "type": "string",
+                "type": "string_truncated",
                 "title": tr._("Witness Angel Gateway URL"),
                 "desc": tr._("Server where authenticators can be published"),
                 "section": "keygen",
