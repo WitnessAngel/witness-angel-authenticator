@@ -2,16 +2,24 @@
 
 block_cipher = None
 
+import re
+from pathlib import Path
 from kivy_deps import sdl2, glew
 from kivymd import hooks_path as kivymd_hooks_path
 
 from PyInstaller.utils.hooks import collect_submodules, collect_data_files
 
+import PyInstaller.config
+PyInstaller.config.CONF['distpath'] = "./bin"  # Make it same as buildozer output path
+
+pyproject_data = Path("./pyproject.toml").read_text()
+version = re.search(r'''version = ['"](.*)['"]''', pyproject_data).group(1)
+assert version, version
 
 a = Analysis(['main.py'],
              pathex=['.'],
              binaries=[],
-             datas=[("wa_authenticator_gui.kv", "."), ("config_schema.json", "."), ("config_template.ini", ".")] + collect_data_files("wacomponents"),
+             datas=[("wa_authenticator_gui.kv", "."), ("config_defaults.ini", ".")] + collect_data_files("wacomponents"),
              hiddenimports=collect_submodules("wacomponents") + collect_submodules("plyer"),
              hookspath=[kivymd_hooks_path],
              runtime_hooks=[],
@@ -32,7 +40,7 @@ exe = EXE(pyz,
           *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
           #[],
           #exclude_binaries=True,
-          name='witness_angel_authenticator',
+          name='witness_angel_authenticator_%s' % version,
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
