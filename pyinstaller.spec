@@ -16,11 +16,13 @@ pyproject_data = Path("./pyproject.toml").read_text()
 version = re.search(r'''version = ['"](.*)['"]''', pyproject_data).group(1)
 assert version, version
 
+hiddenimports = ["wa_authenticator_gui"] + collect_submodules("wacomponents") + collect_submodules("plyer")
+
 a = Analysis(['main.py'],
              pathex=['.'],
              binaries=[],
              datas=[("wa_authenticator_gui.kv", "."), ("config_defaults.ini", ".")] + collect_data_files("wacomponents"),
-             hiddenimports=collect_submodules("wacomponents") + collect_submodules("plyer"),
+             hiddenimports=hiddenimports,
              hookspath=[kivymd_hooks_path],
              runtime_hooks=[],
              excludes=['_tkinter', 'Tkinter', "cv2", "numpy", "pygame"],
