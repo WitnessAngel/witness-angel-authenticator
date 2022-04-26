@@ -1,7 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-block_cipher = None
-
 import re
 from pathlib import Path
 from kivy_deps import sdl2, glew
@@ -18,6 +16,8 @@ assert version, version
 
 hiddenimports = ["wa_authenticator_gui"] + collect_submodules("wacomponents") + collect_submodules("plyer")
 
+block_cipher = None
+
 a = Analysis(['main.py'],
              pathex=['.'],
              binaries=[],
@@ -29,7 +29,7 @@ a = Analysis(['main.py'],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,
-             noarchive=False)
+             noarchive=True)
 
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
