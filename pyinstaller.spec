@@ -49,7 +49,7 @@ exe = EXE(pyz,
           upx=True,
           runtime_tmpdir=None,
           console=True,
-          icon='./windows_icon_authenticator_64x64.ico')
+          icon='./assets/windows_icon_authenticator_64x64.ico')
 
 ''' UNUSED
 coll = COLLECT(exe,
