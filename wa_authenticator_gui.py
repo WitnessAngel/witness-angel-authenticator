@@ -1,12 +1,5 @@
 
 import os
-
-
-from wacomponents.application._app_presetup import _presetup_app_environment
-os.environ["WACLIENT_TYPE"] = "APPLICATION"  # IMPORTANT before anything
-_presetup_app_environment(setup_kivy=True)
-
-
 from pathlib import Path
 
 from kivy.core.window import Window
