@@ -33,3 +33,6 @@ To build a debug APK and deploy it via USB on an android device (only works on L
 
     $ buildozer android debug deploy run logcat
 
+To force the startup language of application, set the LANG environment variable to "fr" or "en".
+
+
