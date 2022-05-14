@@ -1,8 +1,8 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-import re
+import re, sys
 from pathlib import Path
-from kivy_deps import sdl2, glew
+
 from kivymd import hooks_path as kivymd_hooks_path
 
 from PyInstaller.utils.hooks import collect_submodules, collect_data_files
@@ -18,6 +18,16 @@ hiddenimports = ["wa_authenticator_gui"] + collect_submodules("wacomponents") + 
 
 block_cipher = None
 
+app_name = "witness_angel_authenticator_%s" % version.replace(".","-")
+
+extra_exe_params= []
+if sys.platform.startswith("win32"):
+    from kivy_deps import sdl2, glew
+    extra_exe_params = [Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)]
+
+USE_CONSOLE = False  # Change this if needed, to debug
+
+
 a = Analysis(['main.py'],
              pathex=['.'],
              binaries=[],
@@ -25,7 +35,7 @@ a = Analysis(['main.py'],
              hiddenimports=hiddenimports,
              hookspath=[kivymd_hooks_path],
              runtime_hooks=[],
-             excludes=['_tkinter', 'Tkinter', "cv2", "numpy", "pygame"],
+             excludes=['_tkinter', 'Tkinter', "enchant", "twisted", "cv2", "numpy", "pygame"],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,
@@ -39,19 +49,24 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
-          *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
-          #[],
+          *extra_exe_params,
           #exclude_binaries=True,
-          name='witness_angel_authenticator_%s' % version,
+          name=app_name,
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
           runtime_tmpdir=None,
-          console=True,
+          console=USE_CONSOLE,
           icon='./assets/windows_icon_authenticator_64x64.ico')
 
-''' UNUSED
+if sys.platform.startswith("darwin"):
+    app = BUNDLE(exe,
+             name=app_name+".app",
+             icon=None,
+             bundle_identifier=None)
+
+''' UNUSED - FOR DIRECTORY BUILD ONLY
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
