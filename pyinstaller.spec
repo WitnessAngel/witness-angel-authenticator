@@ -1,10 +1,9 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-import re, sys
+import re, sys, os
 from pathlib import Path
 
 from kivymd import hooks_path as kivymd_hooks_path
-
 from PyInstaller.utils.hooks import collect_submodules, collect_data_files
 
 import PyInstaller.config
@@ -16,19 +15,22 @@ assert version, version
 
 hiddenimports = ["wa_authenticator_gui"] + collect_submodules("wacomponents") + collect_submodules("plyer")
 
-block_cipher = None
-
 app_name = "witness_angel_authenticator_%s" % version.replace(".","-")
 
+program_icon = "./assets/icon_authenticator_512x512.png"
 extra_exe_params= []
+
 if sys.platform.startswith("win32"):
+    program_icon = "./assets/icon_authenticator_64x64.ico"
     from kivy_deps import sdl2, glew
     extra_exe_params = [Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)]
 
 USE_CONSOLE = False  # Change this if needed, to debug
 
+main_script = os.path.abspath(os.path.join(os.getcwd(), 'main.py'))
 
-a = Analysis(['main.py'],
+
+a = Analysis([main_script],
              pathex=['.'],
              binaries=[],
              datas=[("wa_authenticator_gui.kv", "."), ("config_defaults.ini", ".")] + collect_data_files("wacomponents"),
@@ -38,11 +40,11 @@ a = Analysis(['main.py'],
              excludes=['_tkinter', 'Tkinter', "enchant", "twisted", "cv2", "numpy", "pygame"],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
-             cipher=block_cipher,
+             cipher=None,
              noarchive=True)
 
 pyz = PYZ(a.pure, a.zipped_data,
-             cipher=block_cipher)
+             cipher=None)
 
 exe = EXE(pyz,
           a.scripts,
@@ -58,7 +60,7 @@ exe = EXE(pyz,
           upx=True,
           runtime_tmpdir=None,
           console=USE_CONSOLE,
-          icon='./assets/windows_icon_authenticator_64x64.ico')
+          icon='./assets/icon_authenticator_64x64.ico')
 
 if sys.platform.startswith("darwin"):
     app = BUNDLE(exe,
