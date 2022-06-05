@@ -509,7 +509,7 @@ develop = false
 type = "git"
 url = "https://github.com/WitnessAngel/witness-angel-components.git"
 reference = "wakeygen_stable"
-resolved_reference = "c2178844fa213b22d8ce7218a9a951e77104cde5"
+resolved_reference = "cab43af15721f4cdb62548592b5e099327ddf245"
 
 [[package]]
 name = "wacryptolib"
@@ -540,7 +540,7 @@ wmi = {version = "^1.5.1 ", markers = "sys_platform == \"win32\""}
 type = "git"
 url = "https://github.com/WitnessAngel/witness-angel-cryptolib.git"
 reference = "wakeygen_stable"
-resolved_reference = "cc2ec01e299931fe0fdc0a4b0c82f063972d846d"
+resolved_reference = "902179a26522604579225164a03b54ffaa06ad62"
 
 [[package]]
 name = "wmi"

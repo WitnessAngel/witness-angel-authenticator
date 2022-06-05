@@ -21,8 +21,9 @@ Or if you're already inside the proper python virtualenv (e.g. in a `poetry shel
 
     $ python main.py
 
-To generate an executable version of the program (only tested on Windows)::
+To generate an executable version of the program::
 
+    $ pip install pyinstaller
     $ python -m PyInstaller pyinstaller.spec
 
     Note that arguments like "--windowed --onefile" are overridden by the content of the spec file
