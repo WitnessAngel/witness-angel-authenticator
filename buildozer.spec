@@ -1,13 +1,13 @@
 [app]
 
 # (str) Title of your application
-title = Witness Angel - Authenticator Manager
+title = Authenticator
 
 # (str) Package name
-package.name = WitnessAngelAuthenticatorManager
+package.name = authenticator
 
 # (str) Package domain (needed for android/ios packaging)
-package.domain = org.WitnessAngel
+package.domain = org.witnessangel
 
 # (str) Source code where the main.py live
 source.dir = .
@@ -22,7 +22,7 @@ source.include_exts = py,png,jpg,kv,atlas,ini,json,mo
 #source.exclude_exts = spec
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-#source.exclude_dirs = tests, bin, venv
+source.exclude_dirs = tests, bin, build, dist, venv
 
 # (list) List of exclusions using pattern matching
 #source.exclude_patterns = license,images/*/*.jpg,conftest.pyc
@@ -35,9 +35,8 @@ version.filename = pyproject.toml
 # version = 1.2.0
 
 # (list) Application requirements
-# comma separated e.g. requirements = sqlite3,kivy
 # Modules requests/urllib3/etc. necessary for crashdumps!!
-requirements = kivy,kivymd==0.104.2,pycryptodome,plyer,decorator,docutils,pymongo==4.0.1,jsonrpc-requests,multitimer,uuid0,pytz,psutil,pillow,pybase62,schema,jsonschema,click,git+https://github.com/witnessangel/witness-angel-cryptolib.git@wakeygen_stable,git+https://github.com/witnessangel/witness-angel-components.git@wakeygen_stable,requests,urllib3,charset_normalizer,chardet,idna,certifi
+requirements = kivy==2.1.0,kivymd==0.104.2,pycryptodome==3.14.0,plyer==2.0.0,decorator==5.1.1,docutils==0.18.1,pymongo==4.1.1,jsonrpc-requests==0.4.0,multitimer==0.3,uuid0==0.2.7,pytz==2022.1,psutil==5.9.0,pillow==8.1.2,pybase62==0.4.3,schema==0.7.5,jsonschema==4.4.0,click==8.1.3,requests==2.27.1,urllib3==1.26.8,charset_normalizer==2.0.11,chardet==4.0.0,idna==3.3,certifi==2021.10.8,attrs==21.4.0,importlib-resources==5.7.1,zipp==3.7.0,pyrsistent==0.18.1,git+https://github.com/witnessangel/witness-angel-cryptolib.git@wakeygen_stable,git+https://github.com/witnessangel/witness-angel-components.git@wakeygen_stable
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -166,7 +165,7 @@ android.minapi = 26
 #android.whitelist_src =
 
 # (str) Path to a custom blacklist file
-#android.blacklist_src =
+android.blacklist_src = buildozer_blacklist.txt
 
 # (list) List of Java .jar files to add to the libs so that pyjnius can access
 # their classes. Don't add jars that you do not need, since extra jars can slow
