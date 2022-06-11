@@ -1,5 +1,7 @@
-Witness Angel - Authenticator Manager
-########################################
+Witness Angel Authenticator
+##################################
+
+Application homepage: https://witnessangel.com/en/authenticator-application/
 
 This cross-platform app allows "Key Guardians" of the Witness Angel ecosystem
 to create and edit their "authenticators".
