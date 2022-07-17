@@ -1,7 +1,7 @@
-#:import AuthenticatorSelectorScreen wacomponents.screens.authenticator_management.AuthenticatorSelectorScreen
-#:import AuthenticatorCreationScreen wacomponents.screens.authenticator_creation_form.AuthenticatorCreationScreen
-#:import AuthenticatorSynchronizationScreen wacomponents.screens.authenticator_synchronization_form.AuthenticatorSynchronizationScreen
-#:import RemoteDecryptionRequestScreen wacomponents.screens.authenticator_remote_decryption_request.RemoteDecryptionRequestScreen
+#:import AuthenticatorManagementScreen wacomponents.screens.authenticator_management
+#:import AuthenticatorCreationFormScreen wacomponents.screens.authenticator_creation_form
+#:import AuthenticatorPublicationFormScreen wacomponents.screens.authenticator_publication_form
+#:import AuthenticatorRevelationRequestManagementScreen wacomponents.screens.authenticator_revelation_request_management
 # #:import SwapTransition kivy.uix.screenmanager.SwapTransition
 
 
@@ -12,24 +12,24 @@ RelativeLayout:
         id: screen_manager
         #transition: SwapTransition()
 
-        AuthenticatorSelectorScreen:
-            id: authenticator_selector_screen_id
-            name: "authenticator_selector_screen"
+        AuthenticatorManagementScreen:
+            id: authenticator_management_screen_id
+            name: "authenticator_selector_screen"  # FIXME normalize all "name:" here and below
 
-        AuthenticatorCreationScreen:
-            id: authenticator_creation_screen_id
+        AuthenticatorCreationFormScreen:
+            id: authenticator_creation_form_screen_id
             name: "authenticator_creation_screen"
-            selected_authenticator_dir: authenticator_selector_screen_id.selected_authenticator_dir
+            selected_authenticator_dir: authenticator_management_screen_id.selected_authenticator_dir
 
-        AuthenticatorSynchronizationScreen:
-            id: authenticator_synchronization_screen_id
+        AuthenticatorPublicationFormScreen:
+            id: authenticator_publication_form_screen_id
             name: "authenticator_synchronization_screen"
-            selected_authenticator_dir: authenticator_selector_screen_id.selected_authenticator_dir
+            selected_authenticator_dir: authenticator_management_screen_id.selected_authenticator_dir
 
-        RemoteDecryptionRequestScreen:
-            id: authenticator_remote_decryption_requests_screen_id
-            name: "authenticator_remote_decryption_requests_screen"
-            selected_authenticator_dir: authenticator_selector_screen_id.selected_authenticator_dir
+        AuthenticatorRevelationRequestManagementScreen:
+            id: authenticator_revelation_request_management_screen_id
+            name: "authenticator_revelation_request_management"
+            selected_authenticator_dir: authenticator_management_screen_id.selected_authenticator_dir
 
     WaitSpinner:
         id: wait_spinner
