@@ -41,7 +41,7 @@ class WaAuthenticatorApp(WaGenericGui):
     def on_start(self):
         super().on_start()
         main_screen = self.root.ids.screen_manager.get_screen(
-                    "authenticator_selector_screen"
+                    "authenticator_management"
                 )
         assert hasattr(main_screen, "selected_custom_folder_path")
         main_screen.selected_custom_folder_path = self.get_custom_authenticator_dir()
@@ -63,8 +63,8 @@ class WaAuthenticatorApp(WaGenericGui):
                 return True
 
             # Go back to main page,
-            if self.root.ids.screen_manager.current != "authenticator_selector_screen":
-                self.root.ids.screen_manager.current = "authenticator_selector_screen"
+            if self.root.ids.screen_manager.current != "authenticator_management":
+                self.root.ids.screen_manager.current = "authenticator_management"
                 return True
 
             # Else, let the key propagate (and app close if necessary)

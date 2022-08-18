@@ -13,23 +13,23 @@ RelativeLayout:
         #transition: SwapTransition()
 
         AuthenticatorManagementScreen:
-            id: authenticator_management_screen_id
-            name: "authenticator_selector_screen"  # FIXME normalize all "name:" here and below
+            id: authenticator_management_id
+            name: "authenticator_management"  # FIXME normalize all "name:" here and below
 
         AuthenticatorCreationFormScreen:
-            id: authenticator_creation_form_screen_id
-            name: "authenticator_creation_screen"
-            selected_authenticator_dir: authenticator_management_screen_id.selected_authenticator_dir
+            id: authenticator_creation_form_id
+            name: "authenticator_creation_form"
+            selected_authenticator_dir: authenticator_management_id.selected_authenticator_dir
 
         AuthenticatorPublicationFormScreen:
-            id: authenticator_publication_form_screen_id
-            name: "authenticator_synchronization_screen"
-            selected_authenticator_dir: authenticator_management_screen_id.selected_authenticator_dir
+            id: authenticator_publication_form_id
+            name: "authenticator_publication_form"
+            selected_authenticator_dir: authenticator_management_id.selected_authenticator_dir
 
         AuthenticatorRevelationRequestManagementScreen:
-            id: authenticator_revelation_request_management_screen_id
+            id: authenticator_revelation_request_management_id
             name: "authenticator_revelation_request_management"
-            selected_authenticator_dir: authenticator_management_screen_id.selected_authenticator_dir
+            selected_authenticator_dir: authenticator_management_id.selected_authenticator_dir
 
     WaitSpinner:
         id: wait_spinner
