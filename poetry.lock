@@ -227,7 +227,7 @@ requests = "*"
 
 [[package]]
 name = "kivymd"
-version = "0.104.2"
+version = "1.0.2"
 description = "Set of widgets for Kivy inspired by Google's Material Design"
 category = "main"
 optional = false
