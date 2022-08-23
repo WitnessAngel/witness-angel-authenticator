@@ -521,7 +521,7 @@ develop = false
 type = "git"
 url = "https://github.com/WitnessAngel/witness-angel-components.git"
 reference = "wakeygen_stable"
-resolved_reference = "e973aa83c105bdd339e2b024d4347469d13f8092"
+resolved_reference = "e844015170cc50b1f4dfb5f9ff83a89778425b84"
 
 [[package]]
 name = "wacryptolib"
@@ -552,7 +552,7 @@ wmi = {version = "^1.5.1 ", markers = "sys_platform == \"win32\""}
 type = "git"
 url = "https://github.com/WitnessAngel/witness-angel-cryptolib.git"
 reference = "wakeygen_stable"
-resolved_reference = "a4fcb1103b22687736616f68eadf24869abafe29"
+resolved_reference = "e948f22f6e584fbe4813c694581eed7a5bef1df3"
 
 [[package]]
 name = "wmi"
@@ -587,7 +587,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7, <4.0"
-content-hash = "1fc8f625c5d0ffc34e5235dbf5b41d5f5843f675e2c48ef33f0e4c6deae2c2f8"
+content-hash = "b01c73a6f3ad6c2b47fe1c045bafd91bc5c035e7ace45067fbe62a9cb6efc705"
 
 [metadata.files]
 altgraph = [
