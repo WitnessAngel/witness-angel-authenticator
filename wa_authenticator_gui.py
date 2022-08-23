@@ -8,6 +8,7 @@ from kivy.resources import resource_find, resource_add_path
 from wacomponents.i18n import tr
 from wacomponents.locale import LOCALE_DIR as GUILIB_LOCALE_DIR  # DEFAULT LOCALE DIR
 from wacomponents.devices.keyboard_codes import KeyCodes
+from wacomponents.screens.base import WAScreenName
 from wacomponents.widgets.popups import has_current_dialog, close_current_dialog
 
 from wacomponents.application.generic_gui import WaGenericGui
@@ -41,7 +42,7 @@ class WaAuthenticatorApp(WaGenericGui):
     def on_start(self):
         super().on_start()
         main_screen = self.root.ids.screen_manager.get_screen(
-                    "authenticator_management"
+                     WAScreenName.authenticator_management
                 )
         assert hasattr(main_screen, "selected_custom_folder_path")
         main_screen.selected_custom_folder_path = self.get_custom_authenticator_dir()
@@ -63,8 +64,8 @@ class WaAuthenticatorApp(WaGenericGui):
                 return True
 
             # Go back to main page,
-            if self.root.ids.screen_manager.current != "authenticator_management":
-                self.root.ids.screen_manager.current = "authenticator_management"
+            if self.root.ids.screen_manager.current != WAScreenName.authenticator_management:
+                self.root.ids.screen_manager.current = WAScreenName.authenticator_management
                 return True
 
             # Else, let the key propagate (and app close if necessary)
