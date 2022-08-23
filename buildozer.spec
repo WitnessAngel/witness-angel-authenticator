@@ -36,7 +36,7 @@ version.filename = pyproject.toml
 
 # (list) Application requirements
 # Modules requests/urllib3/etc. necessary for crashdumps!!
-requirements = kivy==2.1.0,kivymd==0.104.2,pycryptodome==3.14.0,plyer==2.0.0,decorator==5.1.1,docutils==0.18.1,pymongo==4.1.1,jsonrpc-requests==0.4.0,multitimer==0.3,uuid0==0.2.7,pytz==2022.1,psutil==5.9.0,pillow==8.1.2,pybase62==0.4.3,schema==0.7.5,jsonschema==4.4.0,click==8.1.3,requests==2.27.1,urllib3==1.26.8,charset_normalizer==2.0.11,chardet==4.0.0,idna==3.3,certifi==2021.10.8,attrs==21.4.0,importlib-resources==5.7.1,zipp==3.7.0,pyrsistent==0.18.1,git+https://github.com/witnessangel/witness-angel-cryptolib.git@wakeygen_stable,git+https://github.com/witnessangel/witness-angel-components.git@wakeygen_stable
+requirements = kivy==2.1.0,kivymd==1.0.2,pycryptodome==3.14.0,plyer==2.0.0,decorator==5.1.1,docutils==0.18.1,pymongo==4.1.1,jsonrpc-requests==0.4.0,multitimer==0.3,uuid0==0.2.7,pytz==2022.1,psutil==5.9.0,pillow==8.1.2,pybase62==0.4.3,schema==0.7.5,jsonschema==4.4.0,click==8.1.3,requests==2.27.1,urllib3==1.26.8,charset_normalizer==2.0.11,chardet==4.0.0,idna==3.3,certifi==2021.10.8,attrs==21.4.0,importlib-resources==5.7.1,zipp==3.7.0,pyrsistent==0.18.1,git+https://github.com/witnessangel/witness-angel-cryptolib.git@wakeygen_stable,git+https://github.com/witnessangel/witness-angel-components.git@wakeygen_stable
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -255,7 +255,7 @@ android.blacklist_src = buildozer_blacklist.txt
 #android.copy_libs = 1
 
 # (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
-android.arch = armeabi-v7a
+android.archs = armeabi-v7a
 
 # (int) overrides automatic versionCode computation (used in build.gradle)
 # this is not the same as app version and should only be edited if you know what you're doing
