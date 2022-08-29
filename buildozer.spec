@@ -36,7 +36,7 @@ version.filename = pyproject.toml
 
 # (list) Application requirements
 # Modules requests/urllib3/etc. necessary for crashdumps!!
-requirements = kivy==2.1.0,kivymd==1.0.2,pycryptodome==3.14.0,plyer==2.0.0,decorator==5.1.1,docutils==0.18.1,pymongo==4.1.1,jsonrpc-requests==0.4.0,multitimer==0.3,uuid0==0.2.7,pytz==2022.1,psutil==5.9.0,pillow==8.1.2,pybase62==0.4.3,schema==0.7.5,jsonschema==4.4.0,click==8.1.3,requests==2.27.1,urllib3==1.26.8,charset_normalizer==2.0.11,chardet==4.0.0,idna==3.3,certifi==2021.10.8,attrs==21.4.0,importlib-resources==5.7.1,zipp==3.7.0,pyrsistent==0.18.1,git+https://github.com/witnessangel/witness-angel-cryptolib.git@wakeygen_stable,git+https://github.com/witnessangel/witness-angel-components.git@wakeygen_stable
+requirements = kivy==2.1.0,kivymd==1.0.2,pycryptodome==3.14.1,plyer==2.0.0,decorator==5.1.1,docutils==0.18.1,pymongo==4.1.1,jsonrpc-requests==0.4.0,multitimer==0.3,uuid0==0.2.7,pytz==2022.1,psutil==5.9.0,pillow==8.1.2,pybase62==0.4.3,schema==0.7.5,jsonschema==4.4.0,click==8.1.3,requests==2.27.1,urllib3==1.26.8,charset_normalizer==2.0.11,chardet==4.0.0,idna==3.3,certifi==2021.10.8,attrs==21.4.0,importlib-resources==5.7.1,zipp==3.7.0,pyrsistent==0.18.1,git+https://github.com/witnessangel/witness-angel-cryptolib.git@wakeygen_stable,git+https://github.com/witnessangel/witness-angel-components.git@wakeygen_stable
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -99,16 +99,16 @@ android.permissions = INTERNET
 #android.features = android.hardware.usb.host
 
 # (int) Android API to use (we want PERMISSION REQUESTS so api>=23)
-android.api = 26
+android.api = 30
 
-# (int) Minimum API required (v26 = Android 8.0 Oreo devices)
-android.minapi = 26
+# (int) Minimum API your APK / AAB will support (v26 = Android 8.0 Oreo devices)
+#android.minapi = 23
 
 # (int) Android SDK version to use
 #android.sdk = 21
 
 # (str) Android NDK version to use
-#android.ndk = 9c
+#android.ndk = 23b
 
 # (int) Android NDK API to use. This is the minimum API your app will support, it should usually match android.minapi.
 #android.ndk_api = 21
@@ -179,6 +179,12 @@ android.blacklist_src = buildozer_blacklist.txt
 
 # (list) Android AAR archives to add
 #android.add_aars =
+
+# (list) Put these files or directories in the apk assets directory.
+# Either form may be used, and assets need not be in 'source.include_exts'.
+# 1) android.add_assets = source_asset_relative_path
+# 2) android.add_assets = source_asset_path:destination_asset_relative_path
+#android.add_assets =
 
 # (list) Gradle dependencies to add
 #android.gradle_dependencies =
@@ -254,8 +260,9 @@ android.blacklist_src = buildozer_blacklist.txt
 # (bool) Copy library instead of making a libpymodules.so
 #android.copy_libs = 1
 
-# (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
-android.archs = armeabi-v7a
+# (list) The Android archs to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
+# In past, was `android.arch` as we weren't supporting builds for multiple archs at the same time.
+android.archs = armeabi-v7a,arm64-v8a
 
 # (int) overrides automatic versionCode computation (used in build.gradle)
 # this is not the same as app version and should only be edited if you know what you're doing
@@ -275,6 +282,12 @@ android.allow_backup = True
 
 # (bool) disables the compilation of py to pyc/pyo files when packaging
 # android.no-compile-pyo = True
+
+# (str) The format used to package the app for release mode (aab or apk or aar).
+android.release_artifact = aab
+
+# (str) The format used to package the app for debug mode (apk or aar).
+# android.debug_artifact = apk
 
 #
 # Python for android (p4a) specific
@@ -313,6 +326,9 @@ p4a.source_dir = /home/osboxes/fork_python-for-android
 # NOTE: this is general setuptools integration, having pyproject.toml is enough, no need to generate
 # setup.py if you're using Poetry, but you need to add "toml" to source.include_exts.
 #p4a.setup_py = false
+
+# (str) extra command line arguments to pass when invoking pythonforandroid.toolchain
+#p4a.extra_args =
 
 
 #
@@ -373,7 +389,7 @@ warn_on_root = 1
 # BEWARE, we put it outside repo folder, since on virtual machine shared folders, symlinks often don't work
 build_dir = /home/osboxes/.buildozer_files_authenticator
 
-# (str) Path to build output (i.e. .apk, .ipa) storage
+# (str) Path to build output (i.e. .apk, .aab, .ipa) storage
 # bin_dir = ./bin
 
 
