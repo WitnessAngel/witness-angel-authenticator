@@ -99,10 +99,10 @@ android.permissions = INTERNET
 #android.features = android.hardware.usb.host
 
 # (int) Android API to use (we want PERMISSION REQUESTS so api>=23)
-android.api = 30
+android.api = 31
 
 # (int) Minimum API your APK / AAB will support (v26 = Android 8.0 Oreo devices)
-#android.minapi = 23
+android.minapi = 26
 
 # (int) Android SDK version to use
 #android.sdk = 21
