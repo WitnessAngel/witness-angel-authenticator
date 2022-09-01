@@ -101,7 +101,7 @@ android.permissions = INTERNET
 # (int) Android API to use (we want PERMISSION REQUESTS so api>=23)
 android.api = 31
 
-# (int) Minimum API your APK / AAB will support (v26 = Android 8.0 Oreo devices)
+# (int) Minimum API your APK / AAB will support (v23 = Android 6.0 Marshmallow, v26 = Android 8.0 Oreo)
 android.minapi = 26
 
 # (int) Android SDK version to use

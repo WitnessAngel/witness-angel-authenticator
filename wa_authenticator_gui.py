@@ -28,7 +28,7 @@ resource_add_path(ROOT_DIR)
 class WaAuthenticatorApp(WaGenericGui):
 
     title_app_window = "Witness Angel - Authenticator"  # Untranslated
-    title_conf_panel = tr._("Authenticator settings")
+    title_conf_panel = tr._("Authenticator settings")  # FIXME translate this lazily?
 
     kv_file = resource_find("wa_authenticator_gui.kv")
     icon = resource_find("icons/witness_angel_logo_blue_32x32.png")
