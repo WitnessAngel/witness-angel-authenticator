@@ -23,8 +23,8 @@ msgstr "Paramètres Authentificator"
 
 #: wa_authenticator_gui.py:88
 msgid "Witness Angel Gateway URL"
-msgstr "URL Passerelle Witness Angel"
+msgstr "URL de la Passerelle Witness Angel"
 
 #: wa_authenticator_gui.py:89
-msgid "Server where authenticators can be published"
-msgstr "Serveur où les authentifieurs peuvent être publiés"
+msgid "Registry where authenticators can be published"
+msgstr "Registre où les authentifieurs peuvent être publiés"
