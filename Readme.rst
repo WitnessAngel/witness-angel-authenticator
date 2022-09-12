@@ -3,10 +3,16 @@ Witness Angel Authenticator
 
 Application homepage: https://witnessangel.com/en/authenticator-application/
 
-This cross-platform app allows "Key Guardians" of the Witness Angel ecosystem
-to create and edit their "authenticators".
+This cross-platform app allows trusted third parties of the Witness Angel ecosystem, called "Key Guardians",
+to create and edit their "authenticators" (digital identities and secure keychains).
 
-These authenticators are actually sets of public/private keypairs, for use with "write only" encryption systems like FlightBox.
+These digital identities can be published to a web registry, so that Witness Angel devices can easily retrieve them to secure their local recordings. The application also allows the user to accept/reject authorization requests, emitted when someone needs to decrypt recordings for judicial processes.
+
+More generally, this app can be used for any workflow where sensitive data must be protected by remote individuals, especially in "shared secret" encryption schemes.
+
+
+Getting started
+==================
 
 Instead of pip, we use `poetry <https://github.com/sdispater/poetry>`_ to install dependencies.
 
@@ -22,7 +28,7 @@ Or if you're already inside the proper python virtualenv (e.g. in a `poetry shel
 
     $ python main.py
 
-To only launch the recorder service, not the GUI application, end this command with "main.py --service" (the GUi itself relaunches the recorder service if it's not active).
+To only launch the recorder service, not the GUI application, end this command with "main.py --service" (the GUI itself relaunches the recorder service if it's not active).
 
 To generate an executable version of the program::
 
@@ -33,10 +39,14 @@ To generate an executable version of the program::
 
 To build a debug APK and deploy it via USB on an android device (only works on Linux)::
 
-    Install "buildozer" with pip, and then do:
+    Create local symlinks "wacryptolib/" and "wacomponents/", pointing to "src/" folders of these Git repositories.
+
+    Install "buildozer" with pip.
+
+    And then do:
 
     $ buildozer android debug deploy run logcat
 
-To force the startup language of the GUI application, set the LANG environment variable to "fr" or "en".
+To force the startup language of the GUI application, set the "LANG" environment variable to "fr" or "en".
 
 
