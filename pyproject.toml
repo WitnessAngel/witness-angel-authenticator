@@ -42,7 +42,7 @@ Kivy = {version = "^2.0.0", extras = ["base"]}
 kivymd = "^1.0"
 plyer = "^2.0.0"
 psutil = "^5.8.0"
-Pillow = "8.1.2"  # Fix bug with _imagingft.cp38-win_amd64.pyd crash of Pillow 8.3.2
+Pillow = "^9"
 
 
 [tool.poetry.dev-dependencies]
