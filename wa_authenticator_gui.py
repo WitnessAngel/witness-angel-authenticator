@@ -71,7 +71,8 @@ class WaAuthenticatorApp(WaGenericGui):
                 self.root.ids.screen_manager.current = WAScreenName.authenticator_management
                 return True
 
-            # Else, let the key propagate (and app close if necessary)
+        # Else, let the key propagate (and app close if necessary)
+        return False
 
     def get_wagateway_url(self):
         return self.config.get("keygen", "wagateway_url")
