@@ -349,14 +349,14 @@ ios.ios_deploy_url = https://github.com/phonegap/ios-deploy
 ios.ios_deploy_branch = 1.10.0
 
 # (bool) Whether or not to sign the code
-ios.codesign.allowed = false
+ios.codesign.allowed = true
 
 # (str) Name of the certificate to use for signing the debug version
 # Get a list of available identities: buildozer ios list_identities
-#ios.codesign.debug = "iPhone Developer: <lastname> <firstname> (<hexstring>)"
+ios.codesign.debug = "Apple Development: <email> (<string>)"
 
 # (str) The development team to use for signing the debug version
-#ios.codesign.development_team.debug = <hexstring>
+ios.codesign.development_team.debug = <string>
 
 # (str) Name of the certificate to use for signing the release version
 #ios.codesign.release = %(ios.codesign.debug)s
