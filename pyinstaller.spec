@@ -13,6 +13,10 @@ pyproject_data = Path("./pyproject.toml").read_text()
 version = re.search(r'''version = ['"](.*)['"]''', pyproject_data).group(1)
 assert version, version
 
+print("CWD:", os.getcwd())
+import wacomponents
+print(">>> wacomponents is", wacomponents)
+
 hiddenimports = ["wa_authenticator_gui"] + collect_submodules("wacomponents") + collect_submodules("plyer")
 
 app_name = "witness_angel_authenticator_%s" % version.replace(".","-")
@@ -20,12 +24,17 @@ app_name = "witness_angel_authenticator_%s" % version.replace(".","-")
 program_icon = "./assets/icon_authenticator_512x512.png"
 extra_exe_params= []
 
+codesign_identity = os.ENVIRON.get("MACOS_CODESIGN_IDENTITY", None)
+print(">>> macosx codesign identity is", codesign_identity)
+
 if sys.platform.startswith("win32"):
     program_icon = "./assets/icon_authenticator_64x64.ico"
     from kivy_deps import sdl2, glew
     extra_exe_params = [Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)]
+elif sys.platform.startswith("darwin"):
+    program_icon = "./assets/icon_authenticator_512x512.icns"
 
-USE_CONSOLE = False  # Change this if needed, to debug
+USE_CONSOLE = True  # Change this if needed
 
 main_script = os.path.abspath(os.path.join(os.getcwd(), 'main.py'))
 
@@ -60,13 +69,19 @@ exe = EXE(pyz,
           upx=True,
           runtime_tmpdir=None,
           console=USE_CONSOLE,
-          icon='./assets/icon_authenticator_64x64.ico')
+          icon=program_icon,
+          codesign_identity=codesign_identity,
+          entitlements_file="assets/entitlements.plist",  # For MacOS only
+)
 
 if sys.platform.startswith("darwin"):
     app = BUNDLE(exe,
              name=app_name+".app",
-             icon=None,
-             bundle_identifier=None)
+             icon=program_icon,
+             bundle_identifier="org.witnessangel.authenticator",
+             codesign_identity=codesign_identity,
+             entitlements_file="assets/entitlements.plist", # For MacOS only
+    )
 
 ''' UNUSED - FOR DIRECTORY BUILD ONLY
 coll = COLLECT(exe,
