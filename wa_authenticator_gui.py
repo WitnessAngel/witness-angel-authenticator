@@ -34,7 +34,7 @@ class WaAuthenticatorApp(WaGenericGui):
         return tr._("Authenticator settings")
 
     kv_file = resource_find("wa_authenticator_gui.kv")
-    icon = resource_find("icons/witness_angel_logo_blue_32x32.png")
+    icon = resource_find("icons/witness_angel_logo_blue_64x64.png")
 
     config_file_basename = "wakeygen_config.ini"
 
