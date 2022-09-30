@@ -24,7 +24,7 @@ app_name = "witness_angel_authenticator_%s" % version.replace(".","-")
 program_icon = "./assets/icon_authenticator_512x512.png"
 extra_exe_params= []
 
-codesign_identity = os.ENVIRON.get("MACOS_CODESIGN_IDENTITY", None)
+codesign_identity = os.environ.get("MACOS_CODESIGN_IDENTITY", None)
 print(">>> macosx codesign identity is", codesign_identity)
 
 if sys.platform.startswith("win32"):
