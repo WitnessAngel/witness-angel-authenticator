@@ -6,31 +6,35 @@
 # #:import SwapTransition kivy.uix.screenmanager.SwapTransition
 
 
-RelativeLayout:
+BoxLayout:
 
-    ScreenManager:
+    padding: app.application_margins
 
-        id: screen_manager
-        #transition: SwapTransition()
+    RelativeLayout:
 
-        AuthenticatorManagementScreen:
-            id: authenticator_management_id
-            name: WAScreenName.authenticator_management  # FIXME normalize all "name:" here and below
+        ScreenManager:
 
-        AuthenticatorCreationFormScreen:
-            id: authenticator_creation_form_id
-            name: WAScreenName.authenticator_creation_form
-            selected_authenticator_dir: authenticator_management_id.selected_authenticator_dir
+            id: screen_manager
+            #transition: SwapTransition()
 
-        AuthenticatorPublicationFormScreen:
-            id: authenticator_publication_form_id
-            name: WAScreenName.authenticator_publication_form
-            selected_authenticator_dir: authenticator_management_id.selected_authenticator_dir
+            AuthenticatorManagementScreen:
+                id: authenticator_management_id
+                name: WAScreenName.authenticator_management  # FIXME normalize all "name:" here and below
 
-        AuthenticatorRevelationRequestManagementScreen:
-            id: authenticator_revelation_request_management_id
-            name: WAScreenName.authenticator_revelation_request_management
-            selected_authenticator_dir: authenticator_management_id.selected_authenticator_dir
+            AuthenticatorCreationFormScreen:
+                id: authenticator_creation_form_id
+                name: WAScreenName.authenticator_creation_form
+                selected_authenticator_dir: authenticator_management_id.selected_authenticator_dir
 
-    WaitSpinner:
-        id: wait_spinner
+            AuthenticatorPublicationFormScreen:
+                id: authenticator_publication_form_id
+                name: WAScreenName.authenticator_publication_form
+                selected_authenticator_dir: authenticator_management_id.selected_authenticator_dir
+
+            AuthenticatorRevelationRequestManagementScreen:
+                id: authenticator_revelation_request_management_id
+                name: WAScreenName.authenticator_revelation_request_management
+                selected_authenticator_dir: authenticator_management_id.selected_authenticator_dir
+
+        WaitSpinner:
+            id: wait_spinner
