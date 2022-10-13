@@ -3,8 +3,11 @@ import os
 from pathlib import Path
 
 from kivy.core.window import Window
+from kivy.properties import ListProperty
 from kivy.resources import resource_find, resource_add_path
+from kivy.metrics import dp
 
+from wacomponents.default_settings import IS_IOS
 from wacomponents.i18n import tr
 from wacomponents.locale import LOCALE_DIR as GUILIB_LOCALE_DIR  # DEFAULT LOCALE DIR
 from wacomponents.devices.keyboard_codes import KeyCodes
@@ -38,6 +41,9 @@ class WaAuthenticatorApp(WaGenericGui):
 
     config_file_basename = "wakeygen_config.ini"
 
+    # Format: [padding_left, padding_top, padding_right, padding_bottom].
+    application_margins = ListProperty([0, 0, 0, 0])
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Window.bind(on_keyboard=self.handle_back_button)
@@ -51,6 +57,22 @@ class WaAuthenticatorApp(WaGenericGui):
         main_screen.selected_custom_folder_path = self.get_custom_authenticator_dir()
 
         main_screen.bind(selected_custom_folder_path=self._handle_selected_custom_folder_path_changed)
+
+        if IS_IOS:
+            #from pyobjus.dylib_manager import load_framework, INCLUDE
+            #edge insets
+            # load_framework('/System/Library/Frameworks/UIKit.framework')
+            #load_framework(INCLUDE.UIKit)
+
+            from pyobjus import autoclass
+            notch_detector = autoclass("NotchDetector").alloc().init()
+            top_notch = notch_detector.getTopNotch()
+            bottom_notch = notch_detector.getBottomNotch()
+            left_notch = notch_detector.getLeftNotch()
+            right_notch = notch_detector.getRightNotch()
+            all_notches = [dp(left_notch), dp(top_notch), dp(right_notch), dp(bottom_notch)]
+            print(">>>>>> IOS NOTCH CALLS RETURNED", all_notches)
+            self.application_margins = all_notches
 
     def _handle_selected_custom_folder_path_changed(self, source, custom_authenticator_dir):
         """Persist any "currently selected custom folder" to config file"""
