@@ -262,7 +262,7 @@ android.blacklist_src = buildozer_blacklist.txt
 
 # (list) The Android archs to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
 # In past, was `android.arch` as we weren't supporting builds for multiple archs at the same time.
-android.archs = armeabi-v7a,arm64-v8a
+android.archs = armeabi-v7a,arm64-v8a,x86,x86_64
 
 # (int) overrides automatic versionCode computation (used in build.gradle)
 # this is not the same as app version and should only be edited if you know what you're doing
