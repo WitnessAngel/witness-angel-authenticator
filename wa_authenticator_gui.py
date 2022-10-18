@@ -59,11 +59,7 @@ class WaAuthenticatorApp(WaGenericGui):
         main_screen.bind(selected_custom_folder_path=self._handle_selected_custom_folder_path_changed)
 
         if IS_IOS:
-            #from pyobjus.dylib_manager import load_framework, INCLUDE
-            #edge insets
-            # load_framework('/System/Library/Frameworks/UIKit.framework')
-            #load_framework(INCLUDE.UIKit)
-
+            # We use this system: https://gist.github.com/Dirk-Sandberg/f5e9e4399002c69003d161e700e943a1
             from pyobjus import autoclass
             notch_detector = autoclass("NotchDetector").alloc().init()
             top_notch = notch_detector.getTopNotch()
