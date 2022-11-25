@@ -1,20 +1,16 @@
-
-import os
 from pathlib import Path
 
 from kivy.core.window import Window
+from kivy.metrics import dp
 from kivy.properties import ListProperty
 from kivy.resources import resource_find, resource_add_path
-from kivy.metrics import dp
-
+from wacomponents.application.generic_gui import WaGenericGui
 from wacomponents.default_settings import IS_IOS
+from wacomponents.devices.keyboard_codes import KeyCodes
 from wacomponents.i18n import tr
 from wacomponents.locale import LOCALE_DIR as GUILIB_LOCALE_DIR  # DEFAULT LOCALE DIR
-from wacomponents.devices.keyboard_codes import KeyCodes
 from wacomponents.screens.base import WAScreenName
 from wacomponents.widgets.popups import has_current_dialog, close_current_dialog
-
-from wacomponents.application.generic_gui import WaGenericGui
 
 if False:  #  ACTIVATE TO DEBUG GUI
     from wacomponents.widgets.layout_components import activate_widget_debug_outline
