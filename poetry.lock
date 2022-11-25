@@ -228,19 +228,19 @@ requests = "*"
 
 [[package]]
 name = "kivymd"
-version = "1.0.2"
+version = "1.1.1"
 description = "Set of widgets for Kivy inspired by Google's Material Design"
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 
 [package.dependencies]
 kivy = ">=2.0.0"
 pillow = "*"
 
 [package.extras]
-docs = ["sphinx-tabs", "sphinx-copybutton", "sphinx-notfound-page", "furo", "sphinx-autoapi (==1.4.0)", "sphinx"]
-dev = ["pyinstaller", "coveralls", "pytest-timeout", "pytest-asyncio", "pytest-cov", "pytest", "flake8", "isort", "black", "pre-commit"]
+dev = ["pre-commit", "black", "isort", "flake8", "pytest", "pytest-cov", "pytest-asyncio", "pytest-timeout", "coveralls", "pyinstaller"]
+docs = ["sphinx", "sphinx-autoapi (==1.4.0)", "furo", "sphinx-notfound-page", "sphinx-copybutton", "sphinx-tabs"]
 
 [[package]]
 name = "macholib"
@@ -529,7 +529,7 @@ resolved_reference = "f858d304c83752597703a2449496fa1eebd6c633"
 
 [[package]]
 name = "wacryptolib"
-version = "0.10.dev1"
+version = "0.10"
 description = "Witness Angel Cryptolib"
 category = "main"
 optional = false
@@ -556,7 +556,7 @@ wmi = {version = "^1.5.1 ", markers = "sys_platform == \"win32\""}
 type = "git"
 url = "https://github.com/WitnessAngel/witness-angel-cryptolib.git"
 reference = "wakeygen_stable"
-resolved_reference = "094f2e9bf481fbc16b63b407d53556cc19c8237d"
+resolved_reference = "efc3bfa7c95eb56c94ae973927f918c3e2da787f"
 
 [[package]]
 name = "wmi"

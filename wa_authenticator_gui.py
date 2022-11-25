@@ -93,7 +93,7 @@ class WaAuthenticatorApp(WaGenericGui):
         return False
 
     def get_wagateway_url(self):
-        return self.config.get("keygen", "wagateway_url")
+        return self.config.get("network", "wagateway_url")
 
     def get_custom_authenticator_dir(self):
         raw_value = self.config.get("keygen", "custom_authenticator_dir").strip()
