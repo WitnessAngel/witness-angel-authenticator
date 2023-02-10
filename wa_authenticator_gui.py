@@ -68,7 +68,7 @@ class WaAuthenticatorApp(WaGenericGui):
 
     def _handle_selected_custom_folder_path_changed(self, source, custom_authenticator_dir):
         """Persist any "currently selected custom folder" to config file"""
-        self.config["keygen"]["custom_authenticator_dir"] = str(custom_authenticator_dir)
+        self.config["authenticator"]["custom_authenticator_dir"] = str(custom_authenticator_dir)
         self.save_config()
 
     def handle_back_button(self, widget, key, *args):
@@ -92,7 +92,7 @@ class WaAuthenticatorApp(WaGenericGui):
         return self.config.get("network", "wagateway_url")
 
     def get_custom_authenticator_dir(self):
-        raw_value = self.config.get("keygen", "custom_authenticator_dir").strip()
+        raw_value = self.config.get("authenticator", "custom_authenticator_dir").strip()
         return Path(raw_value).absolute() if raw_value else None  # Beware, "" must not be interpreted as "./"
 
     def get_config_schema_data(self):
@@ -102,7 +102,7 @@ class WaAuthenticatorApp(WaGenericGui):
                 "type": "string_truncated",
                 "title": tr._("Witness Angel Gateway URL"),
                 "desc": tr._("Registry where authenticators can be published"),
-                "section": "keygen",
+                "section": "network",
             }
         ]
 
