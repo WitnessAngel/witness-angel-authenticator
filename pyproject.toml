@@ -46,4 +46,4 @@ Pillow = "^9"
 
 [tool.poetry.dev-dependencies]
 
-PyInstaller = "^4.2"
+PyInstaller = ">=4.2"
