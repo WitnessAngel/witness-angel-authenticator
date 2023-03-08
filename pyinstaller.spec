@@ -13,7 +13,10 @@ pyproject_data = Path("pyproject.toml").read_text()
 version = re.search(r'''version = ['"](.*)['"]''', pyproject_data).group(1)
 assert version, version
 
-sys.path.append(".")  # To find WAAUTHENTICATOR package
+root_dir = os.path.abspath(os.getcwd())
+assert os.path.isdir(os.path.join(root_dir, "waauthenticator"))
+
+sys.path.append(root_dir)  # To find WAAUTHENTICATOR package
 
 hiddenimports = collect_submodules("waauthenticator") + collect_submodules("wacomponents") + collect_submodules("plyer")
 
@@ -34,7 +37,7 @@ elif sys.platform.startswith("darwin"):
 
 USE_CONSOLE = True  # Change this if needed
 
-main_script = os.path.abspath(os.path.join(os.getcwd(), 'main.py'))
+main_script = os.path.join(root_dir, 'main.py')
 
 
 a = Analysis([main_script],
