@@ -6,43 +6,43 @@ from pathlib import Path
 from kivymd import hooks_path as kivymd_hooks_path
 from PyInstaller.utils.hooks import collect_submodules, collect_data_files
 
-import PyInstaller.config
-PyInstaller.config.CONF['distpath'] = "./bin"  # Make it same as buildozer output path
+os.chdir("./src")
 
-pyproject_data = Path("./pyproject.toml").read_text()
+import PyInstaller.config
+PyInstaller.config.CONF['distpath'] = "../bin"  # Make it same as buildozer output path
+
+pyproject_data = Path("../pyproject.toml").read_text()
 version = re.search(r'''version = ['"](.*)['"]''', pyproject_data).group(1)
 assert version, version
 
-print("CWD:", os.getcwd())
-import wacomponents
-print(">>> wacomponents is", wacomponents)
+sys.path.append(".")  # To find WAAUTHENTICATOR package
 
-hiddenimports = ["wa_authenticator_gui"] + collect_submodules("wacomponents") + collect_submodules("plyer")
+hiddenimports = collect_submodules("waauthenticator") + collect_submodules("wacomponents") + collect_submodules("plyer")
 
 app_name = "witness_angel_authenticator_%s" % version.replace(".","-")
 
-program_icon = "./assets/icon_authenticator_512x512.png"
+program_icon = "../assets/icon_authenticator_512x512.png"
 extra_exe_params= []
 
 codesign_identity = os.environ.get("MACOS_CODESIGN_IDENTITY", None)
 print(">>> macosx codesign identity is", codesign_identity)
 
 if sys.platform.startswith("win32"):
-    program_icon = "./assets/icon_authenticator_64x64.ico"
+    program_icon = "../assets/icon_authenticator_64x64.ico"
     from kivy_deps import sdl2, glew
     extra_exe_params = [Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)]
 elif sys.platform.startswith("darwin"):
-    program_icon = "./assets/icon_authenticator_512x512.icns"
+    program_icon = "../assets/icon_authenticator_512x512.icns"
 
 USE_CONSOLE = True  # Change this if needed
 
-main_script = os.path.abspath(os.path.join(os.getcwd(), 'main.py'))
+main_script = os.path.abspath(os.path.join(os.getcwd(), '../main.py'))
 
 
 a = Analysis([main_script],
              pathex=['.'],
              binaries=[],
-             datas=[("wa_authenticator_gui.kv", "."), ("config_defaults.ini", ".")] + collect_data_files("wacomponents"),
+             datas=collect_data_files("waauthenticator") + collect_data_files("wacomponents"),
              hiddenimports=hiddenimports,
              hookspath=[kivymd_hooks_path],
              runtime_hooks=[],
