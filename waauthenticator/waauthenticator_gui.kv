@@ -2,6 +2,7 @@
 #:import AuthenticatorCreationFormScreen wacomponents.screens.authenticator_creation_form
 #:import AuthenticatorPublicationFormScreen wacomponents.screens.authenticator_publication_form
 #:import AuthenticatorRevelationRequestManagementScreen wacomponents.screens.authenticator_revelation_request_management
+#:import  AuthenticatorRevelationRequestDetailScreen wacomponents.screens.authenticator_revelation_request_detail
 #:import WAScreenName wacomponents.screens.base.WAScreenName
 # #:import SwapTransition kivy.uix.screenmanager.SwapTransition
 
@@ -34,6 +35,11 @@ BoxLayout:
             AuthenticatorRevelationRequestManagementScreen:
                 id: authenticator_revelation_request_management_id
                 name: WAScreenName.authenticator_revelation_request_management
+                selected_authenticator_dir: authenticator_management_id.selected_authenticator_dir
+
+            AuthenticatorRevelationRequestDetailScreen:
+                id: authenticator_revelation_request_detail_id
+                name: WAScreenName.authenticator_revelation_request_detail
                 selected_authenticator_dir: authenticator_management_id.selected_authenticator_dir
 
         WaitSpinner:
