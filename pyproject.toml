@@ -38,7 +38,7 @@ wacomponents = { git = "https://github.com/WitnessAngel/witness-angel-components
 
 # Wacomponents dependencies
 Kivy = {version = "^2.2.1", extras = ["base"]}
-kivymd = "^1.1.1"
+kivymd = "<1.1.1"
 plyer = "^2.1.0"
 psutil = "^5.9.5"
 Pillow = "^10.0.0"

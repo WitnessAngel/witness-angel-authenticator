@@ -446,13 +446,14 @@ requests = "*"
 
 [[package]]
 name = "kivymd"
-version = "1.1.1"
+version = "1.0.2"
 description = "Set of widgets for Kivy inspired by Google's Material Design"
 category = "main"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.6"
 files = [
-    {file = "kivymd-1.1.1.tar.gz", hash = "sha256:931a0435c2a079c6dca755c50d0023b5e1c907f7b4ac8bb9e2834daa3cefe906"},
+    {file = "kivymd-1.0.2-py3-none-any.whl", hash = "sha256:978d51751601cc1c1097d256087e4fab56a3fa1bcda7a26a4cbd9abc598a25aa"},
+    {file = "kivymd-1.0.2.tar.gz", hash = "sha256:4274721bd9672d507fbe70dc5173a1ce8c57d9f305f91d2bea58bf588c49fe62"},
 ]
 
 [package.dependencies]
@@ -460,7 +461,7 @@ kivy = ">=2.0.0"
 pillow = "*"
 
 [package.extras]
-dev = ["black", "coveralls", "flake8", "isort[pyproject]", "pre-commit", "pyinstaller[hook-testing]", "pytest", "pytest-cov", "pytest-timeout", "pytest_asyncio"]
+dev = ["black", "coveralls", "flake8", "isort[pyproject]", "pre-commit", "pyinstaller[hook-testing]", "pytest", "pytest-asyncio", "pytest-cov", "pytest-timeout"]
 docs = ["furo", "sphinx", "sphinx-autoapi (==1.4.0)", "sphinx-copybutton", "sphinx-notfound-page", "sphinx-tabs"]
 
 [[package]]
@@ -1196,7 +1197,7 @@ wmi = {version = "^1.5.1 ", markers = "sys_platform == \"win32\""}
 type = "git"
 url = "https://github.com/WitnessAngel/witness-angel-cryptolib.git"
 reference = "wakeygen_stable"
-resolved_reference = "b8cd3df8a6f1d0ff7cc97856425be411961aef76"
+resolved_reference = "0364a60638da445f8b1b3281afa99c3ad36a0c89"
 
 [[package]]
 name = "wcwidth"
@@ -1251,4 +1252,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8, <4.0"
-content-hash = "de8135694f9fa2bccf3efbc6ddb009065e69b9979fa5f9293ca0316aa3396bc8"
+content-hash = "600684a5ab21a5141eab5576071e8c2d6b465120fd58a4938c8073f4fa3c2c98"

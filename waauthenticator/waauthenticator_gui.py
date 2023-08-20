@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from kivy.core.window import Window
+from kivy.factory import Factory
 from kivy.metrics import dp
 from kivy.properties import ListProperty
 from kivy.resources import resource_find, resource_add_path
@@ -23,6 +24,16 @@ tr.add_locale_dirs(ROOT_DIR / "locale", GUILIB_LOCALE_DIR)
 
 resource_add_path(ROOT_DIR)
 
+'''
+# To detect CommonElevationBehavior uses on next upgrade of KivyMD...
+import sys
+from kivymd.uix.behaviors import CommonElevationBehavior
+real = CommonElevationBehavior.__init__
+def raiser(self, *args, **kwargs):
+    print(">>> Seeing CommonElevationBehavior for %r" % self, file=sys.stderr)
+    real(self, *args, **kwargs)
+CommonElevationBehavior.__init__ = raiser
+'''
 
 class WaAuthenticatorApp(WaGenericGui):
 
@@ -43,6 +54,9 @@ class WaAuthenticatorApp(WaGenericGui):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Window.bind(on_keyboard=self.handle_back_button)
+
+        #aaa = Factory.WAElevatedBoxLayout()
+        #print(">>>>>>>>>>>>> WAElevatedBoxLayout", aaa.__class__.__mro__)
 
     def on_start(self):
         super().on_start()
