@@ -6,7 +6,7 @@ build-backend = "poetry.masonry.api"
 [tool.poetry]
 name = "witness-angel-authenticator"
 description = "Witness Angel Authenticator"
-version = "1.0"
+version = "1.1"
 license = "MIT"
 readme = "Readme.rst"
 authors = ["Pascal Chambon", "Akram Bourichi", "Francinette Atchade"]
@@ -17,10 +17,10 @@ classifiers = [
     "Intended Audience :: Information Technology",
     "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: Unix",
     "Operating System :: MacOS :: MacOS X",
