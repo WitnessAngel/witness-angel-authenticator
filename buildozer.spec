@@ -93,14 +93,14 @@ fullscreen = 0
 #icon.adaptive_background.filename = %(source.dir)s/data/icon_bg.png
 
 # (list) Permissions
-# WRITE_EXTERNAL_STORAGE is already enabled in AndroidManifest.tmpl.xml by default
-android.permissions = android.permission.READ_EXTERNAL_STORAGE,android.permission.WRITE_EXTERNAL_STORAGE,android.permission.INTERNET
+# Permissions WRITE_EXTERNAL_STORAGE and READ_EXTERNAL_STORAGE are now obsolete (for SDK>=30)
+android.permissions = android.permission.INTERNET
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
 
 # (int) Android API to use (we want PERMISSION REQUESTS so api>=23)
-android.api = 31
+android.api = 33
 
 # (int) Minimum API your APK / AAB will support (v23 = Android 6.0 Marshmallow, v26 = Android 8.0 Oreo)
 android.minapi = 26
