@@ -446,23 +446,27 @@ requests = "*"
 
 [[package]]
 name = "kivymd"
-version = "1.1.1"
+version = "1.2.0.dev0"
 description = "Set of widgets for Kivy inspired by Google's Material Design"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "kivymd-1.1.1.tar.gz", hash = "sha256:931a0435c2a079c6dca755c50d0023b5e1c907f7b4ac8bb9e2834daa3cefe906"},
+    {file = "1152d3c312.zip", hash = "sha256:91c30c812f2e826a4b4a35a8bfa29d35b6683bfd78e5b7662929a85da1b51d65"},
 ]
 
 [package.dependencies]
 kivy = ">=2.0.0"
+materialyoucolor = "*"
 pillow = "*"
 
 [package.extras]
-dev = ["black", "coveralls", "flake8", "isort[pyproject]", "pre-commit", "pyinstaller[hook-testing]", "pytest", "pytest-cov", "pytest-timeout", "pytest_asyncio"]
+dev = ["black", "coveralls", "flake8", "isort[pyproject]", "pre-commit", "pyinstaller[hook-testing]", "pytest", "pytest-asyncio", "pytest-cov", "pytest-timeout"]
 docs = ["furo", "sphinx", "sphinx-autoapi (==1.4.0)", "sphinx-copybutton", "sphinx-notfound-page", "sphinx-tabs"]
 
+[package.source]
+type = "url"
+url = "https://github.com/kivymd/kivymd/archive/1152d3c312.zip"
 [[package]]
 name = "macholib"
 version = "1.16.2"
@@ -477,6 +481,21 @@ files = [
 
 [package.dependencies]
 altgraph = ">=0.17"
+
+[[package]]
+name = "materialyoucolor"
+version = "1.2.0"
+description = "Material You color generation algorithms in pure python!"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "materialyoucolor-1.2.0-py3-none-any.whl", hash = "sha256:455708ce7d77398cc3821d17969c11845def67d8636a3c97af78acf1e7d1876b"},
+    {file = "materialyoucolor-1.2.0.tar.gz", hash = "sha256:c5a8fe5f7d0b2f17c36bd9efd049d765900e1386624ee79760af65b70e3484f8"},
+]
+
+[package.dependencies]
+pillow = "*"
 
 [[package]]
 name = "multitimer"
@@ -1162,7 +1181,7 @@ develop = false
 type = "git"
 url = "https://github.com/WitnessAngel/witness-angel-components.git"
 reference = "wakeygen_stable"
-resolved_reference = "d80ab2aa03c34fb0d693bb474df07547bf9747b9"
+resolved_reference = "282489f283893226fc789f9ac8a5651e6983b4eb"
 
 [[package]]
 name = "wacryptolib"
@@ -1196,7 +1215,7 @@ wmi = {version = "^1.5.1 ", markers = "sys_platform == \"win32\""}
 type = "git"
 url = "https://github.com/WitnessAngel/witness-angel-cryptolib.git"
 reference = "wakeygen_stable"
-resolved_reference = "b8cd3df8a6f1d0ff7cc97856425be411961aef76"
+resolved_reference = "0364a60638da445f8b1b3281afa99c3ad36a0c89"
 
 [[package]]
 name = "wcwidth"
@@ -1251,4 +1270,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8, <4.0"
-content-hash = "de8135694f9fa2bccf3efbc6ddb009065e69b9979fa5f9293ca0316aa3396bc8"
+content-hash = "e9b8133d229c03a5fb7e648538571024a13cc6b2db568f4ef1e50d35420dbff3"
