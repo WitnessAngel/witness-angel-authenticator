@@ -1181,7 +1181,7 @@ develop = false
 type = "git"
 url = "https://github.com/WitnessAngel/witness-angel-components.git"
 reference = "wakeygen_stable"
-resolved_reference = "282489f283893226fc789f9ac8a5651e6983b4eb"
+resolved_reference = "773819c21bba61aa300358a449cecec91a0b6dbb"
 
 [[package]]
 name = "wacryptolib"
