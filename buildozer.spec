@@ -36,7 +36,8 @@ version.filename = pyproject.toml
 
 # (list) Application requirements
 # Modules requests/urllib3/etc. necessary for crashdumps!!
-requirements = kivy==2.2.1,kivymd==1.1.1,pycryptodome==3.18.0,plyer==2.1.0,decorator==5.1.1,docutils==0.20.1,pymongo==4.4.1,jsonrpc-requests==0.4.0,multitimer==0.3,uuid0==0.2.7,pytz==2023.3,psutil==5.9.5,pillow==10.0.0,pybase62==1.0.0,schema==0.7.5,jsonschema==4.18.6,click==8.1.3,requests==2.31.0,urllib3==2.0.4,charset_normalizer==3.2.0,idna==3.4,certifi==2023.7.22,attrs==23.1.0,pyrsistent==0.19.3,chardet==5.2.0,importlib-resources==6.0.1,zipp==3.16.2
+## https://github.com/kivy/kivy/archive/d69693256d.zip,https://github.com/kivymd/KivyMD/archive/1152d3c312.zip
+requirements = kivy==2.2.1,https://github.com/kivymd/kivymd/archive/1152d3c312.zip,pycryptodome==3.18.0,plyer==2.1.0,decorator==5.1.1,docutils==0.20.1,pymongo==4.4.1,jsonrpc-requests==0.4.0,multitimer==0.3,uuid0==0.2.7,pytz==2023.3,psutil==5.9.5,pillow==10.0.0,pybase62==1.0.0,schema==0.7.5,jsonschema==4.18.6,click==8.1.3,requests==2.31.0,urllib3==2.0.4,charset_normalizer==3.2.0,idna==3.4,certifi==2023.7.22,attrs==23.1.0,pyrsistent==0.19.3,chardet==5.2.0,importlib-resources==6.0.1,zipp==3.16.2
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -93,7 +94,7 @@ fullscreen = 0
 
 # (list) Permissions
 # WRITE_EXTERNAL_STORAGE is already enabled in AndroidManifest.tmpl.xml by default
-android.permissions = INTERNET
+android.permissions = android.permission.READ_EXTERNAL_STORAGE,android.permission.WRITE_EXTERNAL_STORAGE,android.permission.INTERNET
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
@@ -300,7 +301,7 @@ android.release_artifact = aab
 #p4a.fork = kivy
 
 # (str) python-for-android branch to use, defaults to master
-#p4a.branch = master
+p4a.branch = develop
 
 # (str) python-for-android specific commit to use, defaults to HEAD, must be within p4a.branch
 #p4a.commit = HEAD
