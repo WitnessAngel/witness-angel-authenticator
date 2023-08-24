@@ -1,5 +1,5 @@
-import sys
-from pathlib import Path
+import sys, os
+os.environ["WA_LOG_LEVEL"] = "DEBUG"  # TEMPORARY
 
 print(">>>> WITNESS ANGEL PYTHON VERSION: %s <<<<" % sys.version)
 

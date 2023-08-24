@@ -80,7 +80,7 @@ class WaAuthenticatorApp(WaGenericGui):
                 close_current_dialog()
                 return True
 
-            # Go back to main page,
+            # Go back to main page
             if self.root.ids.screen_manager.current != WAScreenName.authenticator_management:
                 self.root.ids.screen_manager.current = WAScreenName.authenticator_management
                 return True
