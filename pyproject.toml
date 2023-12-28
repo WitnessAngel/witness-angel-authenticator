@@ -32,7 +32,7 @@ exclude = []
 [tool.poetry.dependencies]
 python = ">=3.8, <4.0"
 
-# Cryptography
+# For now WA dependencies must be manually installed at selected versions !
 wacryptolib = { git = "https://github.com/WitnessAngel/witness-angel-cryptolib.git", branch = "wakeygen_stable" }
 wacomponents = { git = "https://github.com/WitnessAngel/witness-angel-components.git", branch = "wakeygen_stable" }
 
