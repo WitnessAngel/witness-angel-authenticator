@@ -25,6 +25,8 @@ app_name = "witness_angel_authenticator_%s" % version.replace(".","-")
 program_icon = "assets/icon_authenticator_512x512.png"
 extra_exe_params= []
 
+is_macos = sys.platform.startswith("darwin")
+
 codesign_identity = os.environ.get("MACOS_CODESIGN_IDENTITY", None)
 print(">>> macosx codesign identity is", codesign_identity)
 
@@ -32,7 +34,7 @@ if sys.platform.startswith("win32"):
     program_icon = "assets/icon_authenticator_64x64.ico"
     from kivy_deps import sdl2, glew
     extra_exe_params = [Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)]
-elif sys.platform.startswith("darwin"):
+elif is_macos:
     program_icon = "assets/icon_authenticator_512x512.icns"
 
 USE_CONSOLE = True  # Change this if needed
@@ -73,9 +75,10 @@ exe = EXE(pyz,
           icon=program_icon,
           codesign_identity=codesign_identity,
           entitlements_file="assets/entitlements.plist",  # For MacOS only
+          # This fails because of non-fat dep libs... target_arch="universal2" if is_macos else None,
 )
 
-if sys.platform.startswith("darwin"):
+if is_macos:
     app = BUNDLE(exe,
              name=app_name+".app",
              icon=program_icon,
@@ -83,6 +86,7 @@ if sys.platform.startswith("darwin"):
              codesign_identity=codesign_identity,
              entitlements_file="assets/entitlements.plist", # For MacOS only
     )
+
 
 ''' UNUSED - FOR DIRECTORY BUILD ONLY
 coll = COLLECT(exe,
