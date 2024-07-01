@@ -1,3 +1,7 @@
+# This file is part of Witness Angel Authenticator
+# SPDX-FileCopyrightText: Copyright Prolifik SARL
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 from pathlib import Path
 
 from kivy.core.window import Window
@@ -14,6 +18,7 @@ from wacomponents.widgets.popups import has_current_dialog, close_current_dialog
 
 if False:  #  ACTIVATE TO DEBUG GUI
     from wacomponents.widgets.layout_components import activate_widget_debug_outline
+
     activate_widget_debug_outline()
 
 
@@ -25,7 +30,6 @@ resource_add_path(ROOT_DIR)
 
 
 class WaAuthenticatorApp(WaGenericGui):
-
     title_app_window = "Witness Angel - Authenticator"  # Untranslated
 
     @property
@@ -46,9 +50,7 @@ class WaAuthenticatorApp(WaGenericGui):
 
     def on_start(self):
         super().on_start()
-        main_screen = self.root.ids.screen_manager.get_screen(
-                     WAScreenName.authenticator_management
-                )
+        main_screen = self.root.ids.screen_manager.get_screen(WAScreenName.authenticator_management)
         assert hasattr(main_screen, "selected_custom_folder_path")
         main_screen.selected_custom_folder_path = self.get_custom_authenticator_dir()
 
@@ -57,6 +59,7 @@ class WaAuthenticatorApp(WaGenericGui):
         if IS_IOS:
             # We use this system: https://gist.github.com/Dirk-Sandberg/f5e9e4399002c69003d161e700e943a1
             from pyobjus import autoclass
+
             notch_detector = autoclass("NotchDetector").alloc().init()
             top_notch = notch_detector.getTopNotch()
             bottom_notch = notch_detector.getBottomNotch()
@@ -72,9 +75,7 @@ class WaAuthenticatorApp(WaGenericGui):
         self.save_config()
 
     def handle_back_button(self, widget, key, *args):
-
         if key == KeyCodes.ESCAPE:  # Also means BACK button on android
-
             # Close the current open popup or file browser, if any
             if has_current_dialog():
                 close_current_dialog()
@@ -105,6 +106,7 @@ class WaAuthenticatorApp(WaGenericGui):
                 "section": "network",
             }
         ]
+
 
 def main():
     WaAuthenticatorApp().run()

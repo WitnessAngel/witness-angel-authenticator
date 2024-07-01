@@ -7,7 +7,7 @@ build-backend = "poetry.masonry.api"
 name = "witness-angel-authenticator"
 description = "Witness Angel Authenticator"
 version = "1.1"
-license = "MIT"
+license = { file = "LICENSE.txt" }
 readme = "Readme.rst"
 authors = ["Pascal Chambon", "Akram Bourichi", "Francinette Atchade"]
 homepage = "https://github.com/WitnessAngel/witness-angel-authenticator"
@@ -15,7 +15,6 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Intended Audience :: Information Technology",
-    "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
