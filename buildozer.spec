@@ -22,7 +22,7 @@ source.include_exts = py,png,jpg,kv,atlas,ini,json,mo
 #source.exclude_exts = spec
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-source.exclude_dirs = tests, bin, build, dist, venv
+source.exclude_dirs = tests, bin, build, dist, venv, _stuffs
 
 # (list) List of exclusions using pattern matching
 #source.exclude_patterns = license,images/*/*.jpg,conftest.pyc
@@ -37,7 +37,7 @@ version.filename = pyproject.toml
 # (list) Application requirements
 # Modules requests/urllib3/etc. necessary for crashdumps!!
 ## https://github.com/kivy/kivy/archive/d69693256d.zip,https://github.com/kivymd/KivyMD/archive/1152d3c312.zip
-requirements = kivy==2.2.1,https://github.com/kivymd/kivymd/archive/1152d3c312.zip,pycryptodome==3.18.0,plyer==2.1.0,decorator==5.1.1,docutils==0.20.1,pymongo==4.4.1,jsonrpc-requests==0.4.0,multitimer==0.3,uuid0==0.2.7,pytz==2023.3,psutil==5.9.5,pillow==10.0.0,pybase62==1.0.0,schema==0.7.5,jsonschema==4.18.6,click==8.1.3,requests==2.31.0,urllib3==2.0.4,charset_normalizer==3.2.0,idna==3.4,certifi==2023.7.22,attrs==23.1.0,pyrsistent==0.19.3,chardet==5.2.0,importlib-resources==6.0.1,zipp==3.16.2
+requirements = kivy==2.3.0,https://github.com/kivymd/kivymd/archive/1152d3c312.zip,pycryptodome==3.20.0,plyer==2.1.0,decorator==5.1.1,docutils==0.20.1,pymongo==4.8.0,jsonrpc-requests==0.4.0,multitimer==0.3,uuid0==0.2.7,pytz==2024.1,psutil==6.0.0,pillow==10.4.0,pybase62==1.0.0,schema==0.7.7,jsonschema==4.23.0,click==8.1.7,requests==2.32.3,urllib3==2.2.2,charset_normalizer==3.3.2,idna==3.7,certifi==2024.7.4,attrs==23.2.0,pyrsistent==0.20.0,chardet==5.2.0,importlib-resources==6.4.0,zipp==3.19.2
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -100,7 +100,7 @@ android.permissions = android.permission.INTERNET
 #android.features = android.hardware.usb.host
 
 # (int) Android API to use (we want PERMISSION REQUESTS so api>=23)
-android.api = 33
+android.api = 34
 
 # (int) Minimum API your APK / AAB will support (v23 = Android 6.0 Marshmallow, v26 = Android 8.0 Oreo)
 android.minapi = 26
