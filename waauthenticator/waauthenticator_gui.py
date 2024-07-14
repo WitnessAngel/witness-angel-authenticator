@@ -21,12 +21,18 @@ if False:  #  ACTIVATE TO DEBUG GUI
 
     activate_widget_debug_outline()
 
-
 ROOT_DIR = Path(__file__).parent
 
 tr.add_locale_dirs(ROOT_DIR / "locale", GUILIB_LOCALE_DIR)
 
 resource_add_path(ROOT_DIR)
+
+PROGRAM_VERSION = "1.2"
+if __debug__:   # SELF-CHECK
+    _pyproject_path = ROOT_DIR.parent / "pyproject.toml"
+    if _pyproject_path.is_file():
+        pyproject_data = _pyproject_path.read_text(encoding="utf-8")
+        assert ('version = "%s"' % PROGRAM_VERSION) in pyproject_data, "Mismatch of program version in GUI code"
 
 
 class WaAuthenticatorApp(WaGenericGui):
@@ -104,7 +110,8 @@ class WaAuthenticatorApp(WaGenericGui):
                 "title": tr._("Witness Angel Gateway URL"),
                 "desc": tr._("Registry where authenticators can be published"),
                 "section": "network",
-            }
+            },
+            {"type": "title", "title": "Authenticator v%s by Witness Angel" % PROGRAM_VERSION},
         ]
 
 
