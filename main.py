@@ -1,5 +1,6 @@
 import sys, os
 os.environ["WA_LOG_LEVEL"] = "DEBUG"  # TEMPORARY
+os.environ["FORCE_WACRYPTOLIB_FALLBACK_BACKEND"] = "1"  # SAME BEHAVIOUR FOR ALL OSes
 
 print(">>>> WITNESS ANGEL PYTHON VERSION: %s <<<<" % sys.version)
 
