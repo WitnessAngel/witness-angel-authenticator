@@ -27,7 +27,7 @@ tr.add_locale_dirs(ROOT_DIR / "locale", GUILIB_LOCALE_DIR)
 
 resource_add_path(ROOT_DIR)
 
-PROGRAM_VERSION = "1.2"
+PROGRAM_VERSION = "1.3"
 if __debug__:   # SELF-CHECK
     _pyproject_path = ROOT_DIR.parent / "pyproject.toml"
     if _pyproject_path.is_file():

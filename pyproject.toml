@@ -6,7 +6,7 @@ build-backend = "poetry.masonry.api"
 [tool.poetry]
 name = "witness-angel-authenticator"
 description = "Witness Angel Authenticator"
-version = "1.2"
+version = "1.3"
 license = "GPL-2.0-or-later"
 readme = "Readme.rst"
 authors = ["Pascal Chambon", "Akram Bourichi", "Francinette Atchade"]

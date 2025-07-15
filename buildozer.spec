@@ -99,8 +99,8 @@ android.permissions = android.permission.INTERNET
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
 
-# (int) Android API to use (we want PERMISSION REQUESTS so api>=23)
-android.api = 34
+# (int) Android API to use (v35 for Android 15 is required after August 31, 2025)
+android.api = 35
 
 # (int) Minimum API your APK / AAB will support (v23 = Android 6.0 Marshmallow, v26 = Android 8.0 Oreo)
 android.minapi = 26
@@ -267,7 +267,7 @@ android.archs = armeabi-v7a,arm64-v8a,x86,x86_64
 
 # (int) overrides automatic versionCode computation (used in build.gradle)
 # this is not the same as app version and should only be edited if you know what you're doing
-android.numeric_version = 2634003
+android.numeric_version = 2635001
 
 # (bool) enables Android auto backup feature (Android API >=23)
 android.allow_backup = True
@@ -307,7 +307,7 @@ p4a.branch = develop
 #p4a.commit = HEAD
 
 # (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
-#p4a.source_dir = /home/osboxes/fork_python-for-android
+#p4a.source_dir = /home/ubuntu/fork_python-for-android
 
 # (str) The directory in which python-for-android should look for your own build recipes (if any)
 #p4a.local_recipes =
@@ -388,7 +388,7 @@ warn_on_root = 1
 
 # (str) Path to build artifact storage, absolute or relative to spec file
 # BEWARE, we put it outside repo folder, since on virtual machine shared folders, symlinks often don't work
-build_dir = /home/osboxes/.buildozer_files_authenticator
+build_dir = /home/ubuntu/.buildozer_files_authenticator
 
 # (str) Path to build output (i.e. .apk, .aab, .ipa) storage
 # bin_dir = ./bin
