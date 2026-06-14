@@ -27,6 +27,21 @@ PODMAN="/c/Users/chamb/AppData/Local/Programs/Podman/podman.exe"
 
 Disk: a full build needs ~12 GB. The `podman-machine-default` VM has a 100 GiB disk (≈955 GB free), so capacity is fine.
 
+> **CRITICAL - `P:` is a removable drive.** The WSL podman machine does not auto-mount
+> removable drives, so the project on `P:` is invisible by default (`/mnt/p` is an empty stub)
+> and **`podman build -f Containerfile .` fails** (`archive/tar: missed writing 99 bytes`).
+> Two consequences, both handled below:
+> 1. **Build the image via stdin** (no directory context) - the Containerfile has no `COPY`.
+> 2. **Persist a drvfs mount of `P:`** so bind mounts work (one-time, done):
+>    ```bash
+>    MSYS_NO_PATHCONV=1 "$PODMAN" machine ssh \
+>      "grep -q '/mnt/p drvfs' /etc/fstab || echo 'P: /mnt/p drvfs metadata,uid=1000,gid=1000,umask=022 0 0' | sudo tee -a /etc/fstab; sudo mount /mnt/p"
+>    ```
+>    WSL re-runs `/etc/fstab` on each machine boot, so `P:` re-mounts automatically (it must be
+>    connected at boot).
+> 3. **Always run `podman` with `MSYS_NO_PATHCONV=1` and a Windows-style `-v` source**
+>    (`'P:\...:/dest'`); the `/p/...:/dest` form gets mangled by Git Bash.
+
 ---
 
 ## 1. Host setup (one-time, mostly done)
@@ -51,20 +66,20 @@ Uses the repo `Containerfile` (toolchain baked in: apt deps, Rust, Python 3.14, 
 ```bash
 cd /p/Workspace/WitnessAngel/witness-angel-authenticator
 
-# build the toolchain image (~10-15 min first time)
-"$PODMAN" build -t wa-authenticator-build:16kb -f Containerfile .
+# build the toolchain image via stdin - NO directory context (works around the P: drive)
+"$PODMAN" build -t wa-authenticator-build:16kb - < Containerfile      # ~10-15 min, already done
 
 # debug APK (fast feedback; first p4a build downloads SDK/NDK r29 - long & needs disk)
-"$PODMAN" run --rm -it \
-  -v "/p/Workspace/WitnessAngel/witness-angel-authenticator:/kivy_app_build" \
-  -v "wa_build_home:/root" \
+MSYS_NO_PATHCONV=1 "$PODMAN" run --rm -it \
+  -v 'P:\Workspace\WitnessAngel\witness-angel-authenticator:/kivy_app_build' \
+  -v 'wa_build_home:/root' \
   wa-authenticator-build:16kb \
   bash -lc "cd /kivy_app_build && source /opt/venv_p4a_develop/bin/activate && buildozer -v android debug"
 
 # release AAB (per android.release_artifact = aab)
-"$PODMAN" run --rm -it \
-  -v "/p/Workspace/WitnessAngel/witness-angel-authenticator:/kivy_app_build" \
-  -v "wa_build_home:/root" \
+MSYS_NO_PATHCONV=1 "$PODMAN" run --rm -it \
+  -v 'P:\Workspace\WitnessAngel\witness-angel-authenticator:/kivy_app_build' \
+  -v 'wa_build_home:/root' \
   wa-authenticator-build:16kb \
   bash -lc "cd /kivy_app_build && source /opt/venv_p4a_develop/bin/activate && buildozer -v android release"
 ```
@@ -72,9 +87,9 @@ cd /p/Workspace/WitnessAngel/witness-angel-authenticator
 ### Path B: interactive container (matches the reference comment)
 
 ```bash
-"$PODMAN" run -it --name build_kivy \
-  -v "/p/Workspace/WitnessAngel/witness-angel-authenticator:/kivy_app_build" \
-  -v "wa_build_home:/root" \
+MSYS_NO_PATHCONV=1 "$PODMAN" run -it --name build_kivy \
+  -v 'P:\Workspace\WitnessAngel\witness-angel-authenticator:/kivy_app_build' \
+  -v 'wa_build_home:/root' \
   ubuntu:24.04 bash
 ```
 

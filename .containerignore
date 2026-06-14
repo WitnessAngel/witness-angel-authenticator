@@ -1,0 +1,21 @@
+# Keep the Podman/Docker build context tiny: the Containerfile installs a
+# toolchain and has NO COPY/ADD, so nothing from the repo is needed at build
+# time. Exclude heavy build outputs, caches, VCS, and secrets.
+bin/
+build/
+dist/
+.buildozer/
+.git/
+.venv/
+venv*/
+__pycache__/
+.claude/
+_stuffs/
+*.keystore
+*.apk
+*.aab
+*.jar
+*.pdf
+*.zip
+locale/
+assets/

@@ -14,21 +14,21 @@
 - [x] 2.2 Add/uncomment `android.ndk = 29`
 - [x] 2.3 Confirm `p4a.branch = develop` and `android.archs` includes `arm64-v8a`
 - [ ] 2.4 (Optional, for fast iteration) temporarily narrow `android.archs = arm64-v8a`
-- [ ] 2.5 Commit the spec change on a dedicated branch
+- [x] 2.5 Commit the spec change on a dedicated branch
 
 ## 3. Launch and provision the build container
 
-- [ ] 3.1 Start container: `"$PODMAN" run -it --name build_kivy -v "/p/Workspace/WitnessAngel/witness-angel-authenticator:/kivy_app_build" -v "wa_build_home:/root" ubuntu:24.04 bash`
-- [ ] 3.2 Install apt build deps: `apt update && apt install -y git zip unzip openjdk-17-jdk python3-pip python3-virtualenv autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo6 cmake libffi-dev libssl-dev automake autopoint gettext`
-- [ ] 3.3 Install Rust: `curl https://sh.rustup.rs -sSf | sh` (standard install) then `source "$HOME/.cargo/env"`
-- [ ] 3.4 Install Python 3.14 via deadsnakes: `apt install -y software-properties-common && add-apt-repository -y ppa:deadsnakes/ppa && apt update && apt install -y python3.14 python3.14-venv python3.14-dev`
-- [ ] 3.5 Install OpenGL/build headers: `apt install -y build-essential libgl1-mesa-dev`
+- [x] 3.1 Start container: `"$PODMAN" run -it --name build_kivy -v "/p/Workspace/WitnessAngel/witness-angel-authenticator:/kivy_app_build" -v "wa_build_home:/root" ubuntu:24.04 bash`
+- [x] 3.2 Install apt build deps: `apt update && apt install -y git zip unzip openjdk-17-jdk python3-pip python3-virtualenv autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo6 cmake libffi-dev libssl-dev automake autopoint gettext`
+- [x] 3.3 Install Rust: `curl https://sh.rustup.rs -sSf | sh` (standard install) then `source "$HOME/.cargo/env"`
+- [x] 3.4 Install Python 3.14 via deadsnakes: `apt install -y software-properties-common && add-apt-repository -y ppa:deadsnakes/ppa && apt update && apt install -y python3.14 python3.14-venv python3.14-dev`
+- [x] 3.5 Install OpenGL/build headers: `apt install -y build-essential libgl1-mesa-dev`
 
 ## 4. Build environment (venv + buildozer)
 
-- [ ] 4.1 `cd /kivy_app_build` and create venv: `python3.14 -m venv venv_p4a_develop && source venv_p4a_develop/bin/activate`
-- [ ] 4.2 Install buildozer master: `pip install git+https://github.com/kivy/buildozer`
-- [ ] 4.3 Install helpers: `pip install legacy-cgi setuptools cython==0.29.34`
+- [x] 4.1 `cd /kivy_app_build` and create venv: `python3.14 -m venv venv_p4a_develop && source venv_p4a_develop/bin/activate`
+- [x] 4.2 Install buildozer master: `pip install git+https://github.com/kivy/buildozer`
+- [x] 4.3 Install helpers: `pip install legacy-cgi setuptools cython==0.29.34`
 - [ ] 4.4 Confirm `buildozer --version` and record the resolved buildozer/p4a commit for later pinning
 
 ## 5. Build the app
