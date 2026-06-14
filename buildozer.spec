@@ -99,8 +99,8 @@ android.permissions = android.permission.INTERNET
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
 
-# (int) Android API to use (v35 for Android 15 is required after August 31, 2025)
-android.api = 35
+# (int) Android API to use (v36 required for 16 KB page-size support with p4a develop, per kivy/python-for-android#3165)
+android.api = 36
 
 # (int) Minimum API your APK / AAB will support (v23 = Android 6.0 Marshmallow, v26 = Android 8.0 Oreo)
 android.minapi = 26
@@ -108,8 +108,8 @@ android.minapi = 26
 # (int) Android SDK version to use
 #android.sdk = 21
 
-# (str) Android NDK version to use
-#android.ndk = 23b
+# (str) Android NDK version to use (r29 required for 16 KB page-size aligned arm64-v8a, per kivy/python-for-android#3165)
+android.ndk = 29
 
 # (int) Android NDK API to use. This is the minimum API your app will support, it should usually match android.minapi.
 #android.ndk_api = 21

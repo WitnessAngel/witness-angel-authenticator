@@ -2,11 +2,11 @@
 
 ### Requirement: Podman-based Ubuntu build environment
 
-The build SHALL run inside a rootless **Podman** container based on **Ubuntu 24.04 (`noble`)** on the Windows host, without any dependency on Docker. The container SHALL bind-mount the project directory and a persistent build-home directory so that build caches survive container restarts.
+The build SHALL run inside a rootless **Podman** container based on **Ubuntu 24.04 (`noble`)** on the Windows host, without any dependency on Docker. The container SHALL be managed via the Podman CLI at its absolute path `C:\Users\chamb\AppData\Local\Programs\Podman\podman.exe` (not a bare `podman` on PATH), and SHALL bind-mount the project directory and a persistent build-home directory so that build caches survive container restarts.
 
 #### Scenario: Podman is available on the Windows host
-- **WHEN** the operator runs `podman --version` after host setup
-- **THEN** Podman reports a version and a Linux machine (`podman machine`) is running, with no Docker Desktop / Docker engine required
+- **WHEN** the operator runs the Podman CLI at `C:\Users\chamb\AppData\Local\Programs\Podman\podman.exe --version` and `... machine list`
+- **THEN** Podman reports version 5.8.2 and the `podman-machine-default` (WSL) machine is running, with no Docker Desktop / Docker engine required
 
 #### Scenario: Build container launched with project mounted
 - **WHEN** the operator starts the build container

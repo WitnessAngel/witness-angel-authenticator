@@ -25,19 +25,25 @@ Constraints specific to this project:
 
 ## Decisions
 
-### D1: Podman on Windows via a WSL2-backed `podman machine`
-Podman on Windows runs a lightweight Linux VM. Plan: install Podman (winget `RedHat.Podman` or Podman Desktop), then `podman machine init` + `podman machine start`. All `podman` commands from Git Bash then target that VM.
-- **Why over Docker**: explicit user requirement; Podman is rootless/daemonless and the OCI image (`ubuntu:24.04`) is identical, so the reference steps transfer 1:1 (`docker` → `podman`).
+### D1: Podman CLI (explicit path) on Windows via a WSL2-backed machine
+Podman on Windows runs a lightweight Linux VM. **Already provisioned**: podman 5.8.2 with `podman-machine-default` (type `wsl`, 100 GiB disk) up and running — no install or `machine init` needed. Drive everything through the **CLI binary at its absolute path**, since it is not on the Git Bash PATH. Define a shell var once and reuse it:
+```bash
+PODMAN="/c/Users/chamb/AppData/Local/Programs/Podman/podman.exe"
+"$PODMAN" --version          # podman version 5.8.2
+"$PODMAN" machine list       # podman-machine-default must be "Currently running"
+# fallback only if the machine is stopped: "$PODMAN" machine start
+```
+- **Why over Docker**: explicit user requirement; Podman is rootless/daemonless and the OCI image (`ubuntu:24.04`) is identical, so the reference steps transfer 1:1 (`docker` → `"$PODMAN"`).
 - **Alternative considered**: WSL2 Ubuntu directly (no container). Rejected — less reproducible, pollutes the host WSL distro, harder to share.
 
 ### D2: Pull the pinned Ubuntu noble image
-Use `podman pull docker.io/library/ubuntu:24.04` (reference used the `noble-20260410` tag / digest `sha256:c4a8d5503dfb...`). Pin by digest when reproducibility matters.
+Use `"$PODMAN" pull docker.io/library/ubuntu:24.04` (reference used the `noble-20260410` tag / digest `sha256:c4a8d5503dfb...`). Pin by digest when reproducibility matters.
 - **Why**: matches the validated environment exactly.
 
 ### D3: Bind-mount strategy for Windows
 Mount the project and a persistent home into the container:
 ```bash
-podman run -it --name build_kivy \
+"$PODMAN" run -it --name build_kivy \
   -v "/p/Workspace/WitnessAngel/witness-angel-authenticator:/kivy_app_build" \
   -v "wa_build_home:/root" \
   ubuntu:24.04 bash
@@ -75,13 +81,13 @@ Produce: (a) a `Containerfile` (optional, for a non-interactive image), (b) a st
 - **Moving branches** (buildozer master, p4a develop) → builds may break without notice. **Mitigation**: record the exact resolved commits (`buildozer --version`, p4a commit) after a green build; pin via `p4a.commit` / a buildozer commit hash.
 - **Python 3.14 dep compatibility** (pycryptodome 3.20, kivymd zip, jsonschema, etc. compiling/installing under 3.14) → install or recipe failures. **Mitigation**: build incrementally; if a recipe fails, pin a known-good recipe version or fall back to API/NDK-compatible alternatives.
 - **Windows ↔ Podman bind-mount I/O & permissions** → slow builds or root-owned files on the host. **Mitigation**: named volume for caches (D3); only the final artifact crosses to the host.
-- **Disk exhaustion (~12 GB)** inside the podman machine VM. **Mitigation**: pre-check free space; `podman machine` disk size may need raising (`podman machine set --disk-size`).
+- **Disk exhaustion (~12 GB)** inside the podman machine VM. The machine already has a **100 GiB** disk, so capacity is ample. **Mitigation**: still verify actual free space inside the VM before a full build (`"$PODMAN" machine ssh df -h`).
 - **NDK r29 / API 36 download size & SDK licenses** → first build is long and needs license acceptance. **Mitigation**: let buildozer auto-accept (`-v`), keep the SDK in the persistent volume.
 - **`x86`/`x86_64` archs** add build time with no Play benefit. **Trade-off**: keep for emulator testing, or drop during iteration.
 
 ## Migration Plan
 
-1. Install Podman on Windows; start `podman machine`. (Reversible: `podman machine stop`/uninstall.)
+1. Confirm Podman is usable: `"$PODMAN" --version` (5.8.2) and `"$PODMAN" machine list` shows `podman-machine-default` running. (Already installed/running; fallback `"$PODMAN" machine start`.)
 2. Edit `buildozer.spec` (api 36, ndk 29) on a branch.
 3. Run the container, provision toolchain, build debug `.apk` first (fast feedback) for `arm64-v8a` only.
 4. Run the alignment verification gate; iterate on any failing recipe.
