@@ -101,6 +101,25 @@ Pull the base image, create a persistent cache volume, and build the toolchain i
 The image build is piped from ``Containerfile`` via stdin on purpose (the ``P:`` drive breaks
 the normal build-context upload). It takes ~10-15 min the first time.
 
+Vendor the sub-packages (required before every build)
+------------------------------------------------------------
+
+The app depends on the ``wacryptolib`` and ``wacomponents`` packages, which live in sibling
+Git checkouts (``../witness-angel-cryptolib`` and ``../witness-angel-components``). On desktop
+they are pip-installed; for Android they must sit as plain source dirs at the project root so
+``source.dir = .`` bundles them into the APK. They are **git-ignored** here and must be
+populated, or the app crashes on launch with ``ModuleNotFoundError: wacomponents``.
+
+A symlink would dangle inside the build container (only this project dir is bind-mounted, not
+its siblings), so copy the real sources with the helper script::
+
+    $ bash scripts/sync_android_subpackages.sh
+    # override locations if needed:
+    # CRYPTOLIB_SRC=/path/to/witness-angel-cryptolib/src \
+    # COMPONENTS_SRC=/path/to/witness-angel-components/src bash scripts/sync_android_subpackages.sh
+
+Re-run this whenever those packages change.
+
 Debug build
 -------------------------------
 

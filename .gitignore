@@ -258,3 +258,7 @@ __*
 # Android signing secrets - NEVER commit
 *.keystore
 *.jks
+
+# Vendored sibling packages for the Android build (see scripts/sync_android_subpackages.sh)
+/wacryptolib/
+/wacomponents/
