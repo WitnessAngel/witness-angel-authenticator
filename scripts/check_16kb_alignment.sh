@@ -47,10 +47,20 @@ checked=0
 # Find every .so under a lib/<arch>/ path.
 while IFS= read -r so; do
   arch="$(basename "$(dirname "$so")")"
+  # Skip non-ELF files: p4a ships libpybundle.so, a renamed Python data blob (not a
+  # real shared library), in lib/<arch>/ so Android extracts it. It has no ELF header.
+  if ! readelf -h "$so" >/dev/null 2>&1; then
+    printf '  [skip] %-12s %-28s (not an ELF - data blob, e.g. libpybundle.so)\n' "$arch" "$(basename "$so")"
+    continue
+  fi
   # Smallest LOAD-segment alignment in this ELF (last column of readelf -lW LOAD lines).
-  min="$(readelf -lW "$so" 2>/dev/null \
-        | awk '/LOAD/ {print $NF}' \
-        | awk 'BEGIN{m=0} {v=strtonum($1); if(m==0||v<m) m=v} END{print m+0}')"
+  # Parse hex with bash arithmetic ($((0x..))) so we don't need gawk's strtonum (mawk lacks it).
+  min=0
+  while IFS= read -r tok; do
+    [[ "$tok" =~ ^0x[0-9a-fA-F]+$ ]] || continue
+    v=$(( tok ))
+    if [[ "$min" -eq 0 || "$v" -lt "$min" ]]; then min="$v"; fi
+  done < <(readelf -lW "$so" 2>/dev/null | awk '/LOAD/ {print $NF}')
 
   if [[ "$arch" =~ $ARCH64_RE ]]; then
     checked=$((checked+1))

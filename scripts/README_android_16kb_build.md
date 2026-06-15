@@ -142,13 +142,30 @@ find -type f -iname "*.so" | while read ii; do echo -n "$ii"; \
 
 ---
 
-## 4. Pin for reproducibility (after first green build)
+## 4. Verified configuration (2026-06-15)
 
-- Record `buildozer --version` and the resolved p4a `develop` commit.
-- Set `p4a.commit = <hash>` in `buildozer.spec` (and pin the buildozer commit in the `Containerfile`)
-  so future builds are deterministic.
-- Optionally pin the base image by digest in the `Containerfile`
-  (`ubuntu@sha256:c4a8d5503dfb...`).
+A debug `arm64-v8a` build passed the 16 KB gate (**all 24 ELF libs `0x4000`-aligned**) with:
+
+| Component | Version |
+|-----------|---------|
+| buildozer | 1.6.1.dev0 (master) |
+| python-for-android | `develop` @ `70f92243` (pinned in `buildozer.spec`) |
+| Python | 3.14 |
+| Cython | **3.0.12** (NOT 0.29.34 - see fixes) |
+| kivy | **2.3.1** (NOT 2.3.0) |
+| Android API / NDK | 36 / r29 |
+
+### Dependency / config fixes required (vs. the reference comment)
+1. **`libltdl-dev` + `libtool-bin`** apt deps — provide the `LT_SYS_SYMBOL_USCORE` m4 macro the libffi recipe's `autoreconf` needs. (Baked into `Containerfile`.)
+2. **Cython `0.29.34` → `3.0.12`** — 0.29.x emits removed-CPython-internal calls (`_PyUnicode_FastCopyCharacters`, `too few arguments`) that fail to compile kivy's graphics `.c` on Python 3.14. p4a develop's kivy recipe allows `cython<=3.0.12`.
+3. **kivy `2.3.0` → `2.3.1`** — matches p4a develop's kivy recipe default (gets its `no-ast-str.patch` for 3.14).
+4. **`buildozer.spec`**: `warn_on_root = 0`, `android.accept_sdk_license = True`, `build_dir = /root/.buildozer_files_authenticator` (persistent volume; symlinks work, unlike the P: bind mount).
+
+### Pinning further
+- `p4a.commit = 70f92243` is set. Optionally pin the buildozer commit in the `Containerfile` and the base image by digest (`ubuntu@sha256:c4a8d5503dfb...`).
+
+> The verify script skips non-ELF files: p4a ships `libpybundle.so` (a renamed Python
+> data blob) under `lib/<arch>/`; it has no ELF header and is correctly reported `[skip]`.
 
 ---
 

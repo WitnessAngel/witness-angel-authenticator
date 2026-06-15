@@ -25,11 +25,14 @@ ENV DEBIAN_FRONTEND=noninteractive
 # --- apt build dependencies (task 3.2 + 3.5) ---
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git zip unzip openjdk-17-jdk python3-pip python3-virtualenv \
-        autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev \
-        libtinfo6 cmake libffi-dev libssl-dev automake autopoint gettext \
+        autoconf libtool libtool-bin libltdl-dev pkg-config zlib1g-dev \
+        libncurses5-dev libncursesw5-dev libtinfo6 cmake libffi-dev libssl-dev \
+        automake autopoint gettext \
         build-essential libgl1-mesa-dev \
         software-properties-common curl ca-certificates && \
     rm -rf /var/lib/apt/lists/*
+# NOTE: libltdl-dev provides the LT_SYS_SYMBOL_USCORE m4 macro that the p4a
+# libffi recipe's autoreconf needs (the reference apt list omitted it).
 
 # --- Rust toolchain (task 3.3) ---
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
@@ -47,7 +50,10 @@ RUN add-apt-repository -y ppa:deadsnakes/ppa && \
 RUN python3.14 -m venv /opt/venv_p4a_develop && \
     /opt/venv_p4a_develop/bin/pip install --upgrade pip && \
     /opt/venv_p4a_develop/bin/pip install "git+https://github.com/kivy/buildozer" && \
-    /opt/venv_p4a_develop/bin/pip install legacy-cgi setuptools cython==0.29.34
+    /opt/venv_p4a_develop/bin/pip install legacy-cgi setuptools "cython==3.0.12"
+# NOTE: cython 3.0.12 (max allowed by p4a develop's kivy recipe) generates Python
+# 3.14-compatible C. The reference's cython==0.29.34 is too old and breaks kivy's
+# graphics .c on 3.14 (_PyUnicode_FastCopyCharacters / "too few arguments").
 
 WORKDIR /kivy_app_build
 ENV VIRTUAL_ENV=/opt/venv_p4a_develop

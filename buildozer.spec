@@ -37,7 +37,7 @@ version.filename = pyproject.toml
 # (list) Application requirements
 # Modules requests/urllib3/etc. necessary for crashdumps!!
 ## https://github.com/kivy/kivy/archive/d69693256d.zip,https://github.com/kivymd/KivyMD/archive/1152d3c312.zip
-requirements = kivy==2.3.0,https://github.com/kivymd/kivymd/archive/1152d3c312.zip,pycryptodome==3.20.0,plyer==2.1.0,decorator==5.1.1,docutils==0.20.1,pymongo==4.8.0,jsonrpc-requests==0.4.0,multitimer==0.3,uuid0==0.2.7,pytz==2024.1,psutil==6.0.0,pillow==10.4.0,pybase62==1.0.0,schema==0.7.7,jsonschema==4.23.0,click==8.1.7,requests==2.32.3,urllib3==2.2.2,charset_normalizer==3.3.2,idna==3.7,certifi==2024.7.4,attrs==23.2.0,pyrsistent==0.20.0,chardet==5.2.0,importlib-resources==6.4.0,zipp==3.19.2,pyaes==1.6.1
+requirements = kivy==2.3.1,https://github.com/kivymd/kivymd/archive/1152d3c312.zip,pycryptodome==3.20.0,plyer==2.1.0,decorator==5.1.1,docutils==0.20.1,pymongo==4.8.0,jsonrpc-requests==0.4.0,multitimer==0.3,uuid0==0.2.7,pytz==2024.1,psutil==6.0.0,pillow==10.4.0,pybase62==1.0.0,schema==0.7.7,jsonschema==4.23.0,click==8.1.7,requests==2.32.3,urllib3==2.2.2,charset_normalizer==3.3.2,idna==3.7,certifi==2024.7.4,attrs==23.2.0,pyrsistent==0.20.0,chardet==5.2.0,importlib-resources==6.4.0,zipp==3.19.2,pyaes==1.6.1
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -135,7 +135,8 @@ android.ndk = 29
 # agreements. This is intended for automation only. If set to False,
 # the default, you will be shown the license when first running
 # buildozer.
-# android.accept_sdk_license = False
+# Auto-accept Android SDK licenses: the non-interactive Podman build EOF-crashes on sdkmanager's prompt.
+android.accept_sdk_license = True
 
 # (str) Android entry point, default is ok for Kivy-based app
 #android.entrypoint = org.renpy.android.PythonActivity
@@ -304,7 +305,8 @@ android.release_artifact = aab
 p4a.branch = develop
 
 # (str) python-for-android specific commit to use, defaults to HEAD, must be within p4a.branch
-#p4a.commit = HEAD
+# Pinned to the commit that produced a verified 16 KB-aligned arm64-v8a build (buildozer 1.6.1.dev0).
+p4a.commit = 70f92243
 
 # (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
 #p4a.source_dir = /home/ubuntu/fork_python-for-android
@@ -384,11 +386,14 @@ ios.codesign.development_team.debug = <string>
 log_level = 2
 
 # (int) Display warning if buildozer is run as root (0 = False, 1 = True)
-warn_on_root = 1
+# 0: the Podman build runs as root non-interactively; the warning's input() prompt would EOF-crash.
+warn_on_root = 0
 
 # (str) Path to build artifact storage, absolute or relative to spec file
 # BEWARE, we put it outside repo folder, since on virtual machine shared folders, symlinks often don't work
-build_dir = /home/ubuntu/.buildozer_files_authenticator
+# In the Podman build, /root is a persistent named volume (real ext4 fs: symlinks work, cache survives --rm);
+# /kivy_app_build is the P: bind mount where symlinks break.
+build_dir = /root/.buildozer_files_authenticator
 
 # (str) Path to build output (i.e. .apk, .aab, .ipa) storage
 # bin_dir = ./bin

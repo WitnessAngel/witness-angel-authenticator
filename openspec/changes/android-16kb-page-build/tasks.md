@@ -13,7 +13,7 @@
 - [x] 2.1 Set `android.api = 36` (was 35)
 - [x] 2.2 Add/uncomment `android.ndk = 29`
 - [x] 2.3 Confirm `p4a.branch = develop` and `android.archs` includes `arm64-v8a`
-- [ ] 2.4 (Optional, for fast iteration) temporarily narrow `android.archs = arm64-v8a`
+- [x] 2.4 (Optional, for fast iteration) temporarily narrow `android.archs = arm64-v8a`
 - [x] 2.5 Commit the spec change on a dedicated branch
 
 ## 3. Launch and provision the build container
@@ -29,25 +29,25 @@
 - [x] 4.1 `cd /kivy_app_build` and create venv: `python3.14 -m venv venv_p4a_develop && source venv_p4a_develop/bin/activate`
 - [x] 4.2 Install buildozer master: `pip install git+https://github.com/kivy/buildozer`
 - [x] 4.3 Install helpers: `pip install legacy-cgi setuptools cython==0.29.34`
-- [ ] 4.4 Confirm `buildozer --version` and record the resolved buildozer/p4a commit for later pinning
+- [x] 4.4 Confirm `buildozer --version` and record the resolved buildozer/p4a commit for later pinning
 
 ## 5. Build the app
 
-- [ ] 5.1 Run a debug build (arm64-v8a only for fast feedback): `buildozer -v android debug`
-- [ ] 5.2 Resolve any recipe/dependency failure under Python 3.14 (pin recipe versions or deps as needed); re-run until green
-- [ ] 5.3 Confirm the artifact is written under `bin/`
+- [x] 5.1 Run a debug build (arm64-v8a only for fast feedback): `buildozer -v android debug`
+- [x] 5.2 Resolve any recipe/dependency failure under Python 3.14 (pin recipe versions or deps as needed); re-run until green
+- [x] 5.3 Confirm the artifact is written under `bin/`
 - [ ] 5.4 Restore full `android.archs` and run the release build: `buildozer -v android release` (produces the `.aab`)
 
 ## 6. Verify 16 KB alignment
 
 - [x] 6.1 Add `scripts/check_16kb_alignment.sh` implementing the `readelf -lW` loop over `lib/*/*.so`
-- [ ] 6.2 Extract the artifact (`7z x` / `unzip`) and run the script
-- [ ] 6.3 Assert NO `arm64-v8a/*.so` reports `0x1000` LOAD alignment (32-bit `armeabi-v7a` may stay 4 KB)
-- [ ] 6.4 Record/fail the gate accordingly
+- [x] 6.2 Extract the artifact (`7z x` / `unzip`) and run the script
+- [x] 6.3 Assert NO `arm64-v8a/*.so` reports `0x1000` LOAD alignment (32-bit `armeabi-v7a` may stay 4 KB)
+- [x] 6.4 Record/fail the gate accordingly
 
 ## 7. Reproducibility & documentation
 
-- [ ] 7.1 Pin the resolved buildozer commit and `p4a.commit` in `buildozer.spec` after the first green 16 KB build
+- [x] 7.1 Pin the resolved buildozer commit and `p4a.commit` in `buildozer.spec` after the first green 16 KB build
 - [x] 7.2 Write the runbook (host setup → container → provision → build → verify → extract artifact) into the repo (e.g. `scripts/README_android_16kb_build.md`)
 - [x] 7.3 (Optional) Author a non-interactive `Containerfile` capturing steps 3–4 for one-command reproducible builds
 - [x] 7.4 Note that the legacy `p4a_hacks.diff` (debug logging + pycryptodome 3.9.9 pin) is NOT used by this pipeline
