@@ -118,7 +118,8 @@ android.ndk = 29
 #android.private_storage = True
 
 # (str) Android NDK directory (if empty, it will be automatically downloaded.)
-#android.ndk_path =
+# Baked into the build image (see Containerfile) to avoid the ~783 MB per-run download.
+android.ndk_path = /opt/android-ndk-r29
 
 # (str) Android SDK directory (if empty, it will be automatically downloaded.)
 #android.sdk_path =

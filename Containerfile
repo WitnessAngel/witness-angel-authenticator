@@ -55,6 +55,24 @@ RUN python3.14 -m venv /opt/venv_p4a_develop && \
 # 3.14-compatible C. The reference's cython==0.29.34 is too old and breaks kivy's
 # graphics .c on 3.14 (_PyUnicode_FastCopyCharacters / "too few arguments").
 
+# --- Bake Android NDK r29 (rev 29.0.14206865) into the image ---
+# The NDK is the single biggest download (~783 MB). Baking it removes the
+# per-run fetch and makes the toolchain self-contained (the NDK no longer
+# depends on the /root named-volume cache). The SDK platform/build-tools are
+# small and stay managed by buildozer in the mounted project + /root volume.
+# Pinned by sha256 to the exact revision buildozer would otherwise download,
+# so the bake stays reproducible even if Google re-points the "r29" zip.
+ARG NDK_URL=https://dl.google.com/android/repository/android-ndk-r29-linux.zip
+ARG NDK_SHA256=4abbbcdc842f3d4879206e9695d52709603e52dd68d3c1fff04b3b5e7a308ecf
+RUN curl -fsSL "$NDK_URL" -o /tmp/ndk.zip && \
+    echo "${NDK_SHA256}  /tmp/ndk.zip" | sha256sum -c - && \
+    unzip -q /tmp/ndk.zip -d /opt && \
+    rm /tmp/ndk.zip
+# buildozer reads android.ndk_path from buildozer.spec; ANDROIDNDK is p4a's var.
+ENV ANDROIDNDK=/opt/android-ndk-r29
+ENV ANDROID_NDK_ROOT=/opt/android-ndk-r29
+ENV ANDROID_NDK_HOME=/opt/android-ndk-r29
+
 WORKDIR /kivy_app_build
 ENV VIRTUAL_ENV=/opt/venv_p4a_develop
 ENV PATH="/opt/venv_p4a_develop/bin:${PATH}"

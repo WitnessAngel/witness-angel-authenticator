@@ -9,7 +9,8 @@ which makes the `arm64-v8a` `.so` files 16 KB aligned. 32-bit `armeabi-v7a` stay
 only requires it on 64-bit devices).
 
 `buildozer.spec` is already set: `android.api = 36`, `android.ndk = 29`, `p4a.branch = develop`,
-`android.archs` includes `arm64-v8a`.
+`android.archs` includes `arm64-v8a`, and `android.ndk_path = /opt/android-ndk-r29` (the NDK is
+baked into the build image — see section 2).
 
 > **Note on `p4a_hacks.diff`:** the repo's `p4a_hacks.diff` is legacy (debug logging + a
 > `pycryptodome==3.9.9` pin). It is **NOT used** by this pipeline — `requirements` already pins
@@ -61,7 +62,9 @@ MSYS_NO_PATHCONV=1 "$PODMAN" machine ssh "df -h /"   # confirm free space
 
 ### Path A: reproducible image (recommended)
 
-Uses the repo `Containerfile` (toolchain baked in: apt deps, Rust, Python 3.14, buildozer master, cython 0.29.34).
+Uses the repo `Containerfile` (toolchain baked in: apt deps, Rust, Python 3.14, buildozer master,
+cython 3.0.12, **Android NDK r29** at `/opt/android-ndk-r29`, pinned by sha256). Baking the NDK
+removes the ~783 MB per-run download; `buildozer.spec`'s `android.ndk_path` points at it.
 
 ```bash
 cd /p/Workspace/WitnessAngel/witness-angel-authenticator
@@ -69,7 +72,7 @@ cd /p/Workspace/WitnessAngel/witness-angel-authenticator
 # build the toolchain image via stdin - NO directory context (works around the P: drive)
 "$PODMAN" build -t wa-authenticator-build:16kb - < Containerfile      # ~10-15 min, already done
 
-# debug APK (fast feedback; first p4a build downloads SDK/NDK r29 - long & needs disk)
+# debug APK (fast feedback; NDK r29 is baked in - first p4a build still downloads the SDK, long & needs disk)
 MSYS_NO_PATHCONV=1 "$PODMAN" run --rm -it \
   -v 'P:\Workspace\WitnessAngel\witness-angel-authenticator:/kivy_app_build' \
   -v 'wa_build_home:/root' \
@@ -82,6 +85,15 @@ bash scripts/build_release_signed.sh
 ```
 
 ### Path B: interactive container (matches the reference comment)
+
+> **NDK path caveat.** `buildozer.spec` hardcodes `android.ndk_path = /opt/android-ndk-r29`,
+> which only exists in the Path A image. In this bare-`ubuntu` container that path is missing,
+> so either comment out `android.ndk_path` in `buildozer.spec` (buildozer then auto-downloads the
+> NDK into the `/root` volume), or fetch it to that path first:
+> ```bash
+> curl -fsSL https://dl.google.com/android/repository/android-ndk-r29-linux.zip -o /tmp/ndk.zip \
+>   && unzip -q /tmp/ndk.zip -d /opt && rm /tmp/ndk.zip
+> ```
 
 ```bash
 MSYS_NO_PATHCONV=1 "$PODMAN" run -it --name build_kivy \
@@ -203,6 +215,7 @@ MSYS_NO_PATHCONV=1 "$PODMAN" run --rm -v 'P:\Workspace\WitnessAngel\witness-ange
 
 - For faster iteration, temporarily set `android.archs = arm64-v8a` in `buildozer.spec`
   (the only arch the 16 KB gate checks), then restore the full list for release.
-- First build downloads the Android SDK + NDK r29 (large). Caches live in the mounted project
-  `.buildozer/` and the `wa_build_home` volume, so subsequent builds are much faster.
+- The Android **NDK r29 is baked into the build image** (`/opt/android-ndk-r29`, sha256-pinned), so
+  it never re-downloads. The first build still downloads the Android **SDK**; that cache lives in the
+  mounted project `.buildozer/` and the `wa_build_home` volume, so subsequent builds are much faster.
 - The final `.aab`/`.apk` lands in `bin/` on the Windows filesystem (project is bind-mounted).
