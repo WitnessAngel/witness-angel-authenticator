@@ -76,12 +76,9 @@ MSYS_NO_PATHCONV=1 "$PODMAN" run --rm -it \
   wa-authenticator-build:16kb \
   bash -lc "cd /kivy_app_build && source /opt/venv_p4a_develop/bin/activate && buildozer -v android debug"
 
-# release AAB (per android.release_artifact = aab)
-MSYS_NO_PATHCONV=1 "$PODMAN" run --rm -it \
-  -v 'P:\Workspace\WitnessAngel\witness-angel-authenticator:/kivy_app_build' \
-  -v 'wa_build_home:/root' \
-  wa-authenticator-build:16kb \
-  bash -lc "cd /kivy_app_build && source /opt/venv_p4a_develop/bin/activate && buildozer -v android release"
+# release AAB (signed) - see section 5; do NOT use a bare `buildozer android release`,
+# it produces an UNSIGNED artifact. Use the signing wrapper:
+bash scripts/build_release_signed.sh
 ```
 
 ### Path B: interactive container (matches the reference comment)
@@ -168,6 +165,39 @@ A debug `arm64-v8a` build passed the 16 KB gate (**all 24 ELF libs `0x4000`-alig
 > data blob) under `lib/<arch>/`; it has no ELF header and is correctly reported `[skip]`.
 
 ---
+
+## 5. Signed release build (.aab)
+
+`android.release_artifact = aab`, so a release build produces an Android App Bundle.
+Signing uses p4a's `P4A_RELEASE_*` env vars. The wrapper `scripts/build_release_signed.sh`
+prompts for the alias + passwords (hidden), forwards them to the container without exposing
+them in the process list, and never stores/commits them. The keystore
+`witnessangel_android.keystore` stays on the host (git-ignored via `*.keystore`) and is reached
+through the project bind mount.
+
+Run it **interactively** (it prompts) — in a Claude Code session prefix with `!`:
+
+```bash
+PODMAN="/c/Users/chamb/AppData/Local/Programs/Podman/podman.exe"   # used by the script
+bash scripts/build_release_signed.sh
+# prompts: alias, store password, key password (blank = same as store)
+```
+
+The four variables it sets for p4a:
+
+| Variable | Meaning | Secret? |
+|----------|---------|---------|
+| `P4A_RELEASE_KEYSTORE` | `/kivy_app_build/witnessangel_android.keystore` (in-container path) | no |
+| `P4A_RELEASE_KEYALIAS` | key alias | no |
+| `P4A_RELEASE_KEYSTORE_PASSWD` | keystore password | **yes** |
+| `P4A_RELEASE_KEYALIAS_PASSWD` | key password | **yes** |
+
+Then verify the bundle (AAB libs live under `base/lib/<arch>/`, which the script handles):
+
+```bash
+MSYS_NO_PATHCONV=1 "$PODMAN" run --rm -v 'P:\Workspace\WitnessAngel\witness-angel-authenticator:/kivy_app_build' \
+  wa-authenticator-build:16kb bash -lc 'cd /kivy_app_build && bash scripts/check_16kb_alignment.sh bin/*.aab'
+```
 
 ## Tips
 

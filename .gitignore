@@ -254,3 +254,7 @@ __*.sh
 
 # Trashed files
 __*
+
+# Android signing secrets - NEVER commit
+*.keystore
+*.jks
