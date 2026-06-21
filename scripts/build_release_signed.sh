@@ -66,12 +66,16 @@ MSYS_NO_PATHCONV=1 "$PODMAN" run --rm --name wa_release_build \
   "$IMAGE" \
   bash -lc '
     set -o pipefail
-    # Disable the Gradle daemon: a stale daemon serves an old environment, so
-    # System.getenv("P4A_RELEASE_KEYALIAS") returned null -> signReleaseBundle NPE
-    # (java.lang.NullPointerException at FinalizeBundleTask.kt:168, keyAlias!!).
+    # signReleaseBundle signs the ~120 MB multi-arch .aab via AabFlinger, which blows
+    # the default 512 MB Gradle heap -> OutOfMemoryError. Gradle reports it as a generic
+    # "FinalizeBundleTask$BundleToolRunnable failed", so give Gradle a large heap.
+    # (Daemon off too: container builds are one-shot, so a daemon buys nothing.)
     mkdir -p /root/.gradle
-    grep -q "^org.gradle.daemon=false" /root/.gradle/gradle.properties 2>/dev/null \
-      || echo "org.gradle.daemon=false" >> /root/.gradle/gradle.properties
+    GP=/root/.gradle/gradle.properties
+    grep -q "^org.gradle.jvmargs" "$GP" 2>/dev/null \
+      || echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g" >> "$GP"
+    grep -q "^org.gradle.daemon=false" "$GP" 2>/dev/null \
+      || echo "org.gradle.daemon=false" >> "$GP"
 
     cd /kivy_app_build && source /opt/venv_p4a_develop/bin/activate
     # buildozer cannot copy into bin/ on the removable P: drive, so its final copy
