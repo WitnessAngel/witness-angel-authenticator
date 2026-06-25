@@ -9,7 +9,7 @@ from kivy.metrics import dp
 from kivy.properties import ListProperty
 from kivy.resources import resource_find, resource_add_path
 from wacomponents.application.generic_gui import WaGenericGui
-from wacomponents.default_settings import IS_IOS
+from wacomponents.default_settings import IS_ANDROID, IS_IOS
 from wacomponents.devices.keyboard_codes import KeyCodes
 from wacomponents.i18n import tr
 from wacomponents.locale import LOCALE_DIR as GUILIB_LOCALE_DIR  # DEFAULT LOCALE DIR
@@ -74,6 +74,15 @@ class WaAuthenticatorApp(WaGenericGui):
             all_notches = [dp(left_notch), dp(top_notch), dp(right_notch), dp(bottom_notch)]
             print(">>>>>> IOS NOTCH CALLS RETURNED", all_notches)
             self.application_margins = all_notches
+
+        elif IS_ANDROID:
+            # Keep app content out of the status/navigation bars (edge-to-edge on Android 15+).
+            # Keep a reference on self so the JNI listener proxy is not garbage-collected.
+            from wacomponents.application.android_helpers import monitor_android_safe_area_insets
+
+            self._android_insets_listener = monitor_android_safe_area_insets(
+                lambda margins: setattr(self, "application_margins", margins)
+            )
 
     def _handle_selected_custom_folder_path_changed(self, source, custom_authenticator_dir):
         """Persist any "currently selected custom folder" to config file"""
