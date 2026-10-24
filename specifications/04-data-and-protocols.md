@@ -6,26 +6,54 @@ Witness Angel Authenticator, version 1.5. This file gives the byte-level formats
 - the Witness Angel gateway (JSON-RPC over HTTPS),
 - the cryptolib clients on the other side of the protocol (recorders, claimants).
 
-Everything here is language-neutral. The Python code is cited only as evidence.
+Everything here is language-neutral. The Python code is cited only as evidence. This file owns the folder content, the file and wire formats, and the crypto parameters; storage *locations* are in [01 §4](01-architecture-and-platform.md#4-storage-locations-exact-per-os).
 
-Sibling files: `01-architecture-and-platform.md` (storage roots, config file, build), `02-ux-and-screens.md` (UI), `03-business-logic.md` (rules and state machines; referenced below as "03 §x").
+Sibling files: [01](01-architecture-and-platform.md) (storage roots, config file, build), [02](02-ux-and-screens.md) (UI), [03](03-business-logic.md) (rules and state machines; referenced below as "03 §x"), [05](05-open-issues.md) (open issues, `OI-nn`). Citation prefixes and source baseline: [README](README.md#source-baseline-and-citation-prefixes). Normative tags (MUST / SHOULD / INFO): [README](README.md#normative-language).
 
-Citation convention: `path:line`, relative to the WitnessAngel workspace root.
-
-| Prefix | Path |
-|---|---|
-| `AUTH/` | `witness-angel-authenticator/` |
-| `COMP/` | `witness-angel-components/src/wacomponents/` |
-| `CRYPTO/` | `witness-angel-cryptolib/src/wacryptolib/` |
-| `VENDORS/` | `witness-angel-cryptolib/src/vendors/` |
-| `SERVER/` | `witness-angel-server/src/waserver/` |
-
-Worked examples were produced by running the real cryptolib code (`initialize_authenticator`, `generate_keypair`, `FilesystemKeystore`, `encrypt_bytestring`, `TrusteeApi`, `JsonRpcProxy.serialize`) in a scratch environment. Long base64 values are cut and marked `…`.
+Worked examples were produced by running the real cryptolib code (`initialize_authenticator`, `generate_keypair`, `FilesystemKeystore`, `encrypt_bytestring`, `TrusteeApi`, `JsonRpcProxy.serialize`). Long base64 values are cut and marked `…`. Complete, untruncated vectors are in [fixtures/](fixtures/) (§10).
 
 Library versions:
 
 - The app pins **pycryptodome 3.20.0** (`AUTH/buildozer.spec:40`).
-- The example run used pycryptodome 4.2.0. The only visible difference is the PBKDF2 iteration count (§4.3).
+- The examples in §2-§5 were produced with pycryptodome 4.2.0; the fixtures (§10) with pycryptodome 3.24.1, which has the same defaults as 3.20. The only visible difference is the PBKDF2 iteration count (§4.3).
+
+---
+
+## 0. Normative interop requirements (checklist)
+
+A reimplementation MUST satisfy every line below. Each line links to the section with the details. The fixtures in §10 exercise most of them.
+
+**On disk**
+
+1. MUST find authenticators at the same folder names: `authenticator.keystore`, legacy `.authenticator` on removable drives, legacy `authenticator` in the internal profile (renamed at startup) ([03 §2](03-business-logic.md#2-authenticator-locations)).
+2. MUST name key files `<str(UUID) lowercase>_<key_algo>_{public,private}_key.pem`, MUST list them with the regex of §2.1 and skip non-matching names, and MUST sort keypairs by `(keychain_uid as 128-bit int, key_algo)` (§2.1).
+3. MUST write `keystore_metadata.json` with exactly the fields of §2.2 (the schema refuses extra keys), and MUST read the legacy `.keystore.json` when `keystore_metadata.json` is absent (§2.1).
+4. MUST treat a folder as "initialized" when either metadata file exists, whatever its content (§2.1, [03 §3.1](03-business-logic.md#31-local-authenticator-state)).
+5. MUST keep ZIP exports readable by 1.5: entries at the archive root, no folder prefix (§2.4).
+
+**Encodings**
+
+6. MUST read both canonical and relaxed Extended JSON, including pymongo `bson.json_util` CANONICAL output (older authenticators and the gateway use it); SHOULD write canonical (§3).
+7. MUST accept any 16-byte value as a UUID (uuid0 has no RFC version bits) (§1).
+8. MUST use timezone-aware UTC datetimes; MUST tolerate millisecond truncation (§1, §3.1).
+
+**Keys and crypto**
+
+9. MUST normalise every passphrase as `UTF-8(NFKC(strip(passphrase)))` before using it, on creation, Check and Accept alike. Otherwise existing keys with non-ASCII passphrases do not open (§4.3).
+10. MUST generate RSA-2048 (exponent 65537) keypairs with `key_algo = "RSA_OAEP"`; MUST refuse keys under 2048 bits (§4.1).
+11. MUST write public keys as SPKI PEM and private keys as PKCS#8 `ENCRYPTED PRIVATE KEY` (PBES2, PBKDF2-HMAC-SHA1, AES-256-CBC) (§4.2, §4.3).
+12. MUST read private keys with any PBKDF2 iteration count, and also unencrypted PKCS#1/PKCS#8 keys; MUST report every load failure as "wrong passphrase or corrupted key" (`KeyLoadingError`) (§4.3).
+13. MUST implement RSA-OAEP exactly as §5.2: SHA-512 for hash and MGF1, empty label, 60-byte plaintext chunks, `{"ciphertext_chunks": [...]}`, and on read also the legacy key `digest_list`.
+
+**Gateway**
+
+14. MUST call the JSON-RPC methods of §7.3 with **named** parameters only, in an Extended JSON body (§7.1).
+15. MUST map error responses through `data.status_slugs` to the deepest known error class (§7.2).
+16. MUST NOT send private keys, the passphrase or the passphrase hint to the gateway ([03 §10.3](03-business-logic.md#103-properties-a-reimplementation-must-keep)).
+17. For `accept_revelation_request`, MUST send exactly one result per distinct `symkey_decryption_request_data`, MUST echo that value **byte for byte**, and MUST pair status and data as: `DECRYPTED` ⇔ non-empty response data, any other status ⇔ `b""` (§7.3.4).
+18. MUST encrypt each revelation response only with `revelation_response_public_key`, using RSA-OAEP as in §5.2; MUST refuse a request whose `revelation_response_key_algo` or target `key_algo` is not `RSA_OAEP` ([05 OI-03](05-open-issues.md#a-revelation-requests-accept--reject)).
+19. MUST NOT call `set_public_authenticator` twice for the same `keystore_uid` (it is not idempotent) and MUST NOT publish an authenticator without public keys (§7.3.2).
+20. MUST keep `keystore_owner` at 100 code points or fewer (§7.3.2).
 
 ---
 
@@ -35,7 +63,7 @@ Library versions:
 |---|---|---|
 | UUID | 16 bytes, RFC 4122 byte order (`uuid.bytes`) | Text form: lowercase hyphenated `8-4-4-4-12`. Used in filenames. |
 | uuid0 (all generated uids) | 6 bytes big-endian = `floor(unix_time * 10000)` (100 µs units), then 10 bytes from the OS CSPRNG | No RFC version/variant bits are set (`VENDORS/uuid0/core.py:79-87`, `CRYPTO/utilities/time_utils.py:11-22`). Any 16-byte value must be accepted as a UUID. |
-| datetime | Timezone-aware instant | Naive datetimes are refused by the schema (`CRYPTO/keystore.py:57`) and by the JSON encoder (`AUTH/extjson.py:227-229`). Serialized with **millisecond** precision (§3). |
+| datetime | Timezone-aware instant | Naive datetimes are refused by the schema (`CRYPTO/keystore.py:57`) and by the JSON encoder (`AUTH/extjson.py:227-229`). Serialized with **millisecond** precision (§3). Displayed in UTC ([02 §3.3](02-ux-and-screens.md#33-status-computation-ternary)). |
 | bytes | Raw octets | Serialized as base64 (§3) |
 | text | Unicode | JSON text is UTF-8. `ensure_ascii` is on, so non-ASCII characters are written as `\uXXXX` escapes. |
 
@@ -45,7 +73,7 @@ Library versions:
 
 ### 2.1 Folder content
 
-The folder name depends on the location (03 §2): `authenticator.keystore`, legacy `.authenticator` on USB drives, legacy `authenticator` in the profile (renamed on startup).
+The folder name depends on the location ([03 §2](03-business-logic.md#2-authenticator-locations)): `authenticator.keystore`, legacy `.authenticator` on USB drives, legacy `authenticator` in the profile (renamed on startup).
 
 ```
 authenticator.keystore/
@@ -62,7 +90,7 @@ authenticator.keystore/
 | `<uid>_<ALGO>_private_key.pem` | Same naming. Present only together with its public file. | same |
 | `free_keys/<ALGO>/<10-11 digit random>_{public,private}_key.pem` | Pre-generated key pool of the generic `FilesystemKeystore`. **Not used** by authenticators. A reimplementation may ignore it. | `CRYPTO/keystore.py:526-589` |
 
-Listing rules (`CRYPTO/keystore.py:439-477`):
+Listing rules, MUST (`CRYPTO/keystore.py:406, 439-477`; exercised by `fixtures/edge_cases.keystore`):
 
 - Enumerate `*_public_key.pem` with the regex `^(?P<keychain_uid>[-0-9a-z]+)_(?P<key_algo>[_a-zA-Z]+)_public_key.pem$`.
 - Skip a file, with a warning, if its name does not match or its uid does not parse as a UUID. Uppercase hex uids are therefore skipped.
@@ -82,8 +110,8 @@ Validated by `KEYSTORE_METADATA_SCHEMA` (`CRYPTO/keystore.py:52-64`). Extra keys
 | `keystore_uid` | UUID | yes | `{"$binary":{"base64":…,"subType":"04"}}` | uuid0, the identity of the authenticator, published |
 | `keystore_owner` | string | yes | plain string | non-empty. GUI: stripped, ≤100 chars. Gateway column max 100. |
 | `keystore_creation_datetime` | datetime | no ("recent field") | `{"$date":{"$numberLong":"<ms>"}}` | tz-aware UTC at creation |
-| `keystore_secret` | string | no ("recent field") | plain string | `token_urlsafe(64)`: 86 chars `[A-Za-z0-9_-]`. Gateway bearer credential (03 §1). |
-| `keystore_passphrase_hint` | string | no (schema) / yes (authenticator) | plain string | non-empty if present |
+| `keystore_secret` | string | no ("recent field") | plain string | `token_urlsafe(64)`: 86 chars `[A-Za-z0-9_-]`. Gateway bearer credential ([03 §1](03-business-logic.md#1-domain-concepts)). |
+| `keystore_passphrase_hint` | string | no (schema) / yes (authenticator) | plain string | non-empty if present. Readers MUST tolerate its absence, and the absence of `keystore_secret` ([05 OI-17](05-open-issues.md#c-local-storage-import-export-destroy)). |
 
 The schema only accepts decoded native types (UUID, datetime). The file is first parsed with Extended JSON (§3) and then validated.
 
@@ -93,7 +121,7 @@ Byte-exact example (a real file: one line, keys sorted, `", "` and `": "` separa
 {"keystore_creation_datetime": {"$date": {"$numberLong": "1792875147037"}}, "keystore_format": "keystore_1.0", "keystore_owner": "Jane Doe", "keystore_passphrase_hint": "my cat name twice", "keystore_secret": "HZ8S0eU27Z_bDZtBw_cGtmqi59Ya8EQv8zTyQ9hdJ6jSXhbAZN2SVZ-0sU74ee4IjQF5wPMUYyjpPdrkJ8dKoA", "keystore_type": "authenticator", "keystore_uid": {"$binary": {"base64": "EE5c3NclBJg7czxGtRnIQQ==", "subType": "04"}}}
 ```
 
-Here `keystore_uid` = `104e5cdc-d725-0498-3b73-3c46b519c841`. A reader must also accept the relaxed forms (§3.3), for example `{"$uuid":"104e5cdcd72504983b733c46b519c841"}` and `{"$date":"2026-10-24T20:52:27.037Z"}`.
+Here `keystore_uid` = `104e5cdc-d725-0498-3b73-3c46b519c841`. A reader MUST also accept the relaxed forms (§3.3), for example `{"$uuid":"104e5cdcd72504983b733c46b519c841"}` and `{"$date":"2026-10-24T20:52:27.037Z"}`.
 
 ### 2.3 Keystore tree (in-memory export/import format)
 
@@ -110,17 +138,33 @@ This format is used when importing authenticators into other apps' keystore pool
 - Format: standard ZIP, DEFLATE (method 8). Entries are the folder's files at the archive root, with no directory prefix. Subfolders would be included with relative paths (`shutil.make_archive(root_dir=authenticator_dir)`, `COMP/screens/authenticator_management.py:430-432`).
 - Example entries: `104e5cdc-…_RSA_OAEP_private_key.pem`, `104e5cdc-…_RSA_OAEP_public_key.pem`, `keystore_metadata.json`.
 - Name: `authenticator_id<last hyphen group of keystore_uid>_date<UTC %Y%m%d%H%M%S>.zip`, in `<EXTERNAL_APP_ROOT>/exports/` (`authenticator_management.py:420-431`, `COMP/default_settings.py:129`).
-- Import extracts all entries into the selected authenticator folder (`authenticator_management.py:390`). See 03 §8.
+- Import extracts all entries into the selected authenticator folder (`authenticator_management.py:390`). See [03 §8](03-business-logic.md#8-export-import-deletion) and [05 OI-20](05-open-issues.md#c-local-storage-import-export-destroy).
+- INFO: 1.5 extracts every entry and its listing skips non-matching names, so extra files in an archive are harmless to it.
 
 ### 2.5 App configuration
 
-The INI file contains `[authenticator] custom_authenticator_dir` (absolute path or empty) and `[network] wagateway_url` (default `https://api.witnessangel.com/gateway/jsonrpc/`) (`AUTH/waauthenticator/config_defaults.ini:1-7`, `AUTH/waauthenticator/waauthenticator_gui.py:87-112`). File location and handling: 01 §3.
+The INI file contains `[authenticator] custom_authenticator_dir` (absolute path or empty) and `[network] wagateway_url` (default `https://api.witnessangel.com/gateway/jsonrpc/`) (`AUTH/waauthenticator/config_defaults.ini:1-7`, `AUTH/waauthenticator/waauthenticator_gui.py:87-112`). File location, handling and the migration rule for `custom_authenticator_dir`: [01 §3](01-architecture-and-platform.md#3-configuration-framework-neutral) and [01 §4.4](01-architecture-and-platform.md#44-folder-access-requirement-level). INFO: the config file is private to the app; it is not an interop surface.
 
 ---
 
 ## 3. Serialization: Extended JSON ("extjson")
 
-All JSON written by the cryptolib (metadata files, JSON-RPC bodies, ciphertext dicts nested in bytes) goes through the vendored `extjson` module. It is a BSON-Extended-JSON-like format. The authenticator ships a copy at `AUTH/extjson.py` (untracked, "VENDORED FROM witness-angel-cryptolib"). The cryptolib copy is at `VENDORS/extjson.py`. Both write the **canonical** form by default (`dumps(..., canonical=True)`, `AUTH/extjson.py:104-110`, `VENDORS/extjson.py:98`). The cryptolib re-exports its helpers in `CRYPTO/utilities/__init__.py:9-10`.
+All JSON written by the cryptolib (metadata files, JSON-RPC bodies, ciphertext dicts nested in bytes) goes through one Extended JSON codec. The format is MongoDB Extended JSON v2. Three implementations matter:
+
+| Codec | Used by | Default mode |
+|---|---|---|
+| vendored `extjson` module: `AUTH/extjson.py` (untracked, "VENDORED FROM witness-angel-cryptolib", shipped in the 1.5 AAB as top-level `extjson.pyc`), same code as `VENDORS/extjson.py` | the 1.5 app (cryptolib branch `poc/pure-python-crypto-utils`, re-exported by `CRYPTO/utilities/__init__.py:9-10`) | canonical (`dumps(..., canonical=True)`, `AUTH/extjson.py:104-110`) |
+| pymongo `bson.json_util` with `JSONMode.CANONICAL`, `UuidRepresentation.STANDARD`, `tz_aware=True` | **the gateway** (it pins cryptolib branch `waserver_stable`, `witness-angel-server/pyproject.toml:33`), and every app built on `wakeygen_stable` or older, so most existing authenticator folders | canonical (`git show waserver_stable:src/wacryptolib/utilities.py`, lines 24-28) |
+| upstream ExtJson 0.2.0 (`../ExtJson/extjson.py`) | nothing shipped | relaxed |
+
+The two canonical writers produce **identical bytes** for every type in this data model (checked on bytes, UUID, aware datetime, int32, int64 and non-ASCII text, with pymongo 4.13.2). So the gateway's JSON-RPC responses and older metadata files have exactly the layout described below.
+
+Requirements:
+
+- Readers MUST accept pymongo `json_util` CANONICAL output: older authenticators (pre-POC builds) and every gateway response are written by it.
+- Readers MUST accept the relaxed forms (§3.3) too.
+- Parsing strictness is the codec's own. pymongo also accepts the legacy `{"$binary": "<b64>", "$type": "00"}` form and wrappers this app never uses (`$oid`, `$regex`…); the vendored parser does not. Only the forms of §3.1-§3.3 are ever produced by Witness Angel code.
+- Error type on invalid JSON (INFO): the vendored codec raises `JSONDecodeError` (or `TypeError` for a bad wrapper); the pymongo-based cryptolib raises `SchemaValidationError`. A reimplementation should report both as "invalid data" ([05 OI-18](05-open-issues.md#c-local-storage-import-export-destroy)).
 
 ### 3.1 Writer (canonical mode, what the app emits)
 
@@ -141,7 +185,7 @@ Encoders are chosen by exact Python type first, then by `isinstance` (`AUTH/extj
 
 Text layout: `json.dumps(obj, sort_keys=True)` with Python defaults: separators `", "` and `": "`, `ensure_ascii=True`, no indentation, no trailing newline. Then UTF-8 encoding (`AUTH/extjson.py:46-92`).
 
-**Byte-exactness matters in one place only:** `symkey_decryption_request_data` is compared byte-for-byte by the gateway and the claimant (03 §7.3). The authenticator never re-serializes it; it echoes the received bytes. Everywhere else, any semantically equal JSON is accepted.
+**Byte-exactness matters in one place only:** `symkey_decryption_request_data` is compared byte-for-byte by the gateway and the claimant ([03 §7.3](03-business-logic.md#73-accept-the-decryption-algorithm)). The authenticator MUST NOT re-serialize it; it echoes the received bytes. Everywhere else, any semantically equal JSON is accepted.
 
 Worked example. `dump_to_json_bytes({"d": datetime(2024,5,1,12,0,0,123000,UTC), "n": 5, "big": 2**40})` gives:
 
@@ -165,11 +209,11 @@ Worked example. `dump_to_json_bytes({"d": datetime(2024,5,1,12,0,0,123000,UTC), 
 
 Because decoding is bottom-up, a canonical `{"$date":{"$numberLong":"…"}}` first turns its inner object into an int, and then the `$date` wrapper turns that int into a datetime.
 
-Ambiguity a reimplementation must copy: a user-level dict that has a single key such as `$date` is indistinguishable from a wrapper. No such dicts exist in the authenticator data model.
+Ambiguity a reimplementation MUST copy: a user-level dict that has a single key such as `$date` is indistinguishable from a wrapper. No such dicts exist in the authenticator data model.
 
 ### 3.3 Relaxed mode
 
-The upstream ExtJson 0.2.0 package (`../ExtJson/extjson.py:380`) defaults to `canonical=False`. In that mode it emits `{"$uuid":"<32 hex>"}`, `{"$date":"YYYY-MM-DDTHH:MM:SS[.mmm]Z"}` and plain ints, while bytes stay `$binary` subtype 00 (`AUTH/extjson.py:227-248`). The cryptolib's own extended-JSON micro-schemas say "RELAXED is the default and expected format" (`CRYPTO/utilities/validation_utils.py:29-61`). Readers must accept **both** modes. Writers should keep the canonical mode, for compatibility with older readers.
+The upstream ExtJson 0.2.0 package (`../ExtJson/extjson.py:380`) defaults to `canonical=False`. In that mode it emits `{"$uuid":"<32 hex>"}`, `{"$date":"YYYY-MM-DDTHH:MM:SS[.mmm]Z"}` and plain ints, while bytes stay `$binary` subtype 00 (`AUTH/extjson.py:227-248`). The cryptolib's own extended-JSON micro-schemas say "RELAXED is the default and expected format" (`CRYPTO/utilities/validation_utils.py:29-61`). Readers MUST accept **both** modes. Writers SHOULD keep the canonical mode, for compatibility with older readers ([05 OI-34](05-open-issues.md#e-data-formats-and-crypto)).
 
 ---
 
@@ -187,8 +231,9 @@ Other algorithms in the registry, not used by authenticators: `RSA_PSS`, `DSA_DS
 ### 4.2 Public key PEM
 
 - DER `SubjectPublicKeyInfo` (algorithm OID rsaEncryption `1.2.840.113549.1.1.1`, NULL parameters), wrapped in PEM label `PUBLIC KEY`.
-- 64-character base64 lines, LF line endings, **no trailing newline**. About 450 bytes for RSA-2048.
+- 64-character base64 lines, LF line endings, **no trailing newline** (verified on the fixtures: the last byte is the final `-`). About 450 bytes for RSA-2048.
 - This exact byte string is both the file content and the `key_value` sent to the gateway.
+- Readers MUST accept PEM with or without a trailing newline (and with CRLF line endings). Writers SHOULD write it without. No component compares PEM bytes: the gateway stores `key_value` as given, and the publication check compares only `(keychain_uid, key_algo)`.
 
 ```
 -----BEGIN PUBLIC KEY-----
@@ -204,16 +249,16 @@ Produced by `RsaKey.export_key(format="PEM", passphrase=<bytes>, pkcs=8, protect
 
 | Layer | Value |
 |---|---|
-| PEM label | `ENCRYPTED PRIVATE KEY`. 64-char lines, LF, no trailing newline. About 1857 bytes for RSA-2048. |
+| PEM label | `ENCRYPTED PRIVATE KEY`. 64-char lines, LF, no trailing newline (same reader rule as §4.2). 1857 bytes for RSA-2048 with 1000 iterations. |
 | Outer DER | PKCS#8 `EncryptedPrivateKeyInfo` |
 | Encryption scheme | PBES2 (OID `1.2.840.113549.1.5.13`) |
 | KDF | PBKDF2 (OID `1.2.840.113549.1.5.12`). PRF is HMAC-SHA1, the default, so no PRF field is encoded. |
 | Salt | 8 random bytes (pycryptodome default `salt_size`) |
-| Iteration count | Not set by wacryptolib, so the library default applies. **1000** with pycryptodome 3.20.0 (the app pin; `Crypto/IO/_PBES.py:322`). **600000** with pycryptodome 4.2.0 (observed: `INTEGER 0x0927C0`). |
+| Iteration count | Not set by wacryptolib, so the library default applies. **1000** (`INTEGER 0x03E8`) with pycryptodome 3.20.0 (the app pin; `Crypto/IO/_PBES.py:322`) and up to 3.24.1 (the fixtures). **600000** with pycryptodome 4.2.0 (observed: `INTEGER 0x0927C0`). Writers SHOULD pin a value explicitly ([05 OI-14](05-open-issues.md#b-creation-check-passphrase)). |
 | Derived key length | 32 bytes |
 | Cipher | AES-256-CBC (OID `2.16.840.1.101.3.4.1.42`), 16-byte random IV, PKCS#7 padding |
 | Plaintext | PKCS#8 `PrivateKeyInfo` holding a PKCS#1 `RSAPrivateKey` |
-| Passphrase bytes | `UTF-8(NFKC(strip(passphrase)))` (`CRYPTO/keygen.py:16-18`). An empty result is refused at export (`:176-178`). |
+| Passphrase bytes | **MUST** be `UTF-8(NFKC(strip(passphrase)))` (`CRYPTO/keygen.py:16-18`), applied by the key layer on every generate *and* load, whatever the screen passed. `strip()` removes Unicode whitespace at both ends (Python `str.strip()` semantics). An empty result is refused at export (`:176-178`). Test vector: `fixtures/passphrase.json`. |
 
 ASN.1 dump of a real file (`openssl asn1parse`):
 
@@ -238,7 +283,7 @@ The file can be checked with `openssl pkcs8 -in <file> -passin pass:<passphrase>
 Reader requirements:
 
 - Load with pycryptodome-equivalent `import_key(pem, passphrase)`. Accept any PBES2/PBKDF2 iteration count, and also unencrypted PKCS#1 (`RSA PRIVATE KEY`) and PKCS#8 keys, because `TrusteeApi` tries "no passphrase" first (`CRYPTO/trustee.py:94`).
-- Note: pycryptodome ≥4 checks a *maximum* iteration count on decryption (its `_PBES.py` `max_iteration_count`). Keys made with old libraries (1000 iterations) are under any limit.
+- Note: recent pycryptodome versions (3.24 already) check a *maximum* iteration count on decryption (`_DEFAULT_MAX_ITERATION_COUNT = 50000000`); 3.21 and older have no limit. Keys made with 1000 or 600000 iterations are under any limit.
 - Any parse or decrypt failure must be reported as `KeyLoadingError` (`CRYPTO/keygen.py:120-126`).
 
 The claimant's *unprotected* response private key (not handled by the authenticator) is exported as PKCS#1 `-----BEGIN RSA PRIVATE KEY-----`.
@@ -285,7 +330,7 @@ Decryption (`CRYPTO/cipher.py:229-248`):
 - Decrypt each chunk with OAEP-SHA512 and concatenate in order.
 - A `ValueError` becomes `DecryptionError`.
 
-There is no MAC and nothing binds the chunks together: reordering or dropping chunks is not detected at this layer (§9 P-6).
+There is no MAC and nothing binds the chunks together: reordering or dropping chunks is not detected at this layer ([05 OI-37](05-open-issues.md#e-data-formats-and-crypto)).
 
 Serialized cipherdict, i.e. `symkey_decryption_request_data` / `symkey_decryption_response_data`. It is the Extended-JSON bytes of the dict above. Real example: a 176-byte symkey gives 3 chunks of 256 bytes, and the serialized bytes are 1193 long:
 
@@ -318,7 +363,7 @@ Evidence: `COMP/screens/authenticator_revelation_request_detail.py:202-240`, `CR
 | Schema | Where | Applied to | Evidence |
 |---|---|---|---|
 | `KEYSTORE_METADATA_SCHEMA` | client | the metadata dict, after Extended-JSON decoding, at creation and at every load | `CRYPTO/keystore.py:52-64`, `:81-109`, `CRYPTO/authenticator.py:66` |
-| `KEYSTORE_TREE_SCHEMA` | client | keystore tree export/import. `key_algo` is checked against `SUPPORTED_CIPHER_ALGOS` = `AES_CBC`, `AES_EAX`, `CHACHA20_POLY1305`, `RSA_OAEP` (§9 P-9). | `CRYPTO/keystore.py:66-78`, `CRYPTO/cipher.py:471-502` |
+| `KEYSTORE_TREE_SCHEMA` | client | keystore tree export/import. `key_algo` is checked against `SUPPORTED_CIPHER_ALGOS` = `AES_CBC`, `AES_EAX`, `CHACHA20_POLY1305`, `RSA_OAEP` ([05 OI-38](05-open-issues.md#e-data-formats-and-crypto)). | `CRYPTO/keystore.py:66-78`, `CRYPTO/cipher.py:471-502` |
 | `PUBLIC_AUTHENTICATOR_SCHEMA` | gateway | `set_public_authenticator` params | `SERVER/apps/wagateway/core.py:369-386` |
 | `REVELATION_REQUEST_INPUT_PARAMETERS_SCHEMA` | gateway | `submit_revelation_request` params | `SERVER/apps/wagateway/core.py:348-367` |
 | inline schemas | gateway | `get_public_authenticator`, `list_*`, `reject_*`, `accept_*` params | `SERVER/apps/wagateway/core.py:65-68`, `:184-187`, `:199-205`, `:220-225`, `:246-270` |
@@ -335,8 +380,16 @@ The library is python-`schema` 0.7.x (vendored). A violation becomes `SchemaVali
 | Aspect | Value | Evidence |
 |---|---|---|
 | Endpoint | the configured `wagateway_url`, default `https://api.witnessangel.com/gateway/jsonrpc/` (server route `gateway/` + `jsonrpc/`) | `AUTH/waauthenticator/config_defaults.ini:7`, `SERVER/urls.py:21`, `SERVER/apps/wagateway/urls.py:11` |
-| HTTP | `POST`, headers `Content-Type: application/json`, `Accept: application/json-rpc`, via `requests`. Timeout 10 s. A new proxy (and session) is created per operation. | `jsonrpc_requests/jsonrpc.py:40-47`, `CRYPTO/jsonrpc_client.py:17`, `COMP/application/_common_runtime_support.py:192-195` |
-| Envelope | JSON-RPC 2.0: `{"jsonrpc":"2.0","method":…,"params":{…},"id":…}`. The **whole envelope** is Extended JSON, so the random id (1 … 2^63-1) usually goes out as `{"$numberLong":"…"}`. The gateway decodes requests and encodes responses with the same Extended JSON helpers (`SERVER/utils.py:43-46`). | `CRYPTO/jsonrpc_client.py:63-75`, `jsonrpc_requests/jsonrpc.py:89-96` |
+| HTTP method and headers | `POST`, headers `Content-Type: application/json`, `Accept: application/json-rpc`, plus the `requests` defaults (`User-Agent: python-requests/2.32.3`, `Accept-Encoding: gzip, deflate`, `Connection: keep-alive`). The gateway ignores all of them; a reimplementation is free to send its own User-Agent. | `jsonrpc_requests/jsonrpc.py:40-47` |
+| Body | The ASCII bytes of the Extended JSON text (`ensure_ascii`), so the charset question never arises. | `CRYPTO/jsonrpc_client.py:63-66` |
+| Session | A new proxy, hence a new `requests.Session` (no connection reuse between operations), is created for every gateway operation, from the URL read from config at that moment. | `COMP/application/_common_runtime_support.py:192-195` |
+| Timeout | 10 s, applied by `requests` **separately** to the connect phase and to each socket read (not a total deadline). | `CRYPTO/jsonrpc_client.py:17, 58-59` |
+| Retries | None (`requests` default adapter, 0 retries). A failure is reported at once. | - |
+| TLS | Certificate verification on (`requests` default `verify=True`), with the CA bundle of the `certifi` package (pinned `certifi==2024.7.4` on Android). There is no certificate pinning. A reimplementation MUST verify certificates against a public CA store. | `AUTH/buildozer.spec:40` |
+| Redirects | Followed (`requests` default, up to 30). INFO: on 301/302/303 `requests` re-sends as **GET** without body, which the gateway answers with an error, so a redirected URL does not work in practice. Configure the final URL. | - |
+| Proxies | Honoured from the environment (`HTTPS_PROXY`, `HTTP_PROXY`, `NO_PROXY`) on desktop; there is no proxy setting in the app. | - |
+| HTTP status | Any status other than 200 raises `TransportError("Got non-200 response from server, status code: …")`. A connection, DNS, TLS or timeout failure raises `TransportError("Error calling method …")`. Both are `JSONRPCError` subclasses. | `jsonrpc_requests/jsonrpc.py:52-62` |
+| Envelope | JSON-RPC 2.0: `{"jsonrpc":"2.0","method":…,"params":{…},"id":…}`; `params` is omitted when there are no parameters. The **whole envelope** is Extended JSON, so the random id (1 … `sys.maxsize`, i.e. 2^63-1 on 64-bit, 2^31-1 on 32-bit ARM) goes out as `{"$numberLong":"…"}` (or `$numberInt` when it fits in 32 bits). The gateway decodes requests and encodes responses with pymongo `bson.json_util` CANONICAL (its cryptolib branch `waserver_stable`, see §3), monkey-patched into django-jsonrpc; its responses carry `Content-Type: application/json`. | `CRYPTO/jsonrpc_client.py:63-75`, `jsonrpc_requests/jsonrpc.py:89-96`, `SERVER/utils.py:40-46, 65-68` |
 | Parameters | **By name only.** The gateway rejects positional params with `ValidationError` ("must be passed as keyword arguments"), and unknown or missing params with `ValidationError` ("Incorrect input arguments"). The client never unpacks a single dict argument. | `SERVER/utils.py:98-115`, `CRYPTO/jsonrpc_client.py:83-97` |
 | Success | HTTP 200, `{"jsonrpc":"2.0","id":…,"result":<value>}` | django-jsonrpc |
 
@@ -367,7 +420,7 @@ Example request body, byte-exact form from `JsonRpcProxy.serialize`:
 - The client walks a tree built from all builtin exceptions plus the `FunctionalError` subclasses. It raises the deepest known class, with `message_untranslated` as its message, or `Exception` if nothing matches (`CRYPTO/jsonrpc_client.py:19-39`, `CRYPTO/error_handling.py:91-110`).
 - An error without `data` is re-raised as `jsonrpc_requests.ProtocolError`.
 
-**Unexpected server errors** become django-jsonrpc `OtherError` (code 500, HTTP **500**). The client then raises `jsonrpc_requests.TransportError("Got non-200 response…")`. Connection failures also raise `TransportError`. Both are subclasses of `JSONRPCError`, which the UI catches next to `OSError` (03 §7.2).
+**Unexpected server errors** become django-jsonrpc `OtherError` (code 500, HTTP **500**). The client then raises `jsonrpc_requests.TransportError("Got non-200 response…")`. Connection failures also raise `TransportError`. Both are subclasses of `JSONRPCError`, which the UI catches next to `OSError` ([03 §7.2](03-business-logic.md#72-fetching-and-classifying-requests)).
 
 Exception classes and their slugs (all prefixed `wacryptolib.exceptions.`):
 
@@ -400,7 +453,7 @@ All parameter types below are the *decoded* types. On the wire they use the §3 
 | | |
 |---|---|
 | Caller | Publish button (`COMP/screens/authenticator_publication_form.py:221-245`) |
-| Params | `keystore_uid`: UUID; `keystore_owner`: non-empty str (≤100 stored); `keystore_secret`: non-empty str; `public_keys`: **non-empty** list of `{keychain_uid: UUID, key_algo: one of SUPPORTED_CIPHER_ALGOS, key_value: bytes}`; `keystore_creation_datetime`: aware datetime or null (optional; the app omits it when it is absent locally) |
+| Params | `keystore_uid`: UUID; `keystore_owner`: non-empty str, which the client MUST keep at ≤100 code points (the gateway schema does not check the length; with its default SQLite database a longer value is stored as is, with a strict SQL backend the call would fail with HTTP 500 → `TransportError`; [05 OI-31](05-open-issues.md#d-publication)); `keystore_secret`: non-empty str; `public_keys`: **non-empty** list of `{keychain_uid: UUID, key_algo: one of SUPPORTED_CIPHER_ALGOS, key_value: bytes}`; `keystore_creation_datetime`: aware datetime or null (optional; the app omits it when it is absent locally) |
 | Result | `null` |
 | Errors | `KeystoreAlreadyExists` (uid already published: **not idempotent**); `SchemaValidationError`; `ValidationError` (bad arguments) |
 | Server storage | secret hashed with Django `make_password` (`SERVER/apps/wagateway/models.py:48-56`) |
@@ -437,7 +490,7 @@ Revelation request object (`SERVER/apps/wagateway/serializers.py:81-122`):
 | `revelation_response_public_key` | bytes | claimant's one-time response public key (PEM) |
 | `revelation_response_keychain_uid` | UUID | claimant's id for that key |
 | `revelation_response_key_algo` | str | cipher to use for responses (`RSA_OAEP` in practice) |
-| `revelation_request_status` | `PENDING` / `ACCEPTED` / `REJECTED` | 03 §3.3 |
+| `revelation_request_status` | `PENDING` / `ACCEPTED` / `REJECTED` | [03 §3.3](03-business-logic.md#33-revelation-request-and-symkey-decryption-states-gateway-owned) |
 | `symkey_decryption_requests` | list of objects (below) | |
 | `created_at` | datetime | request creation time; the client sorts by it |
 
@@ -451,17 +504,65 @@ Symkey decryption request object:
 | `cryptainer_metadata` | object or null | display only (shown as a Python `str()` of the dict) |
 | `symkey_decryption_request_data` | bytes | serialized RSA-OAEP cipherdict (§5.2) |
 | `symkey_decryption_response_data` | bytes | `b""` until the request is accepted |
-| `symkey_decryption_status` | `PENDING` / `DECRYPTED` / `PRIVATE_KEY_MISSING` / `CORRUPTED` / `METADATA_MISMATCH` | 03 §3.3 |
+| `symkey_decryption_status` | `PENDING` / `DECRYPTED` / `PRIVATE_KEY_MISSING` / `CORRUPTED` / `METADATA_MISMATCH` | [03 §3.3](03-business-logic.md#33-revelation-request-and-symkey-decryption-states-gateway-owned) |
+
+Reader rules:
+
+- An empty `symkey_decryption_requests` list is valid in a response (the submit schema allows it), but such a request can only be rejected: `accept` requires a non-empty results list ([05 OI-03](05-open-issues.md#a-revelation-requests-accept--reject)).
+- `symkey_decryption_request_data` values are unique within one request (the gateway refuses duplicates at submit, `SERVER/apps/wagateway/core.py:139-145`).
+- `revelation_response_key_algo` and `target_public_authenticator_key.key_algo` can be any `SUPPORTED_CIPHER_ALGOS` value as far as the gateway is concerned; the authenticator MUST refuse anything but `RSA_OAEP` (checklist item 18).
+- An unknown `revelation_request_status` SHOULD be ignored with a log line, not crash the listing ([05 OI-05](05-open-issues.md#a-revelation-requests-accept--reject)).
+- `keystore_creation_datetime` and `cryptainer_metadata` may be null.
+
+Full wire example of a response (canonical Extended JSON as the gateway emits it, re-indented, one item of each list shown, base64 cut). The complete, untruncated file is `fixtures/gateway/list_authenticator_revelation_requests.response.json`; a real 2023 gateway output with the same structure is `fixtures/gateway/observed_2023_list_requestor_revelation_requests.result.json`.
+
+```json
+{"id": {"$numberLong": "5776600559367167158"}, "jsonrpc": "2.0",
+ "result": [
+  {"created_at": {"$date": {"$numberLong": "1792843200123"}},
+   "revelation_request_description": "Judicial request n\u00b0 42, please accept",
+   "revelation_request_status": "PENDING",
+   "revelation_request_uid": {"$binary": {"base64": "EE5eCnaE3FtVRwiv/UGULA==", "subType": "04"}},
+   "revelation_requestor_uid": {"$binary": {"base64": "EE5eCnaE69s2G1WBeyrWzg==", "subType": "04"}},
+   "revelation_response_key_algo": "RSA_OAEP",
+   "revelation_response_keychain_uid": {"$binary": {"base64": "EE5eCmjjqJYVSk1OcRJWIg==", "subType": "04"}},
+   "revelation_response_public_key": {"$binary": {"base64": "LS0tLS1CRUdJTiBQVUJMSUMg…", "subType": "00"}},
+   "symkey_decryption_requests": [
+    {"cryptainer_metadata": {"count": {"$numberInt": "3"}, "location": "Paris"},
+     "cryptainer_name": "20261024_120000_camera_1.mp4.crypt",
+     "cryptainer_uid": {"$binary": {"base64": "EE5eCnaEAXgrb/KwNyMmFA==", "subType": "04"}},
+     "symkey_decryption_request_data": {"$binary": {"base64": "eyJjaXBoZXJ0ZXh0X2NodW5r…", "subType": "00"}},
+     "symkey_decryption_response_data": {"$binary": {"base64": "", "subType": "00"}},
+     "symkey_decryption_status": "PENDING",
+     "target_public_authenticator_key": {
+       "key_algo": "RSA_OAEP",
+       "key_value": {"$binary": {"base64": "LS0tLS1CRUdJTiBQVUJMSUMg…", "subType": "00"}},
+       "keychain_uid": {"$binary": {"base64": "EE5eChPwueTT/hBxIpS59A==", "subType": "04"}}}},
+    "…"],
+   "target_public_authenticator": {
+     "keystore_creation_datetime": {"$date": {"$numberLong": "1792877120263"}},
+     "keystore_owner": "Jane Doe \u00e9\u00e8",
+     "keystore_uid": {"$binary": {"base64": "EE5eCe5HT0wM9N9sQJ8kYg==", "subType": "04"}},
+     "public_keys": [
+       {"key_algo": "RSA_OAEP",
+        "key_value": {"$binary": {"base64": "LS0tLS1CRUdJTiBQVUJMSUMg…", "subType": "00"}},
+        "keychain_uid": {"$binary": {"base64": "EE5eCfLtD06hpYXItVkqSg==", "subType": "04"}}},
+       "…"]}},
+  "…"]}
+```
+
+Points a parser must get right: `created_at` is a nested `$date`/`$numberLong`; integers inside `cryptainer_metadata` are `$numberInt`; an empty response is `$binary` with an empty base64 string (decodes to `b""`); `symkey_decryption_request_data` decodes to bytes that are themselves Extended JSON (§5.2); the PEM `key_value`s are bytes, not strings.
 
 #### 7.3.4 `accept_revelation_request`
 
 | | |
 |---|---|
 | Caller | Accept button (`COMP/screens/authenticator_revelation_request_detail.py:242-247`) |
-| Params | `authenticator_keystore_secret`: str; `revelation_request_uid`: UUID; `symkey_decryption_results`: non-empty list of `{symkey_decryption_request_data: bytes, symkey_decryption_response_data: bytes, symkey_decryption_status: one of DECRYPTED, PRIVATE_KEY_MISSING, CORRUPTED, METADATA_MISMATCH}` |
+| Params | `authenticator_keystore_secret`: str; `revelation_request_uid`: UUID; `symkey_decryption_results`: non-empty list of `{symkey_decryption_request_data: bytes, symkey_decryption_response_data: bytes, symkey_decryption_status: one of DECRYPTED, PRIVATE_KEY_MISSING, CORRUPTED, METADATA_MISMATCH}` (exactly these three keys) |
+| Results to build (MUST) | One result per distinct `symkey_decryption_request_data` of the request, with that value echoed unchanged. Per item: decrypted → `DECRYPTED` + `ExtJSON(RSA_OAEP(response key, plaintext))`; private key file absent → `PRIVATE_KEY_MISSING` + `b""`; ciphertext does not decrypt → `CORRUPTED` + `b""`. A wrong passphrase aborts the whole operation without any call. Order of results is free (the gateway compares sets). Example: `fixtures/gateway/accept_revelation_request.request.json`. |
 | Result | `null`; the request becomes `ACCEPTED` |
 | Errors | `ExistenceError` (unknown request uid); `AuthenticationError`; `ValidationError` (status not PENDING; request-data set mismatch; status/data incoherence); `SchemaValidationError` |
-| Rules | 03 §7.3, gateway rules 1-6 (`SERVER/apps/wagateway/core.py:241-343`) |
+| Rules | [03 §7.3](03-business-logic.md#73-accept-the-decryption-algorithm), gateway rules 1-6 (`SERVER/apps/wagateway/core.py:241-343`) |
 
 #### 7.3.5 `reject_revelation_request`
 
@@ -485,10 +586,14 @@ Symkey decryption request object:
 
 ## 8. Platform crypto backend notes
 
-| Platform | Backend | Evidence |
+The formats above do not depend on the backend. This section is INFO, except the last list.
+
+| Context | Backend | Evidence |
 |---|---|---|
-| Android, desktop | pycryptodome (C extensions) | `CRYPTO/_crypto_backend/pycryptodome.py:154-160` |
-| iOS (or env `FORCE_WACRYPTOLIB_FALLBACK_BACKEND`) | pycryptodome with C internals patched: AES-CBC via pure-Python `pyaes`, Python XOR, hashlib-based hashers (PBKDF2 slow path), legacy Python OAEP decode. Other AES modes (EAX) are **not** available (`assert mode == MODE_CBC`). That is enough for the authenticator: PKCS#8 uses AES-CBC, and RSA-OAEP needs no AES. | `CRYPTO/_crypto_backend/pycryptodome.py:10-151` |
+| **Authenticator app 1.5, every OS** | pycryptodome with its C internals patched (the "fallback" backend), **forced** by `main.py`, which sets `FORCE_WACRYPTOLIB_FALLBACK_BACKEND=1` before any import ("SAME BEHAVIOUR FOR ALL OSes"): AES-CBC via pure-Python `pyaes`, Python XOR, hashlib-based hashers (PBKDF2 slow path), legacy Python OAEP decode. Other AES modes (EAX) are **not** available (`assert mode == MODE_CBC`). That is enough for the authenticator: PKCS#8 uses AES-CBC, and RSA-OAEP needs no AES. | `AUTH/main.py:3`, `CRYPTO/_crypto_backend/pycryptodome.py:10-151, 154-166` |
+| cryptolib library default (other apps, CLI, gateway) | pycryptodome C extensions, except on iOS (detected by `import ios`), where the fallback is always used because `dlopen()` of the C extensions is forbidden. | `CRYPTO/_crypto_backend/pycryptodome.py:154-160` |
+
+A reimplementation SHOULD use a native crypto library on every platform ([05 OI-53](05-open-issues.md#h-platform-build-release)).
 
 Random bytes always come from `os.urandom` (`CRYPTO/_crypto_backend/__init__.py:49-51`). pycryptodome's own RNG is used inside RSA generation, OAEP and PKCS#8 salt and IV.
 
@@ -502,22 +607,25 @@ A reimplementation in another language needs:
 
 ---
 
-## 9. Open issues & observations
+## 9. Open issues
 
-| # | Severity | Observation | Evidence |
-|---|---|---|---|
-| P-1 | Security | The PBKDF2 iteration count is not pinned by wacryptolib. With the pinned pycryptodome 3.20.0 it is only **1000** (HMAC-SHA1, 8-byte salt). Upgrading pycryptodome silently changes it to 600000 for new keys only. Setting `prot_params={"iteration_count": …}` explicitly would make the format deterministic. | `CRYPTO/_crypto_backend/pycryptodome.py:365-369` |
-| P-2 | Interop risk | Two Extended JSON flavours coexist: the vendored copies default to canonical, upstream ExtJson 0.2.0 defaults to relaxed, and the cryptolib micro-schema comment says "RELAXED is the default". Readers handle both. Switching the dependency would change on-disk metadata and wire bytes, though `request_data` echoing stays safe. | `AUTH/extjson.py:104`, `VENDORS/extjson.py:98`, `../ExtJson/extjson.py:380`, `CRYPTO/utilities/validation_utils.py:29-61` |
-| P-3 | Bug / noise | `VENDORS/extjson.py:104` has a leftover debug `print("CALLING JSON DUMPS", args, kwargs)` on every dump (seen in the example run). The `AUTH/extjson.py` copy does not have it. | `VENDORS/extjson.py:104` |
-| P-4 | Interop | The JSON-RPC envelope `id` is Extended-JSON-wrapped (`{"$numberLong": …}`). This is non-standard JSON-RPC and only works with gateways that decode Extended JSON on the whole body. | `CRYPTO/jsonrpc_client.py:63-66` |
-| P-5 | Robustness | `$binary` subType `03` (legacy UUID) is allowed by the extended micro-schema but **rejected** by the extjson parser. | `CRYPTO/utilities/validation_utils.py:51-54` vs `AUTH/extjson.py:285-290` |
-| P-6 | Crypto design | RSA-OAEP over independent 60-byte chunks is non-standard. Chunk reordering, truncation or splicing is not detected. Integrity of the symkey relies on later layers (JSON parsing, AEAD of the payload). With SHA-512, a 2048-bit key could take 126 bytes per chunk. | `CRYPTO/cipher.py:24`, `:211-248` |
-| P-7 | Precision | Datetimes are truncated to milliseconds in canonical mode. A reloaded `keystore_creation_datetime` differs from the in-memory value at creation (harmless). | `AUTH/extjson.py:227-232`, `:372-376` |
-| P-8 | Robustness | Writes are non-atomic (no temp file and rename, no fsync) for the metadata and the PEM files. An interrupted write can leave a truncated PEM, which then reports as "wrong passphrase" (`KeyLoadingError`). | `CRYPTO/keystore.py:532-542`, `AUTH/extjson.py:85-92` |
-| P-9 | Inconsistency | `KEYSTORE_TREE_SCHEMA`, and the gateway, validate `key_algo` against `SUPPORTED_CIPHER_ALGOS`. That list includes symmetric algos and excludes the signature key types (`RSA_PSS`, `DSA_DSS`, `ECC_DSS`). It works only because authenticators hold `RSA_OAEP` keys exclusively. TODO in code: a dedicated schema per keystore type. | `CRYPTO/keystore.py:62`, `:72`, `SERVER/apps/wagateway/core.py:378` |
-| P-10 | Format | The listing regex `[-0-9a-z]+` skips uppercase UUID filenames, and the `.` in `.pem` is unescaped in the regex. Writers must use lowercase `str(UUID)`. | `CRYPTO/keystore.py:406` |
-| P-11 | Legacy | A legacy `.keystore.json` is still read ("FIXME remove this asap ??"). If both files exist, `keystore_metadata.json` wins silently. | `CRYPTO/keystore.py:101-107` |
-| P-12 | Security | The metadata file holds the gateway bearer secret in clear, with default file permissions. The ZIP export copies it as is. | §2.2, §2.4 |
-| P-13 | Interop | The gateway refuses publication with zero public keys (`And([...], len)`), while the local schema accepts empty authenticators. | `SERVER/apps/wagateway/core.py:374-383` |
-| P-14 | Interop | `get_public_authenticator` always returns `keystore_creation_datetime` (it may be null). Consumers must handle null (`CRYPTO/operations.py:234` does). | `SERVER/apps/wagateway/serializers.py:73-78` |
-| P-15 | Doc gap | The cryptolib docs describe RSA-OAEP only in general terms. They do not give the SHA-512 hash, the 60-byte chunking or the PKCS#8 protection parameters. This file is the reference for those details. | `witness-angel-cryptolib/docs/selected_protocols.rst:28-32` |
+The data-format and crypto issues formerly numbered P-1 … P-15 are now in [05-open-issues.md](05-open-issues.md#e-data-formats-and-crypto) (OI-14, OI-21, OI-22, OI-32, OI-34 … OI-41).
+
+---
+
+## 10. Test vectors (fixtures)
+
+Folder [fixtures/](fixtures/) holds vectors produced by the shipped cryptolib (`CRYPTO/` at the README baseline, pycryptodome 3.24.1, so **1000 PBKDF2 iterations** like the 1.5 app, fallback backend forced as in `main.py`). `fixtures/generate_fixtures.py` regenerates them and ends with a self-check that a reimplementation can mirror. Uids, keys and the secret are random, so a regeneration changes every file.
+
+| File | Content | What to test |
+|---|---|---|
+| `passphrase.json` | `raw` = the passphrase used for all keys: `" Ma phrase ﬁnale Ångström café 2026 "` (leading and trailing space, U+FB01 ligature, U+212B ANGSTROM SIGN, decomposed `e`+U+0301). `normalized_utf8_hex` = the bytes fed to PBKDF2. `equivalent_after_normalization` = a different string that MUST also open the keys. `wrong` = a near miss that MUST fail. | §4.3 normalisation (checklist item 9) |
+| `authenticator.keystore/` | A complete authenticator as the 1.5 GUI creates it: metadata (non-ASCII owner) and 3 RSA_OAEP keypairs. | metadata parsing (§2.2), listing order (§2.1), PKCS#8 decryption, Check = Success with 3 keys; `openssl pkcs8 -in <private>.pem -passin pass:<normalized passphrase>` also opens them |
+| `edge_cases.keystore/` | One complete keypair, one public key **without** private key, a public key file with an **uppercase** uid, a file `not-a-uuid_RSA_OAEP_public_key.pem`, and `notes.txt`. Same passphrase. | the listing MUST return exactly 2 keypairs (one with `private_key_present = false`) and skip the 3 other files; Check = Failure with 1 missing private key; publication refusal ([05 OI-28](05-open-issues.md#d-publication)) |
+| `gateway/list_authenticator_revelation_requests.response.json` | Full JSON-RPC response with 3 requests for `authenticator.keystore`: a `PENDING` one with 2 symkey decryption requests (keys 1 and 2; one with null metadata, one with a metadata dict), a `REJECTED` one, and a `PENDING` one with an **empty** symkey list. | response parsing (§7.3.3), grouping and newest-first sort, OI-03 (c) |
+| `gateway/expected_plaintexts.json` | For each symkey request of the pending request: `symkey_decryption_request_data` and the expected decrypted `key_struct_bytes` (an `AES_EAX` and a `CHACHA20_POLY1305` symkey dict). | RSA-OAEP decryption (§5.2) |
+| `gateway/claimant_response_private_key.pem` | The claimant's one-time response private key (unprotected PKCS#1), matching `revelation_response_public_key`. | decrypt your own `symkey_decryption_response_data` and compare with the expected plaintext (OAEP is randomised, so ciphertexts never match byte for byte) |
+| `gateway/accept_revelation_request.request.json` | The request body the 1.5 code produces when accepting the pending request. | envelope and params layout (§7.3.4); the `request_data` echo |
+| `gateway/get_public_authenticator.response.json` | Response for `authenticator.keystore` once published. | publication status comparison ([03 §6.2](03-business-logic.md#62-already-published-detection-and-idempotency)) |
+| `gateway/error_KeystoreDoesNotExist.response.json` | A functional error response (§7.2). | error mapping to "not published" / "does not exist in remote registry" |
+| `gateway/observed_2023_list_requestor_revelation_requests.result.json` | One request copied from a real gateway response captured in 2023 (`witness-angel-components/list_requestor_revelation_requests_fixture.json`), written by pymongo `json_util`. Its keys are unrelated to the fixtures above. | parsing real gateway output: null `keystore_creation_datetime`, empty `$binary` |

@@ -111,3 +111,50 @@ Severity scale: **blocker** = cannot implement interoperably without guessing; *
 | V-27 | `addFlags(2)` commented as `LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER` (01 #3, 02 #21) | Confirmed (line 77) | `COMP/application/_app_presetup.py:77` |
 
 Not verified: Android insets listener details, PyInstaller and buildozer values, the PEM trailing-newline claim, the iOS notch code, and the exact EN/FR text of most labels (only spot-checked).
+
+---
+
+## Resolution
+
+Applied on 2026-10-24 to README, 01-04, the new [05-open-issues.md](05-open-issues.md) and the new [fixtures/](fixtures/). Each claim was re-checked against the source at the baselines now listed in the README before it was changed.
+
+| # | Resolution |
+|---|---|
+| S-1 | Done. New `05-open-issues.md` with 63 stable IDs `OI-01`…`OI-63`, grouped by area, each with severity, a disposition (*keep* / *fix* / *decide*, plus *info* for repository hygiene) and a recommendation. Duplicates merged (Accept bug, response-key algo, `¤`, debug flags, window flag, iOS folder, KDF…). The four old lists are replaced by short sections giving the old-number → OI mapping. Two old items withdrawn as wrong (02 #3, the destroy-paragraph part of 02 #11). |
+| S-2 | Done. README defines MUST / SHOULD / MAY / INFO and states that 1.5 behaviour is the UX reference except where 05 says *fix* or *decide*. 04 starts with "§0 Normative interop requirements (checklist)", 20 items covering 03 §10.3, 04 §2.1 naming, §3, §4.3, §5.2 and §7. Key rules in 01-04 are tagged inline. |
+| S-3 | Done. README has a topic-ownership table. Storage roots, folder access, threading, Back key, language detection and insets are owned by 01; 02 §1.4, §1.5, §7.1, §8.2, §8.3 and 03 §2 now link to 01 instead of repeating it (02 keeps only what the user sees). Folder content stays in 04. |
+| S-4 | Done. One prefix table in the README (AUTH, COMP, CRYPTO, VENDORS, SERVER, with branch and commit). 02 now uses `COMP/` and `AUTH/`; 03 and 04 drop their own tables and link to the README. |
+| S-5 | Done. README links every document and glossary entry to its defining section. All cross-file "0N §x" references were turned into anchor links (checked with a script: every link and anchor resolves). |
+| C-1 | Done. README baseline table: authenticator `dev` @ `9ba3f0e` + untracked `AUTH/extjson.py`, components `wakeygen_stable` @ `4ebc5d2`, cryptolib `poc/pure-python-crypto-utils` @ `85b5dc7`, server `dev` @ `093fd65`. 01 §11.1 corrected (the POC branch is 116 commits ahead of `wakeygen_stable`). New OI-59 for the pyproject/vendoring mismatch. |
+| C-2 | Done. 04 §3 now lists the three codecs and states that the gateway (cryptolib `waserver_stable`) and pre-POC apps use pymongo `bson.json_util` CANONICAL; readers MUST accept its output. Verified that pymongo 4.13.2 and the vendored `extjson` give byte-identical output for bytes, UUID, aware datetime, int32/int64 and non-ASCII text. 04 §7.1 corrected. OI-18 notes that the `JSONDecodeError` issue is POC-only. A real 2023 gateway output was added as a fixture. |
+| C-3 | Done. 02 §3.7 and §6.3 now say the screen passes the raw text and the key layer normalises it; 02 #3 withdrawn (05 "Withdrawn items"). 04 §0 item 9 makes the normalisation a MUST, with a test vector (`fixtures/passphrase.json`). |
+| C-4 | Done. 04 §8 table split into "authenticator app: fallback forced on every OS by `main.py`" and "library default: C extensions except iOS". 03 §10.2 #5 generalised. |
+| C-5 | Done. 01 §2.3 now says keygen shows the spinner (`@process_method_with_gui_spinner`) in addition to locking its form. |
+| C-6 | Done. 01 §3 now says the URL is not validated and the validator is never called (re-checked with grep). OI-47 (decide). |
+| C-7 | Done. 02 §3.2 corrected; 01 §4 explains the Python 3.14 `sys.platform == "android"` path, the stripped assert, and the old ≤3.12 `ModuleNotFoundError` path. |
+| C-8 | Done. Confirmed again (`waauthenticator/locale` absent; app catalog at repo root and AAB root). 01 §2.6 states it as a confirmed bug; 02 header and §8.1 show what French users really see, marking the three strings "*(app catalog, not loaded → EN)*" with the intended FR. Decision recorded in OI-50: *fix* (load the app catalog, correct the "Authentificator" typo). |
+| C-9 | Done. 02 §3.5 #5 now gives the FR text (`po:541-548`); the item is withdrawn. |
+| C-10 | Done. 02 §6.3 and OI-01 use 03's analysis: functional blocker, not a leak. |
+| C-11 | Done. "Generic error snackbar" in 03 §3.1, §6.2, §7.3, §9 and 01 §2.3; OI-48 records the misleading name. |
+| C-12 | Done (01 §6 now points to §10). |
+| C-13 | Done. All out-of-range citations fixed (`i18n.py`, `system_permissions.py`, `default_settings.py`, `layout_components.py`), and `utilities/__init__.py:26-28`. A range checker over all `PREFIX/path:line` citations now reports nothing. Short same-file citations (`.py:NN`) were spot-checked only. |
+| C-14 | Done. Glossary: UI "authorization request" = protocol "revelation request"; "symkey decryption request" = one item. |
+| U-1 | Done. Glossary extended (authdevice, TrusteeApi, keystore, keystore_uid vs keychain_uid, uuid0, keyfactory, symkey, Shamir shard, key_struct_bytes, cipherdict, Extended JSON canonical vs relaxed, revelation station, symkey decryption request, flightbox), each with a link. |
+| U-2 | Done. "Kivy primer" box at the start of 01 Part B. |
+| U-3 | Done. First-person and provisional wording removed from 01; the "verify" items were resolved (locale, Android USB, log file handler: no `FileHandler` anywhere in COMP; device uid: only claimant screens use it; iOS inset units: both correct). |
+| U-4 | Done. 02 §3.3 has a table of the exact formatting functions (`COLON`, `shorten_uid` with U+2026, `format_keypair_label`, `format_authenticator_label`, `format_utc_datetime_label`, `format_revelation_request_label` with the 40-code-point cut, size formatting, indent). |
+| U-5 | Done. 03 §7.1 diagram shades the authenticator's part; the claimant internals are explained as context only. |
+| G-1 | Done. `specifications/fixtures/`, generated with the shipped cryptolib (pycryptodome 3.24.1 → 1000 iterations like 1.5, fallback backend forced): an authenticator with a strip+NFKC-sensitive passphrase (leading/trailing space, U+FB01, U+212B, decomposed é), listing edge cases (public key without private key, uppercase uid, non-uuid name, unrelated file), a full gateway response, the expected plaintexts, the claimant response key, the accept request, an error response, and a real 2023 gateway output. `generate_fixtures.py` regenerates them and ends with a self-check (passes). Described in 04 §10. |
+| G-2 | Done. 04 §7.3.3 has a complete canonical wire example of the `list_authenticator_revelation_requests` response, built with the server serializer's field set, plus parser notes; untruncated files in fixtures. |
+| G-3 | Done. 03 §7.3 "input checks" (MUST): refuse non-RSA_OAEP algorithms, handle an empty list (Accept impossible, Reject only), dedupe `request_data`. Verified on the server: duplicates are refused at submit, an empty list is accepted at submit but refused at accept. 04 §7.3.3/§7.3.4 and OI-03. |
+| G-4 | Done through S-1: OI-56 (crash consent), OI-57 (`allow_backup`), OI-13 (masking), OI-26 (Publish confirmation), OI-10 (`¤`), OI-42 (UI thread), OI-19 (Destroy guard), OI-11 (rollback, follow the CLI), each with a disposition and a recommendation. |
+| G-5 | Done. 04 §7.1 transport table: headers and User-Agent, ASCII body, one session per operation, timeout applies to connect and each read, no retries, TLS verification with certifi (no pinning), redirects (301/302 turn POST into GET, so they do not work), environment proxies, non-200 handling. |
+| G-6 | Done. New 01 §4.4 "Folder access (requirement level)": what access is required (internal folder kept across updates, persistent r/w grant to one user folder, exports folder), native mechanisms (SAF tree URI, security-scoped bookmark), and a migration rule for the stored absolute `custom_authenticator_dir`, which also addresses the iOS TODO (OI-16). |
+| G-7 | Not done. No Kivy runtime is available in this environment (`import kivy` fails, and only the Android bundles exist under `bin/`), so 1.5 screenshots could not be taken. The text layouts in 02 remain the reference; screenshots can be added later from a desktop run. |
+| G-8 | Done. Two rows added to 02 §3.3 (missing hint → `KeyError`; invalid JSON / bad subtype → `JSONDecodeError`/`TypeError`), with the observed "stale" state (the buttons then act on the previously selected folder, a detail found while verifying). Schema-invalid `keystore_format`/`keystore_type` listed under "Invalid authenticator data". OI-17 generalised to both optional fields (it also affects the Publish status refresh). |
+| G-9 | Done. Stated in 03 §6.1 and 02 §5.3; OI-28 (decide: refuse to publish while a private key is missing). |
+| G-10 | Done. 04 §7.3.2 and OI-31: the server schema does not check length, Django does not enforce `max_length`, the default DB is SQLite (stored as is), a strict SQL backend would give HTTP 500 → `TransportError`; the client MUST enforce ≤100 code points. |
+| G-11 | Done. 01 §5.2 names `UIFileSharingEnabled` and `LSSupportsOpeningDocumentsInPlace` (and the other Info.plist keys) from the Xcode project archive, and describes the `NotchDetector` contract (key-window `safeAreaInsets`, points truncated to int, converted with `dp()`, read once at startup). |
+| G-12 | Done. 01 §10 note on optimised release bytecode; README rule "debug builds only"; affected statements marked in 03 §4.2 and §7.3; OI-40 lists the assert-only checks and asks for real checks. |
+| G-13 | Done. Verified on the fixtures: PEMs have no trailing newline (450 / 1857 bytes). 04 §4.2/§4.3: readers MUST accept with or without trailing newline (and CRLF), writers SHOULD write without. |
+| V-1…V-27 | No change needed beyond the C-items above; the confirmed claims were kept, the refuted ones (V-16 to V-24) fixed as described. |

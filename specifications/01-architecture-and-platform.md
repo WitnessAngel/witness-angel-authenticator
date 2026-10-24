@@ -2,15 +2,15 @@
 
 Witness Angel Authenticator, version 1.5 (`witness-angel-authenticator/waauthenticator/waauthenticator_gui.py:30`, `witness-angel-authenticator/pyproject.toml:8`).
 
-Sibling files: `02-ux-and-screens.md` (screens and flows), `03-business-logic.md` (authenticator lifecycle, revelation requests), `04-data-and-protocols.md` (keystore on-disk format, gateway JSON-RPC, crypto).
+Sibling files: [02](02-ux-and-screens.md) (screens and flows), [03](03-business-logic.md) (authenticator lifecycle, revelation requests), [04](04-data-and-protocols.md) (keystore on-disk format, gateway JSON-RPC, crypto), [05](05-open-issues.md) (open issues, `OI-nn`).
 
-Conventions: source references are relative to the WitnessAngel workspace root. `AUTH/` = `witness-angel-authenticator/`, `COMP/` = `witness-angel-components/src/wacomponents/`, `CRYPTO/` = `witness-angel-cryptolib/src/wacryptolib/`.
+Conventions: citation prefixes and source baseline in the [README](README.md#source-baseline-and-citation-prefixes); normative tags in the [README](README.md#normative-language). This file owns: storage roots and folder access, config file, threading model, Back key, language detection, safe-area insets.
 
 Structure of this document:
 
 - Part A (sections 1-8): functional and platform requirements, written framework-neutrally. A reimplementation must keep these.
 - Part B (sections 9-12): incidental Kivy/KivyMD/buildozer implementation details. They are documented for traceability and are not requirements.
-- Section 13: open issues and observations.
+- Section 13: pointer to the open issues ([05](05-open-issues.md)).
 
 ---
 
@@ -64,20 +64,21 @@ A reimplementation must keep a "current dialog" registry (register, test, close)
 
 ### 2.3 Threading model (requirement: no blocking of the UI thread)
 
-- Long operations run on a single background worker (one thread, no concurrency, to avoid concurrent key operations) (`COMP/utilities/__init__.py:22-24`).
-- While a task runs, a full-screen "wait spinner" is shown. It is hidden when the task ends, even on error (`COMP/application/generic_gui.py:121-137`).
-- Results are delivered back on the UI thread. A result callback is invoked with the task's return value.
-- Unhandled exceptions in a background task are logged, and a transient message "Abnormal error caught: <ExceptionClassName>" is shown. The exception is then re-raised inside the worker (`COMP/widgets/popups.py:47-58`).
+- Long operations MUST run off the UI thread, on a single background worker (one thread, tasks queued in order, never concurrent, to avoid concurrent key operations) (`COMP/utilities/__init__.py:26-28`).
+- The standard helper (`_offload_task_with_spinner`, `COMP/application/generic_gui.py:121-137`) works in four steps: show the spinner; run the task on the worker; on success run the result callback on the UI thread with the task's return value; always hide the spinner, even on error. If the task raises, the callback is not called.
+- The spinner is a small centred indeterminate spinner. INFO: it does not block input in 1.5 ([05 OI-27](05-open-issues.md#d-publication)); a reimplementation SHOULD block the controls that would start a second operation.
+- Unhandled exceptions in a background task are logged, and a snackbar "Abnormal error caught: <ExceptionClassName>" is shown (3.5 s, [02 §1.4](02-ux-and-screens.md#14-feedback-primitives-framework-neutral-definitions)). The exception is then re-raised inside the worker (`COMP/widgets/popups.py:47-58`).
 - Tasks offloaded with spinner: publication-status lookup, publication, revelation-request listing (`COMP/screens/authenticator_publication_form.py:219,252`, `authenticator_revelation_request_management.py:143`).
-- Keypair generation also uses the same single worker, but with its own UI locking instead of the spinner (`COMP/screens/authenticator_creation_form.py:159-177`). The form fields and toolbar are disabled and the passphrase field is overwritten with `***`. The status text states that generation "might take a few minutes". On completion a "Success" or "Failure" dialog appears, then the app returns to home.
+- Keypair generation also uses the single worker **and shows the spinner** (`_offloaded_initialize_authenticator` is decorated with `@process_method_with_gui_spinner`, `COMP/screens/authenticator_creation_form.py:100-101`, `COMP/widgets/popups.py:142-156`). In addition it locks its own form (`COMP/screens/authenticator_creation_form.py:159-177`): the form fields and toolbar are disabled and the passphrase field is overwritten with `***`. The status text states that generation "might take a few minutes", and a progress bar advances. On completion a "Success" or "Failure" dialog appears, then the app returns to home ([02 §4.3](02-ux-and-screens.md#43-generation-after-valid-input)).
+- In 1.5, Check, Accept, Reject, Export, Import and Destroy run on the UI thread instead; a reimplementation SHOULD offload them too ([05 OI-42](05-open-issues.md#f-user-interface)).
 - Any UI update from a worker must be marshalled to the UI thread (`Clock.schedule_once` in the Kivy implementation).
 
 ### 2.4 Logging
 
 - Logs go to stderr with a UTC timestamp formatter (`SafeUtcFormatter`, `DEFAULT_UTC_LOG_FORMAT`). The root level is read from env var `WA_LOG_LEVEL` and defaults to INFO (`COMP/application/_app_presetup.py:48-58`).
-- A log directory `<INTERNAL_APP_ROOT>/logs` is created (`COMP/default_settings.py:139-140`). No file log handler is installed in the authenticator code path I read. See section 13.
+- A log directory `<INTERNAL_APP_ROOT>/logs` is created (`COMP/default_settings.py:139-140`), but no file log handler is installed anywhere in `COMP` (no `FileHandler`), so it stays empty ([05 OI-58](05-open-issues.md#h-platform-build-release)).
 - A pluggable callback handler exists to forward records elsewhere (`COMP/logging/handlers.py`). It is used for the recorder console and not by the authenticator.
-- `main.py` forces `WA_LOG_LEVEL=DEBUG`, marked "TEMPORARY" (`AUTH/main.py:2`).
+- `main.py` forces `WA_LOG_LEVEL=DEBUG`, marked "TEMPORARY" (`AUTH/main.py:2`; [05 OI-53](05-open-issues.md#h-platform-build-release)).
 
 ### 2.5 Crash handling
 
@@ -87,21 +88,22 @@ A reimplementation must keep a "current dialog" registry (register, test, close)
   - on Android: BRAND, DEVICE, MANUFACTURER, MODEL, PRODUCT, BASE_OS, CODENAME, RELEASE, SDK_INT;
   - the full Python traceback.
 - Transport: form-encoded POST with a single field `crashdump`. Failure is ignored ("If it fails, it fails"). The report is also printed to stdout.
-- Privacy note: no user data is collected beyond device model and traceback. Tracebacks could still contain paths. The report is sent without user consent (no prompt). This is a requirement to decide on in a rewrite.
+- Privacy note: no user data is collected beyond device model and traceback. Tracebacks could still contain paths. The report is sent without user consent (no prompt): [05 OI-56](05-open-issues.md#h-platform-build-release) (decide).
 
 ### 2.6 Internationalisation
 
-- Supported languages: `en` (source language, no catalog needed) and `fr` (`COMP/i18n.py:303`).
-- Language detection order (`COMP/i18n.py:298-338`):
+- Supported languages: `en` (source language, no catalog needed) and `fr` (`COMP/i18n.py:24`).
+- Language detection order, at startup only (`COMP/i18n.py:19-59`):
   1. Env var `LANG`, if exactly `en` or `fr` after trim and lowercase. Values like `en_US.UTF-8` are NOT honoured.
   2. Android: Java default locale language.
   3. iOS: first preferred language from the OS.
-  4. Desktop: Python `locale.getdefaultlocale()`.
+  4. Desktop: Python `locale.getdefaultlocale()` (the language part, for example `fr_FR` → `fr`).
   5. Rule: any code starting with `fr` gives French, everything else gives English.
-- There is no in-app language setting. The settings panel does not expose language.
+- There is no language setting in the settings panel. The language switcher is the globe icon of the main screen ([02 §8.2](02-ux-and-screens.md#82-languages)); its choice is not persisted.
 - Catalogs:
-  - gettext domain `witnessangel`, `.po` source compiled to `.mo` (`COMP/i18n.py:344-350`).
-  - Two catalogs are chained, app catalog first, then the components catalog: `AUTH/locale/fr/LC_MESSAGES/witnessangel.{po,mo}` and `COMP/locale/fr/LC_MESSAGES/witnessangel.{po,mo}`. A missing translation falls back to the English msgid.
+  - gettext domain `witnessangel`, `.po` source compiled to `.mo`, loaded with `fallback=True` (`COMP/i18n.py:65-71`).
+  - Two catalog directories are chained, app first, then components (`COMP/i18n.py:104-122`). A missing translation falls back to the English msgid.
+  - **Confirmed bug:** the app registers `ROOT_DIR / "locale"`, that is `AUTH/waauthenticator/locale`, which does not exist (`AUTH/waauthenticator/waauthenticator_gui.py:24-26`). The app catalog lives at `AUTH/locale/fr/LC_MESSAGES/witnessangel.{po,mo}` (and at the root of the AAB). So in 1.5 **only the components catalog** `COMP/locale/fr/LC_MESSAGES/witnessangel.{po,mo}` is used, and the three strings that only the app catalog translates (settings panel title and item) show in English to French users ([05 OI-50](05-open-issues.md#g-internationalisation), disposition *fix*).
   - Messages use named placeholders (`{name}`) for formatted strings. They are interpolated from caller variables by `tr.f(tr._("..."))`. A reimplementation needs equivalent named-placeholder substitution, because msgids are the English text.
   - Some UI strings are looked up lazily, so a language switch refreshes live widgets. The window title `"Witness Angel - Authenticator"` is deliberately untranslated (`AUTH/waauthenticator/waauthenticator_gui.py:39`).
 - Regenerating catalogs: `AUTH/update_i18n.sh` runs xgettext, then msgmerge, then msgfmt. It only handles `fr`.
@@ -117,15 +119,15 @@ A reimplementation must keep a "current dialog" registry (register, test, close)
 | `[authenticator]` | `custom_authenticator_dir` | empty | Absolute path of the folder chosen as "custom folder" location. Empty means none. Must NOT be read as the current directory. The path is made absolute on read (`AUTH/waauthenticator/waauthenticator_gui.py:110-112`). | Written automatically when the user picks a folder. Not in the settings panel. |
 | `[network]` | `wagateway_url` | `https://api.witnessangel.com/gateway/jsonrpc/` | JSON-RPC endpoint of the gateway. | Settings panel |
 
-Settings panel (`AUTH/waauthenticator/waauthenticator_gui.py:114-124`): title "Authenticator settings" (translated). It has one editable text item (truncated display):
+Settings panel (`AUTH/waauthenticator/waauthenticator_gui.py:114-124`): title "Authenticator settings" (translatable through the app catalog, so shown in English in 1.5, see 2.6). It has one editable text item (truncated display):
 
 - title: "Witness Angel Gateway URL";
 - description: "Registry where authenticators can be published";
 - plus a non-editable title line `Authenticator v<PROGRAM_VERSION> by Witness Angel`.
 
-The gateway URL is validated for the presence of a URL scheme only (`COMP/application/_common_runtime_support.py:135-143`). There is no other validation in the authenticator app path.
+The gateway URL is **not validated**. A validator `check_witness_angel_gateway_url` (scheme presence only) exists in `COMP/application/_common_runtime_support.py:134-143`, but nothing in the components or the app calls it. An invalid URL only shows up as a network-error snackbar at the next gateway call ([05 OI-47](05-open-issues.md#f-user-interface), decide). The URL is read from config at every gateway call, so a change applies immediately.
 
-Device identity: `COMP/application/_common_runtime_support.py:180-190` can create `<INTERNAL_APP_ROOT>/.wa_device_uid.json` holding `{"wa_device_uid": <uuid0>}`. I did not verify that the authenticator flow uses it. See `04-data-and-protocols.md` for gateway interaction.
+Device identity: `COMP/application/_common_runtime_support.py:180-190` can create `<INTERNAL_APP_ROOT>/.wa_device_uid.json` holding `{"wa_device_uid": <uuid0>}`. Only the claimant screens call it; the authenticator never creates this file. See [04](04-data-and-protocols.md) for gateway interaction.
 
 ## 4. Storage locations (exact, per OS)
 
@@ -146,8 +148,8 @@ Derived (all platforms, under `INTERNAL_APP_ROOT`):
 | `wakeygen_config.ini` | Config (section 3) |
 | `logs/` | Log directory (created, see 2.4) |
 | `authenticator.keystore/` | The "user profile" authenticator (`INTERNAL_AUTHENTICATOR_DIR`). A legacy `authenticator/` folder is renamed to `authenticator.keystore` at startup if the new one does not exist (`COMP/default_settings.py:142-148`). |
-| `keystore_pool/`, `cryptainers/` | Created at startup (`COMP/default_settings.py:150-154`). They belong to recorder and claimant features. The authenticator creates them but I found no use of them. |
-| `.wa_device_uid.json` | See section 3. |
+| `keystore_pool/`, `cryptainers/` | Created at startup (`COMP/default_settings.py:150-154`). They belong to recorder and claimant features; the authenticator never uses them ([05 OI-23](05-open-issues.md#c-local-storage-import-export-destroy)). |
+| `.wa_device_uid.json` | Not created by the authenticator (section 3). |
 
 Directory creation: `INTERNAL_APP_ROOT` is created with parents. The external and export dirs are created best-effort, and permission errors are swallowed (`COMP/default_settings.py:156-166`).
 
@@ -165,20 +167,36 @@ Removable-drive discovery (`CRYPTO/authdevice.py:20-47`):
 - Linux: pyudev `block` devices with attribute `removable == 1`, then their partitions matched against mounted partitions from psutil.
 - macOS: `system_profiler -xml SPUSBDataType` parsed as plist. If the tool is missing (iOS simulator) the result is an empty list.
 - iOS: no detection, always empty.
-- Android: handled by the `else` branch, so the macOS code path would run on Android. `system_profiler` is absent there, so it returns an empty list with a warning. Android therefore has no USB discovery. Users reach removable storage only through the folder chooser (custom folder).
+- Android: the 1.5 build runs Python 3.14, where `sys.platform == "android"`. That value falls into the `else` (macOS) branch. Its `assert sys_platform.startswith("darwin")` is stripped from the release bytecode (verified on `wacryptolib/authdevice.pyc` in the AAB), `system_profiler` is absent, so the result is an empty list with a warning. Android therefore has no USB discovery; users reach removable storage only through the folder chooser (custom folder) ([05 OI-24](05-open-issues.md#c-local-storage-import-export-destroy)). INFO: with Python ≤3.12 builds `sys.platform` was `linux`, the Linux branch failed to import `pyudev`, and the screen's `except ModuleNotFoundError` gave the same empty list (`COMP/screens/authenticator_management.py:121-124`).
 - Each returned device exposes `device_type`, `partition_label`, `partition_mountpoint`, `filesystem_format`, `filesystem_size` and `authenticator_dir`.
 
-Folder-access checks (`COMP/system_permissions.py:248-279`): a folder is "writable" only if a temp subfolder plus a file can be created and removed in it. `os.access` is considered unreliable on Windows. "Readable" means the folder can be listed. A folder selection is refused with the toast "External storage is not accessible" if the folder is unset, not a directory, unreadable, or (when required) unwritable. The previously saved custom folder is re-used as the chooser start path only if it still exists and is readable. Android scoped-storage changes can invalidate it. Otherwise `EXTERNAL_APP_ROOT` is the start path (`COMP/screens/authenticator_management.py:195-220`).
+Folder-access checks (`COMP/system_permissions.py:74-105`): a folder is "writable" only if a temp subfolder plus a file can be created and removed in it. `os.access` is considered unreliable on Windows. "Readable" means the folder can be listed. A folder selection is refused with the toast "External storage is not accessible" if the folder is unset, not a directory, unreadable, or (when required) unwritable. The previously saved custom folder is re-used as the chooser start path only if it still exists and is readable. Android scoped-storage changes can invalidate it. Otherwise `EXTERNAL_APP_ROOT` is the start path (`COMP/screens/authenticator_management.py:195-220`).
 
 Creation constraint: when creating an authenticator, only one level of folder is created (`mkdir(parents=False)`) (`COMP/screens/authenticator_creation_form.py:164-166`).
 
 Path display rule (`COMP/application/_common_runtime_support.py:68-82`): a path starting with the Android external-storage root is shown as `<sdcard>/...`. A path starting with the user's home is shown as `~/...`.
 
+### 4.4 Folder access (requirement level)
+
+1.5 expresses every location as an **absolute POSIX path**, chosen in an in-app file browser (KivyMD `MDFileManager`) and stored as text in the config file. That is an implementation detail. What a reimplementation MUST provide:
+
+1. **Internal location.** A private, persistent, per-app folder (Android `Context.getFilesDir()`, iOS `Library/Application Support`, desktop `~/.witnessangel`) holding `authenticator.keystore/`. On Android and iOS the existing folder MUST be reused across app updates, so that existing authenticators are found (same application id `org.witnessangel.authenticator`, same sub-path).
+2. **Custom location.** Persistent read/write access to **one user-chosen folder**, including the right to create the `authenticator.keystore` sub-folder in it and to create, read, overwrite and delete files there. The access MUST survive app restarts. Native mechanisms satisfy this: an Android Storage Access Framework tree URI with `takePersistableUriPermission` (read + write), an iOS security-scoped bookmark of a folder picked with the document picker (`UIDocumentPickerViewController`, folder mode), a plain path on desktop. Removable drives are reached the same way on mobile.
+3. **Exports folder.** A user-visible folder where ZIP exports are written and from where imports are picked (`EXTERNAL_EXPORTS_DIR` above). On mobile, a reimplementation MAY instead use the OS "save as" / "open" pickers, as long as the archive format of [04 §2.4](04-data-and-protocols.md#24-zip-export-archive) is kept.
+4. **Removable drives on desktop.** Listing USB partitions (as above) is a convenience; picking the drive as a custom folder MUST also work.
+
+Migration rule for the stored `custom_authenticator_dir` (written by 1.5 as an absolute path):
+
+- On desktop, keep reading it as a path.
+- On Android, an absolute path under the app-specific external dir (`/storage/emulated/0/Android/data/org.witnessangel.authenticator/files/…`) can still be opened directly; any other path SHOULD be treated as "no custom folder" and the user asked to pick the folder again (no grant exists for it).
+- On iOS, a path containing `/Documents/` SHOULD be re-resolved relative to the *current* app container's `Documents` folder (the container UUID changes between installs and updates, which is the cause of the "custom location not remembered" bug, [05 OI-16](05-open-issues.md#c-local-storage-import-export-destroy)); otherwise ask again.
+- Once migrated, store the native grant (URI or bookmark) instead of the path. The config key MAY keep its name.
+
 ## 5. Platform-specific behaviour (requirements)
 
 ### 5.1 Android
 
-- Permissions: only `android.permission.INTERNET` is declared (`AUTH/buildozer.spec` `android.permissions`). No storage permissions are requested: the app works only in app-private storage plus folders chosen by the user. A legacy runtime-permission helper exists in the components lib but is unused or obsolete (`COMP/system_permissions.py:227-245`, named `__OBSOLETE_...`).
+- Permissions: only `android.permission.INTERNET` is declared (`AUTH/buildozer.spec:97`). No storage permissions are requested: the app works only in app-private storage plus folders chosen by the user (see 4.4). A legacy runtime-permission helper exists in the components lib but is unused (`COMP/system_permissions.py:53-71`, named `__OBSOLETE_...`).
 - Orientation: portrait only.
 - Min API 26, target/compile API 36.
 - Back button: see 2.2.
@@ -187,15 +205,15 @@ Path display rule (`COMP/application/_common_runtime_support.py:68-82`): a path 
   2. The insets are re-evaluated on rotation, navigation-mode change, keyboard and multi-window changes.
   3. The app must apply them as padding of the root layout (`AUTH/waauthenticator/waauthenticator_gui.kv:12`). When the window is not edge-to-edge, the insets are zero, so there is no double margin.
   4. Edge-to-edge is enforced by Android 15 (SDK 35+). The fix was introduced in commit `d30849b` "Inset app content from Android system bars (edge-to-edge fix)".
-- Display-cutout mode: presetup calls `window.addFlags(2)` with a comment saying "LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER" (`COMP/application/_app_presetup.py:77`). See section 13, item 3.
+- Display-cutout mode: presetup calls `window.addFlags(2)` with a comment saying "LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER" (`COMP/application/_app_presetup.py:77`). The value is wrong and a reimplementation should not set it ([05 OI-54](05-open-issues.md#h-platform-build-release)).
 - Ctypes fix: `ctypes.pythonapi` is re-bound to `libpython<maj>.<min>.so`, because the default is broken on Android. It is needed for wacryptolib (`COMP/application/android_helpers.py:134-138`).
 - Language detection: Java locale.
-- Back-up flag: `android.allow_backup = True` (see section 13).
+- Back-up flag: `android.allow_backup = True` ([05 OI-57](05-open-issues.md#h-platform-build-release), decide).
 
 ### 5.2 iOS
 
-- Safe-area / notch: at start, query a native `NotchDetector` object for top/bottom/left/right notch sizes and use them as `[left, top, right, bottom]` margins (converted from density-independent pixels) (`AUTH/waauthenticator/waauthenticator_gui.py:65-76`). The native `NotchDetector` class source is not in the repo; it comes from an external gist (`:66`).
-- Storage: sandboxed (section 4). The `Documents` folder is the only user-visible area.
+- Safe-area / notch: at start, query a native `NotchDetector` object for top/bottom/left/right notch sizes and use them as `[left, top, right, bottom]` margins (`AUTH/waauthenticator/waauthenticator_gui.py:65-76`). Contract: each getter returns the key window's `safeAreaInsets` edge (iOS 11+; 0 before), in **points**, truncated to an `int`; the app converts points to pixels with Kivy `dp()` (1 pt ≈ 1 dp). The values are read once at startup, not on rotation. The class is not in this repo: it comes from a gist (`:66`) and lives in the Xcode project's `main.m` (workspace archive `Xcode-toolchain-ios-authenticator.zip`, `authenticator-ios/main.m:193-305`). A reimplementation uses the platform's safe-area API instead.
+- Storage: sandboxed (section 4). The `Documents` folder is the only user-visible area. It is exposed in the Files app by two `Info.plist` keys, both `true`: `UIFileSharingEnabled` and `LSSupportsOpeningDocumentsInPlace` (`authenticator-ios/authenticator-Info.plist`). Other keys there: `UIRequiresFullScreen`, `UIStatusBarHidden` = true, `ITSAppUsesNonExemptEncryption` = false; iPhone orientations portrait and upside-down, iPad all four; a `NSCameraUsageDescription` asking the user to refuse (the app never uses the camera).
 - No removable-drive discovery.
 - Crash reporting is not wired (FIXME).
 - Config file location is the same relative scheme: `<Library/Application Support>/wakeygen_config.ini`.
@@ -213,9 +231,9 @@ Path display rule (`COMP/application/_common_runtime_support.py:68-82`): a path 
 |---|---|
 | Supported OS | Android API 26+ (Android 8.0), target API 36; iOS (kivy-ios build, versions not pinned in repo); Windows, Linux, macOS via PyInstaller (`AUTH/pyproject.toml:27-33` classifiers). The Android archs shipped are armeabi-v7a, arm64-v8a, x86, x86_64. |
 | Google Play 16 KB pages | The 64-bit native libs must be aligned to 16 KB (required since 1 Nov 2025). See section 11. |
-| Keygen performance | Generation of the keypairs is expected to take "a few minutes" on mobile (UI text, `COMP/screens/authenticator_creation_form.py:172`). It runs on a worker with all inputs locked. The pure-Python fallback crypto backend is forced on every OS (section 9.1), which is the likely reason. Key sizes and counts are in `03-business-logic.md`. |
+| Keygen performance | Generation of the keypairs is expected to take "a few minutes" on mobile (UI text, `COMP/screens/authenticator_creation_form.py:172`). It runs on a worker with all inputs locked. The pure-Python fallback crypto backend is forced on every OS (section 10) and may contribute; RSA prime generation itself stays in pycryptodome (on a desktop PC, 5 keypairs take about 4 s with the fallback forced) ([05 OI-53](05-open-issues.md#h-platform-build-release)). Key sizes and counts are in [03 §4.3](03-business-logic.md#43-generated-data-summary). |
 | Offline vs online | Offline: create, open, check, import/export ZIP, change location. Online (gateway needed): publication status, publish, list and answer revelation requests. The only declared network permission is INTERNET. Network errors are surfaced through the JSON-RPC error handler (`status_slugs_response_error_handler`, `COMP/application/_common_runtime_support.py:18,194`). |
-| Security-relevant | Private keys are protected by a passphrase. The passphrase field is masked in the UI after submit (`***`). The keystore is plain files in a user-visible or app-private folder. The crash reporter sends tracebacks without consent. `allow_backup` is enabled on Android. The release signing script holds hardcoded secrets (section 13). Crypto details are in `04-data-and-protocols.md`. |
+| Security-relevant | Private keys are protected by a passphrase. Passphrase fields are not masked while typing; the creation field is overwritten with `***` after submit ([05 OI-13](05-open-issues.md#b-creation-check-passphrase)). The keystore is plain files in a user-visible or app-private folder. The crash reporter sends tracebacks without consent. `allow_backup` is enabled on Android. The release signing script holds hardcoded secrets ([05 OI-60](05-open-issues.md#h-platform-build-release)). Crypto details are in [04](04-data-and-protocols.md). |
 | Concurrency | One background worker. No concurrent key operations. |
 | Persistence of UI state | Only `custom_authenticator_dir` is persisted. The selected authenticator and screen are not restored across restarts (selection falls back to the default entry, `COMP/screens/authenticator_management.py:222-235`). |
 
@@ -247,6 +265,8 @@ Crypto library modules used by the authenticator-relevant screens (role only; de
 ---
 
 # PART B - Incidental implementation details (Kivy / KivyMD / buildozer)
+
+> **Kivy primer (for readers new to the stack).** *Kivy* is a Python GUI toolkit; *KivyMD* adds Material Design widgets (`MDApp` is its application class). A *kv* file is Kivy's declarative UI language: widget tree, properties and bindings, roughly like QML or XAML. A *ScreenManager* holds full-page *Screens* and switches between them with a transition. *RecycleView* is a virtualised list. *Clock.schedule_once(f)* runs `f` on the UI thread at the next frame, which is how worker threads hand results back. A Kivy *property* is an observable attribute; kv expressions re-evaluate when it changes. *SettingsWithSpinner* is Kivy's built-in settings panel, built from a JSON list of items. *python-for-android* (p4a) packages Python plus native libs into an Android app; *buildozer* drives p4a (and kivy-ios for iOS) from a `buildozer.spec` file; *pyjnius* / *pyobjus* call Java / Objective-C from Python. *PyInstaller* builds the desktop executables.
 
 ## 9. Component architecture
 
@@ -326,7 +346,7 @@ Layering rules:
 | `WaGenericGui(WaRuntimeSupportMixin, MDApp)` | Base for standalone GUI apps: theme (Blue palette, hue 900), pause/resume, config/settings, spinner and offload helpers | `COMP/application/generic_gui.py:34-137` |
 | `WaRuntimeSupportMixin` | Config paths, path formatting, status checkers, device uid, gateway proxy | `COMP/application/_common_runtime_support.py:22-195` |
 | `ImprovedSettingsWithSpinner` | Kivy settings class with an added `string_truncated` item type | `COMP/application/generic_gui.py:28-31` |
-| `_Translator` / `tr` | gettext facade, observable for live kv refresh | `COMP/i18n.py:353-433` |
+| `_Translator` / `tr` | gettext facade, observable for live kv refresh | `COMP/i18n.py:74-151` |
 | `WAScreenName` | Registry of screen names | `COMP/screens/base.py:9-27` |
 
 The root kv (`AUTH/waauthenticator/waauthenticator_gui.kv`) has a BoxLayout padded by `app.application_margins`. It contains a ScreenManager with 5 screens and a `WaitSpinner` (id `wait_spinner`). Four of the screens receive `selected_authenticator_dir` bound from the management screen. Screen details are in `02-ux-and-screens.md`.
@@ -362,6 +382,8 @@ The root kv (`AUTH/waauthenticator/waauthenticator_gui.kv`) has a BoxLayout padd
    - `__init__` binds `Window.on_keyboard` to the back handler (`AUTH/waauthenticator/waauthenticator_gui.py:53-55`).
 6. `on_start` (`:57-85`): seeds and binds the custom folder (see 2.1), then applies the iOS notch or Android insets listener. The Android listener object is kept on `self`, so the JNI proxy is not garbage collected.
 
+**Release builds run without asserts.** The 1.5 Android bytecode is compiled optimised: in `wacryptolib/authdevice.pyc` from the AAB, the `assert` and its `'darwin'` constant are absent. So `__debug__` is false and every `assert` is skipped in release: the version self-check (`AUTH/waauthenticator/waauthenticator_gui.py:30-35`), and the library asserts listed in [05 OI-40](05-open-issues.md#e-data-formats-and-crypto). Statements in this spec that rely on an assert are marked "debug builds only". Desktop runs from source (`python main.py`) keep asserts.
+
 Env vars summary:
 
 | Var | Effect |
@@ -391,7 +413,7 @@ Env vars summary:
 | Dev | `PyInstaller >=5.2` |
 | Build backend | `poetry.masonry.api` |
 
-Sibling versions: cryptolib `0.12` (`witness-angel-cryptolib/pyproject.toml:8`, requires Python `>=3.10`), components `0.1` (`witness-angel-components/pyproject.toml:8`). Both repos currently sit on branch `wakeygen_stable` (checked for components).
+Sibling versions: cryptolib `0.12` (`witness-angel-cryptolib/pyproject.toml:8`, requires Python `>=3.10`), components `0.1` (`witness-angel-components/pyproject.toml:8`). The pyproject says branch `wakeygen_stable` for both, but the build vendors whatever is checked out: components on `wakeygen_stable` @ `4ebc5d2`, cryptolib on **`poc/pure-python-crypto-utils` @ `85b5dc7`** (116 commits ahead of `wakeygen_stable`; it adds `utilities/`, `vendors/`, `_crypto_backend/fallback_adapter.py` and the top-level `extjson` import). The 1.5 AAB contains exactly that layout. See the [README baseline](README.md#source-baseline-and-citation-prefixes) and [05 OI-59](05-open-issues.md#h-platform-build-release).
 
 ### 11.2 `buildozer.spec` (Android, active values)
 
@@ -437,7 +459,7 @@ The wacryptolib and wacomponents packages are NOT in the Android `requirements`.
 | `scripts/check_16kb_alignment.sh` | Takes an `.apk`/`.aab`/directory, extracts it if needed, and runs `readelf` on `lib/*/*.so`. It requires LOAD alignment of at least 0x4000 (16384) for `arm64-v8a` and `x86_64`. 32-bit archs are exempt. Exit 1 if any 64-bit lib is 4 KB-aligned. |
 | `scripts/README_android_16kb_build.md` | Runbook for the Podman workflow. |
 | `scripts/update_wa_subcomponents.cmd` | Windows helper to update the sub-components (not analysed further). |
-| `scripts/test1.sh`, `test2.sh`, `test3.sh` | Untracked signing-debug scripts (see section 13). |
+| `scripts/test1.sh`, `test2.sh`, `test3.sh` | Untracked signing-debug scripts ([05 OI-60](05-open-issues.md#h-platform-build-release)). |
 | `update_i18n.sh` | See 2.6. |
 | `bundletool-all-1.15.4.jar`, `bin/apktool_2.8.1.jar` | Untracked tool jars. |
 
@@ -467,24 +489,6 @@ Files: `proposal.md`, `design.md`, `tasks.md`, `specs/android-16kb-build/spec.md
 
 ---
 
-## 13. Open issues and observations
+## 13. Open issues
 
-1. **Empty TODO file**: untracked `TODO FIX custom location not remembered on ios for WA authenticator.txt` is 0 bytes, so it only gives the title. The known bug: on iOS the custom authenticator location is not remembered. Plausible code-level causes, not confirmed:
-   - iOS sandbox paths change between app launches (the container UUID is part of the path). The absolute path saved in `custom_authenticator_dir` then becomes stale or unreadable. On start, `get_custom_authenticator_dir` returns the stale absolute path. The folder chooser falls back to `EXTERNAL_APP_ROOT` silently (`COMP/screens/authenticator_management.py:210-219`).
-   - The path is stored absolute (`AUTH/waauthenticator/waauthenticator_gui.py:112`). A relative-to-Documents form would survive.
-2. **Untracked screenshot** `20260625-091758 wrong layout of android app.png` points to the Android layout bug, which was fixed by the insets commit `d30849b`. The untracked Google PDF is about 16 KB page sizes.
-3. **Wrong constant in comment**: `window.addFlags(2)` is documented as `LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER`, but the value 2 is the `FLAG_DIM_BEHIND` window flag, and the cutout mode is a layout-parameter attribute, not a flag (`COMP/application/_app_presetup.py:77`). The call is likely a no-op or has a wrong effect, and the real handling is done by the insets listener. Needs verification on device.
-4. **Forced debug settings**: `main.py` always forces `WA_LOG_LEVEL=DEBUG` ("TEMPORARY") in production builds. It also forces the slow fallback crypto backend on every OS (`AUTH/main.py:2-3`). This is a likely cause of minutes-long key generation (section 6).
-5. **Hardcoded signing secrets**: the working-tree modification of `scripts/build_release_signed.sh` (uncommitted) hardcodes the key alias and the store and key passwords (lines 31-33), replacing the interactive prompts that are now commented out. `scripts/test1.sh`..`test3.sh` contain the same literal values. The keystore `witnessangel_android.keystore` is present in the repo root (git-ignored via `*.keystore`). These must never be committed and the password should be rotated if it was ever shared. This spec does not reproduce the values.
-6. **`p4a_hacks.diff`**: an untracked patch for python-for-android (debug `info()` prints in `bootstrap.py` and `distribution.py`, a "BBBBBBBBBREEEAKAAGE" marker, and a pycryptodome 3.9.9 pin per the runbook). It is legacy and unused by the current pipeline (`scripts/README_android_16kb_build.md`). It is clutter and can be deleted.
-7. **Python version inconsistencies**: `pyproject.toml` allows Python 3.8-3.12 (classifiers list 3.8-3.12) but the Android build uses Python 3.14, and wacryptolib requires `>=3.10`. Kivy is `^2.2.1` in pyproject but pinned `2.3.1` in buildozer. psutil is `^5.9.5` vs `6.0.0`. Pillow is `^10.0.0` vs `10.4.0`. `pip_requirements_export.txt` and `poetry.lock` also exist (both flagged by git for CRLF).
-8. **Android requirements and vendoring**: wacryptolib and wacomponents are copied into the repo root by script rather than declared in `requirements`. A forgotten sync would build a stale or failing app. Sibling versions (`0.12`, `0.1`) are not recorded in the app build.
-9. **Locale directory mismatch**: the app registers `ROOT_DIR / "locale"` (that is `waauthenticator/locale`) as a catalog dir (`AUTH/waauthenticator/waauthenticator_gui.py:26`). The catalogs actually live in the repo-root `AUTH/locale/` (written by `update_i18n.sh`), and `waauthenticator/` has no `locale` folder. The app-specific catalog is therefore not loaded. Only `COMP`'s fr catalog applies (gettext falls back silently). This is worth verifying.
-10. **Privacy-by-default gaps**: crash reports are sent automatically on Android without consent. `android.allow_backup = True` lets Android back up the app-private `authenticator.keystore` (passphrase-protected, but still exfiltrated to cloud backup). The exported ZIPs and custom folders are plain files.
-11. **TODO/FIXME items in the shared code**: `COMP/launcher.py:65` (iOS crash handler); `COMP/default_settings.py:99` ("we must use getExternalFilesDir now!!", partly done: `EXTERNAL_APP_ROOT` already uses it, but `EXTERNAL_APP_ROOT_PREFIX` still uses `getExternalStorageDirectory`); `COMP/default_settings.py:153` (rename the `cryptainers` dir); `COMP/application/_common_runtime_support.py:52,57,62` (dirs should be `Path`); `COMP/widgets/popups.py:61,143` (obsolete spinner decorator vs `_offload_task_with_spinner`); `COMP/screens/authenticator_management.py:459-460` (protect against OSError in import/export; move the operation to wacryptolib); `AUTH/waauthenticator/waauthenticator_gui.kv:23` (normalise screen names).
-12. **Android notification helpers** are broken (`PACKAGE_NAME` from env `WA_PACKAGE_NAME`, marked "FIXME BROKEN") but unused by the authenticator (`COMP/application/android_helpers.py:7`).
-13. **Dead and obsolete code**: `__OBSOLETE_request_external_storage_dirs_access` (has a `time.sleep(3)` hack); `.pyo` files checked into `waauthenticator/` and `CRYPTO/`; `if False:` GUI debug block (`AUTH/waauthenticator/waauthenticator_gui.py:19-22`); `wa_authenticator_bin.lnk` shortcut; `extjson.py` (untracked, vendored from cryptolib, "TODO: replace this by a pip-installed module someday"); stale `___*` folders and reference specs.
-14. **OpenSpec tasks.md** has item 5.4 unchecked although the work appears done (section 11.5).
-15. **Build host assumptions**: the scripts hardcode a Windows host (Podman path under a specific user profile, `P:` removable drive, Git Bash path conversion, an output dir on `C:`). The pipeline is not portable without edits.
-16. **Auth device discovery on Android**: no path lists removable media. The user must use the folder chooser (section 4). The `else` branch in `list_available_authdevices` assumes macOS for any non-win/linux/ios platform, which includes Android.
-17. **Logging gap**: a `logs/` directory is created but I found no file handler in the authenticator path. Users cannot retrieve logs on a device without a console (the text for "check logs" in the failure dialog assumes otherwise). Needs verification across `COMP`.
+The architecture and platform issues formerly numbered 1-17 here are now in [05-open-issues.md](05-open-issues.md), with dispositions. Mapping: #1 → OI-16, #2 → OI-62, #3 → OI-54, #4 → OI-53, #5 → OI-60, #6 → OI-62, #7 → OI-61, #8 → OI-59, #9 → OI-50 (now confirmed), #10 → OI-56 and OI-57, #11 → OI-63, #12 → OI-63, #13 → OI-63, #14 → OI-62, #15 → OI-62, #16 → OI-24, #17 → OI-58.

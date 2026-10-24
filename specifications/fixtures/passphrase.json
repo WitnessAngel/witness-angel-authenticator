@@ -1,0 +1,6 @@
+{
+  "raw": " Ma phrase \ufb01nale \u212bngstr\u00f6m cafe\u0301 2026 ",
+  "normalized_utf8_hex": "4d61207068726173652066696e616c6520c3856e67737472c3b66d20636166c3a92032303236",
+  "equivalent_after_normalization": "Ma phrase finale \u00c5ngstr\u00f6m caf\u00e9 2026",
+  "wrong": "Ma phrase finale Angstrom cafe 2026"
+}
