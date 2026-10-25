@@ -251,11 +251,17 @@ def get_publication_status(authenticator_dir, gateway_proxy) -> dict:
         remote = gateway_proxy.get_public_authenticator(keystore_uid=metadata["keystore_uid"], keystore_secret=secret)
     except ExistenceError:
         return dict(result, remote_status="NOT_PUBLISHED")
-    local_set = {(k["keychain_uid"], k["key_algo"]) for k in local_keys}
-    remote_set = {(k["keychain_uid"], k["key_algo"]) for k in remote["public_keys"]}
+    # OI-29: key bytes are compared too, so a key with other bytes shows in both lists
+    keystore = ReadonlyFilesystemKeystore(authenticator_dir)
+    local_set = {(k["keychain_uid"], k["key_algo"],
+                  keystore.get_public_key(keychain_uid=k["keychain_uid"], key_algo=k["key_algo"])) for k in local_keys}
+    remote_set = {(k["keychain_uid"], k["key_algo"], k["key_value"]) for k in remote["public_keys"]}
+
+    def _ids(keys):
+        return sorted({k[:2] for k in keys}, key=lambda k: (k[0].int, k[1]))
+
     return dict(result, remote_status="PUBLISHED",
-                exceeding_keys=sorted(remote_set - local_set, key=lambda k: (k[0].int, k[1])),
-                missing_keys=sorted(local_set - remote_set, key=lambda k: (k[0].int, k[1])))
+                exceeding_keys=_ids(remote_set - local_set), missing_keys=_ids(local_set - remote_set))
 
 
 def check_publishable(authenticator_dir):

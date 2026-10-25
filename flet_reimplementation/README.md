@@ -76,7 +76,7 @@ They do not import the app.
 | 25 | Selected location and language are not persisted (same as 1.5). |
 | 26 | Publish asks for confirmation and names the gateway URL. |
 | 28, 32 | Publication is refused while a private key is missing, or when there is no keypair. |
-| 29 | `keystore_secret` is sent to `get_public_authenticator`. An `AuthenticationError` means "published with another secret". The key bytes are still not compared. |
+| 29 | `keystore_secret` is sent to `get_public_authenticator`. An `AuthenticationError` means "published with another secret". Key bytes are compared too: a key whose bytes differ is listed as both exceeding and missing. |
 | 43 | Back/Escape goes up one level (detail → list), like the on-screen arrow. |
 | 44 | Whole rows are tappable (request rows and container-key rows). |
 | 45 | Kept: the "refreshed" toast shows on desktop only. |
@@ -88,7 +88,7 @@ They do not import the app.
 
 ## Verification done
 
-- `.venv/bin/python -m pytest -q`: **30 passed**. These cover the fixture authenticator with its passphrase (raw, NFKC-equivalent and wrong) and the edge-case listing. They also cover status computation, creation (metadata fields, file names, PEM types, rollback), export/import/destroy, and publication against a fake gateway that enforces the server rules. Listing, accept and reject use the fixture payloads, and the accept results are decrypted with the claimant key back to `expected_plaintexts.json`. Further tests cover the real `JsonRpcProxy` wire format and error mapping (fake HTTP), storage roots and migration, i18n EN/FR, formatting and config persistence. Smoke tests import every module, build every screen on a stub page, and drive Accept, creation and Back handling.
+- `.venv/bin/python -m pytest -q`: **31 passed**. These cover the fixture authenticator with its passphrase (raw, NFKC-equivalent and wrong) and the edge-case listing. They also cover status computation, creation (metadata fields, file names, PEM types, rollback), export/import/destroy, and publication (including differing key bytes) against a fake gateway that enforces the server rules. Listing, accept and reject use the fixture payloads, and the accept results are decrypted with the claimant key back to `expected_plaintexts.json`. Further tests cover the real `JsonRpcProxy` wire format and error mapping (fake HTTP), storage roots and migration, i18n EN/FR, formatting and config persistence. Smoke tests import every module, build every screen on a stub page, and drive Accept, creation and Back handling.
 - Web mode: the server answers HTTP 200. Headless Chrome, driven over CDP, ran a real session with no server traceback. In that session I created an authenticator (progress, Success dialog, Escape back home), ran Check (Success, 3 keys), opened Publish and Authorizations against an unreachable gateway (snackbar shown), switched to French, opened the settings dialog (French app catalog) and used the in-app folder browser.
 
 ## Known limitations vs the Kivy app

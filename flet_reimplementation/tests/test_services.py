@@ -222,6 +222,14 @@ def test_publication_inconsistency_with_fixture(authenticator_dir):
     assert "('" not in report  # OI-33
 
 
+def test_publication_detects_different_key_bytes(authenticator_dir):  # OI-29
+    published = load_fixture("get_public_authenticator.response.json")["result"]
+    published["public_keys"][0]["key_value"] = b"-----BEGIN PUBLIC KEY-----\nother\n-----END PUBLIC KEY-----\n"
+    gateway = FakeGateway(secret=load_keystore_metadata(authenticator_dir)["keystore_secret"], published=published)
+    status = services.get_publication_status(authenticator_dir, gateway)
+    assert status["exceeding_keys"] == status["missing_keys"] and len(status["missing_keys"]) == 1
+
+
 # ------------------------------------------------------------------ revelation requests
 
 def test_list_revelation_requests(authenticator_dir, fake_gateway):

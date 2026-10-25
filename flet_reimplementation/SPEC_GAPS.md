@@ -1,5 +1,7 @@
 # Spec gaps found while reimplementing with Flet
 
+> **Status (2026-10-25): all items below are folded into `specifications/`**: 1 → 02 §3.7; 2 → 01 §4; 3 → 02 §6.2; 4 → 02 §3.3; 5, 6 → 05 §I (+ 02 §7.2, §8.1); 7 → 03 §3 + 05 OI-64; 8 → 05 OI-51; 9 → 02 §5.2; 10 → 05 OI-29 (and key bytes are now compared in the Flet code); 11 → 05 OI-20; 12 → 01 §4.4; C → 05 OI-39, OI-29, §J (OI-14).
+
 Every place where `specifications/` was not enough and I had to read the original code, guess, or invent.
 Overall the spec was sufficient for almost everything: the 04 §0 checklist and the fixtures were enough to build and
 test the service layer without looking at the Kivy app. I opened the original code 4 times (items 1-4). Items 5-12
