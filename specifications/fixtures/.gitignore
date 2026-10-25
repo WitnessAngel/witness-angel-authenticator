@@ -1,0 +1,2 @@
+# Test-vector authenticators (published passphrase), not signing keystores
+!*.keystore
