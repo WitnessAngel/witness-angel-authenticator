@@ -62,7 +62,6 @@ stateDiagram-v2
     Uninitialized --> Initialized: Import ZIP (unchecked)
     Initialized --> Uninitialized: Destroy (rmtree)
     PartiallyInitialized --> Uninitialized: Destroy
-    Corrupted --> Uninitialized: Destroy
     Initialized --> Initialized: Check passphrase / Export / Publish / handle requests
     NoLocation --> Probe: folder chosen
 ```
@@ -73,6 +72,8 @@ stateDiagram-v2
 | InvalidLocation | Not initialized, and: parent folder missing; or folder missing and parent not writable; or path exists but is not a folder; or folder not writable | `None` | `:276-290` |
 | Uninitialized | No `keystore_metadata.json` and no legacy `.keystore.json` file, and the location can be created | `False` | `:291-292`, `CRYPTO/authenticator.py:71-88` |
 | Corrupted | A metadata file exists but `load_keystore_metadata()` raises `SchemaValidationError` | `None` | `authenticator_management.py:297-302` |
+
+A Corrupted authenticator **cannot be destroyed from the app**: Export, Check and Destroy share one button group, enabled only when the status is `True` (`COMP/screens/authenticator_management.kv:89-104`). The user must delete the folder by other means ([05 OI-64](05-open-issues.md#c-local-storage-import-export-destroy)).
 | Initialized | A metadata file exists and passes schema validation | `True` | `:303-364` |
 | PartiallyInitialized | Not detected separately. It looks like `Initialized`, with fewer keypairs than expected or with missing private keys (shown in the keypair list and in the Check result). | `True` | see §4.5, §5 |
 

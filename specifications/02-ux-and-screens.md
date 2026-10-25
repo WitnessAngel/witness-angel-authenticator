@@ -204,7 +204,7 @@ Labels EN / FR: `Path`/`Chemin`, `User`/`Utilisateur`, `Password hint`/`Indice d
 | `format_authenticator_label(owner, keystore_uid)` | `<owner or "Unknown"/"Inconnu(e)"> (ID …<tail>)` | `:154-167` |
 | `format_utc_datetime_label(dt, show_time)` | `YYYY-MM-DD`, plus with `show_time` one space, `at`/`à`, one space, `HH:MM:SS`, ` UTC` (seconds truncated, date taken in UTC) | `:193-206` |
 | `format_revelation_request_label(created_at, description)` | `Request "<description truncated>" (<YYYY-MM-DD>)` / `Demande "<…>" (<date>)`; the description is cut to its first **40** code points followed by `…` (U+2026) when longer than 40, unchanged otherwise | `:170-190`, `truncate_chars` `:106-109` |
-| `convert_bytes_to_human_representation(size)` | integer part and unit with no space, units `bytes`, `KB`, `MB`, `GB`, `TB` in steps of 1024, e.g. `14GB` | `:93-99` |
+| `convert_bytes_to_human_representation(size)` | integer part and unit with no space, units `bytes`, `KB`, `MB`, `GB`, `TB` in steps of 1024, e.g. `14GB`. At 1024 TB or more, 1.5 returns the raw float divided by 1024⁵ (a bug, unreachable in practice); a reimplementation SHOULD render `<n>TB` |  `:93-99` |
 | `indent_text(text)` | each line prefixed with 4 spaces | `:123-125` |
 
 ### 3.4 Actions on the main screen
@@ -266,7 +266,7 @@ Errors (a corrupt ZIP, I/O errors) show the unexpected-error snackbar.
    - **Success**: there is at least 1 keypair, none missing, none undecodable. Title `Checkup result: Success` / `Résultat du contrôle : Succès`. Text `Keypairs successfully tested: <n>` / `Paires de clés testées avec succès : <n>`.
    - **Failure**: any other outcome, **including 0 keypairs**. Title `Checkup result: Failure` / `Résultat du contrôle : Échec`. Text over three lines:
      `Keypairs tested: <n>` / `Paires de clés testées : <n>`
-     `Missing private keys: <comma-separated keypair labels or ->` / `Clés privées manquantes : …`
+     `Missing private keys: <comma-separated keypair labels or ->` / `Clés privées manquantes : …`. Labels here are `format_keypair_label(key_algo, keychain_uid)` **without** the ` (missing private key)` suffix of §3.3, in both lists (`COMP/screens/authenticator_management.py:519-534`).
      `Wrong passphrase for keys:  <labels or ->` (two spaces after the colon) / `Mauvaise phrase secrète pour les clés :  …`
 
 ### 3.8 Destroy
@@ -387,7 +387,7 @@ Error details:
     Missing key(s) in remote: <…>
 ```
 
-   Labels EN / FR: `Authenticator path`/`Chemin d'authentifieur`, `User`/`Utilisateur`, `ID`, `Gateway`/`Passerelle`, `Remote status`/`Statut distant`, `Message`/`Message`, `Provide the Authenticator ID to users wanting to rely on you as a Key Guardian`/`Fournissez l'ID d'Authentifieur aux utilisateurs désirant vous ajouter comme Gardien de Clés`, `Error details`/`Détails d'erreurs`, `Exceeding key(s) in remote`/`Clés en excès côté distant`, `Missing key(s) in remote`/`Clés manquantes côté distant`. Key lists use shortened uids (`…<last segment>`), comma-separated, or `-` when empty. They currently render wrapped in a tuple representation ([05 OI-33](05-open-issues.md#d-publication)).
+   Labels EN / FR: `Authenticator path`/`Chemin d'authentifieur`, `User`/`Utilisateur`, `ID`, `Gateway`/`Passerelle`, `Remote status`/`Statut distant`, `Message`/`Message`, `Provide the Authenticator ID to users wanting to rely on you as a Key Guardian`/`Fournissez l'ID d'Authentifieur aux utilisateurs désirant vous ajouter comme Gardien de Clés`, `Error details`/`Détails d'erreurs`, `Exceeding key(s) in remote`/`Clés en excès côté distant`, `Missing key(s) in remote`/`Clés manquantes côté distant`. Directions, comparing `(keychain_uid, key_algo)` pairs: **exceeding** = remote − local, **missing** = local − remote (`COMP/screens/authenticator_publication_form.py:88-89`); 1.5 ignores the key bytes ([05 OI-29](05-open-issues.md#d-publication)). Key lists use shortened uids (`…<last segment>`), comma-separated, or `-` when empty. They currently render wrapped in a tuple representation ([05 OI-33](05-open-issues.md#d-publication)).
 
 5. A toast: `Remote authenticator status has been updated` / `Le statut de l'authentifieur distant a été actualisé`.
 
@@ -460,7 +460,7 @@ Description: <full description>
 Local key for response: <ALGO-NAME …<uid tail>>
 ```
 
-   Labels: `Status`/`Statut`, `Authenticator`/`Authentifieur`, `Description`/`Description`, `Local key for response`/`Clé locale pour la réponse`.
+   Labels: `Status`/`Statut`, `Authenticator`/`Authentifieur`, `Description`/`Description`, `Local key for response`/`Clé locale pour la réponse`. Despite its label, "Local key for response" is the **requestor's response key**: `format_keypair_label(revelation_response_key_algo, revelation_response_keychain_uid)`, not a key of this authenticator (`COMP/screens/authenticator_revelation_request_detail.py:66-69`).
 4. A list of **symkey decryption requests**, in server order (`.py:90-108`). Each is a two-line row:
    - left icon `key`;
    - primary `Key of container …<cryptainer uid tail>` / `Clé du conteneur …`;
@@ -520,6 +520,7 @@ Owned by [01 §4](01-architecture-and-platform.md#4-storage-locations-exact-per-
 - **Start folder:** the previously chosen custom folder, if it still exists and is readable; otherwise `EXTERNAL_APP_ROOT`. The user can navigate anywhere the OS allows.
 - The browser selects **folders**. Choosing one closes the browser and sets the custom folder. It then **automatically selects the Custom location row**, which recomputes the status. The authenticator itself goes in the sub-folder `authenticator.keystore` of the chosen folder.
 - Closing the browser (its close control, or ESC/BACK) changes nothing.
+- Labels: the 1.5 browser (KivyMD 1.2 `MDFileManager`) has **no text labels**. Its top bar shows the current path as title, with a back/close arrow; a floating check-mark button selects the current folder; entries are icon + name, with a `..`-style "up" entry. A reimplementation using its own browser needs the texts of [05 §I](05-open-issues.md#i-texts-for-the-resolutions); one using the OS picker needs none.
 
 ### 7.3 ZIP file browser (Import)
 
@@ -549,7 +550,7 @@ The same browser component, in file mode, filtered to `.zip`, starting at `EXTER
 Opened from the cog icon on the main screen. On desktop, F1 opens it too (Kivy `App` default, INFO). The panel replaces the screen; its built-in Close button returns to the main screen (`COMP/application/generic_gui.py:28-31, 43-45, 88-95`). The toolkit's own technical settings are hidden.
 - Panel title: `Authenticator settings` / `Authenticator settings` *(app catalog, not loaded → EN; intended FR `Paramètres de l'Authentifieur`, the catalog's `Paramètres Authentificator` has a typo)* (`AUTH/waauthenticator/waauthenticator_gui.py:41-43`).
 - Items (`AUTH/waauthenticator/waauthenticator_gui.py:114-124`):
-  1. **Witness Angel Gateway URL** / `Witness Angel Gateway URL` *(app catalog, not loaded → EN; intended FR `URL de la Passerelle Witness Angel`)*, with description `Registry where authenticators can be published` / `Registry where authenticators can be published` *(app catalog, not loaded → EN; intended FR `Registre où les authentifieurs peuvent être publiés`)*. A reimplementation SHOULD show the intended FR ([05 OI-50](05-open-issues.md#g-internationalisation)). A free-text string, shown truncated on one line (15 sp). Tapping it opens the toolkit's standard text-edit popup with OK/Cancel (toolkit-provided labels, not from the app catalogs). Section `[network] wagateway_url`. Default `https://api.witnessangel.com/gateway/jsonrpc/` (`AUTH/waauthenticator/config_defaults.ini:5-7`). It is **not validated** ([05 OI-47](05-open-issues.md#f-user-interface)). It is saved to the config file and read again on every gateway call (`AUTH/waauthenticator/waauthenticator_gui.py:107-108`, `COMP/application/_common_runtime_support.py:192-195`), so a change applies immediately with no restart.
+  1. **Witness Angel Gateway URL** / `Witness Angel Gateway URL` *(app catalog, not loaded → EN; intended FR `URL de la Passerelle Witness Angel`)*, with description `Registry where authenticators can be published` / `Registry where authenticators can be published` *(app catalog, not loaded → EN; intended FR `Registre où les authentifieurs peuvent être publiés`)*. A reimplementation SHOULD show the intended FR ([05 OI-50](05-open-issues.md#g-internationalisation)). A free-text string, shown truncated on one line (15 sp). Tapping it opens the toolkit's standard text-edit popup: title = the item title, a one-line text field, and buttons labelled exactly `Ok` and `Cancel`, **untranslated in both languages** (Kivy `SettingString` popup reused by `COMP/widgets/layout_components.py:58-71`; `kivy/uix/settings.py:418-421`). A reimplementation SHOULD translate them (texts in [05 §I](05-open-issues.md#i-texts-for-the-resolutions)). Section `[network] wagateway_url`. Default `https://api.witnessangel.com/gateway/jsonrpc/` (`AUTH/waauthenticator/config_defaults.ini:5-7`). It is **not validated** ([05 OI-47](05-open-issues.md#f-user-interface)). It is saved to the config file and read again on every gateway call (`AUTH/waauthenticator/waauthenticator_gui.py:107-108`, `COMP/application/_common_runtime_support.py:192-195`), so a change applies immediately with no restart.
   2. A title row `Authenticator v1.5 by Witness Angel` (never translated).
 
 ### 8.2 Languages
