@@ -4,3 +4,4 @@ __pycache__/
 .pytest_cache/
 !__init__.py
 !__main__.py
+.venv-recorder/
