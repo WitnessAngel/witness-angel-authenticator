@@ -31,8 +31,8 @@ def test_rtsp_command_line_default():
     sensor = RtspCameraSensor(None, 60, "rtsp://cam/s", preview_image_path=Path("/c/video_preview_image.jpg"), ffmpeg_version=(5, 0))
     assert sensor.build_command_line() == [
         "ffmpeg", "-y", "-hide_banner", "-timeout", "5000000", "-rtsp_flags", "prefer_tcp", "-fflags", "+igndts",
-        "-i", "rtsp://cam/s", "-vcodec", "copy", "-an", "-map", "0", "-f", "ismv", "-movflags", "empty_moov+delay_moov",
-        "-probesize", "128", "-analyzeduration", "500", "-loglevel", "info", "-f", "mp4", "pipe:1",
+        "-i", "rtsp://cam/s", "-vcodec", "copy", "-an", "-map", "0", "-movflags", "empty_moov+delay_moov",
+        "-loglevel", "info", "-f", "mp4", "pipe:1",
         "-frames:v", "1", "-filter:v", "scale=140:-1,hue=s=0", "/c/video_preview_image.jpg"]
     assert sensor.record_extension == ".mp4"
 

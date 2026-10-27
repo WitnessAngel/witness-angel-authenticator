@@ -275,8 +275,8 @@ class RtspCameraSensor(PreviewImageMixin, StreamSensor):
         timeout = []
         if version is not None:  # Unknown version: no option at all (OI-38 treats it as recent only for the checkup)
             timeout = ["-timeout" if version[0] >= 5 else "-stimeout", RTSP_SOCKET_TIMEOUT_US]
-        codec = self._parameters or ["-vcodec", "copy", "-an", "-map", "0", "-f", "ismv",
-                                     "-movflags", "empty_moov+delay_moov", "-probesize", "128", "-analyzeduration", "500"]
+        codec = self._parameters or ["-vcodec", "copy", "-an", "-map", "0",
+                                     "-movflags", "empty_moov+delay_moov"]  # OI-28: dead -f ismv/-probesize options dropped
         command = (["ffmpeg", "-y", "-hide_banner"] + timeout
                    + ["-rtsp_flags", "prefer_tcp", "-fflags", "+igndts", "-i", self._url]
                    + codec + ["-loglevel", "info", "-f", self._format, "pipe:1"])
