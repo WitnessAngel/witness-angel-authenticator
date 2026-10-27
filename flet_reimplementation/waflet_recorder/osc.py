@@ -78,7 +78,8 @@ class RobustOSCThreadServer(OSCThreadServer):
                 super()._listen()
                 return
             except Exception:
-                logger.exception("OSC listener loop failed, restarting it")
+                if self._must_loop:
+                    logger.exception("OSC listener loop failed, restarting it")
 
 
 class OscListener:
@@ -115,8 +116,8 @@ class OscListener:
 
     def stop(self):
         try:
+            self._server.terminate_server()  # First: the loop must not restart on the sockets closed below
             self._server.stop_all()
-            self._server.terminate_server()
         except Exception:
             logger.exception("Error while stopping OSC listener")
         options = socket_options(self._roots, self._index)

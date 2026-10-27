@@ -8,7 +8,6 @@ shutdown, removed only by an explicit stop), OI-15..18 + OI-44 (refusals and sen
 OI-45 (periodic purge when idle), OI-23 (peripheral failures never kill the service).
 """
 import logging
-import os
 import signal
 import threading
 import time

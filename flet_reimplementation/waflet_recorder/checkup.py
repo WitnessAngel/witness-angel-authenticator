@@ -10,7 +10,7 @@ from waflet_components.i18n import tr
 from waflet_components.storage import is_folder_writable
 
 from . import probes
-from .guardians import get_selected_guardian_uids, list_guardian_uids
+from .guardians import get_selected_guardian_uids
 from .settings import MIN_FFMPEG_VERSION
 
 logger = logging.getLogger(__name__)

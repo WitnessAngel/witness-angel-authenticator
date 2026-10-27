@@ -3,12 +3,10 @@
 Nothing here imports Flet: the GUI calls `ServiceSupervisor.poll()` from a timer, `GuiChannel` delivers
 callbacks on the OSC listener thread (marshal them to the UI thread).
 """
-import json
 import logging
 import os
 import subprocess
 import sys
-import time
 from pathlib import Path
 
 from wacryptolib.utilities import load_from_json_str

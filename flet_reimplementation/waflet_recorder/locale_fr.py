@@ -35,4 +35,16 @@ CATALOG = {"fr": {
     "Ffmpeg module is not required by the enabled sensors":
         "Le module ffmpeg n'est pas requis par les capteurs activés",  # NEW (OI-39)
     'Invalid value for setting "{key}"': 'Valeur invalide pour le paramètre "{key}"',  # NEW (OI-35)
+    # Errors and results (msgids of ServiceError subclasses)  # NEW: all French below is ours
+    "This key guardian is used by the ongoing recording and cannot be removed":
+        "Ce gardien de clés est utilisé par l'enregistrement en cours et ne peut pas être supprimé",
+    "Authenticator does not exist": "L'authentifieur n'existe pas",
+    "Badly formed hexadecimal UUID string": "Chaîne UUID hexadécimale mal formée",
+    "A selected key guardian has no usable public key": "Un gardien de clés sélectionné n'a pas de clé publique utilisable",
+    "Not enough free space in the container storage": "Pas assez d'espace libre dans le stockage des conteneurs",
+    "No sensor could be started": "Aucun capteur n'a pu être démarré",
+    "Please select authenticators": "Veuillez sélectionner un authentifieur",
+    "Description must be at least 10 characters long.": "La description doit faire au moins 10 caractères de long.",
+    "Network error, please check the gateway url": "Erreur de réseau, veuillez vérifier l'url de la passerelle",
+    "Info": "Info",
 }}

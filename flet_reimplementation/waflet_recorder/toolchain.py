@@ -1,6 +1,5 @@
 """The recording toolchain, rebuilt at each start (03 §4.3.2, §4.4): one storage + the enabled sensors."""
 import logging
-import time
 from dataclasses import dataclass
 
 from waflet_components.authenticator_services import ServiceError

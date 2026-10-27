@@ -14,7 +14,7 @@ from jsonrpc_requests import JSONRPCError
 from wacryptolib.cryptainer import (
     CryptainerDecryptor, DecryptionErrorType, DecryptionErrorCriticity, OperationReport, gather_trustee_dependencies,
 )
-from wacryptolib.exceptions import KeyLoadingError, KeystoreDoesNotExist
+from wacryptolib.exceptions import KeyLoadingError
 from wacryptolib.keygen import load_asymmetric_key_from_pem_bytestring
 
 from waflet_components.authenticator_services import get_gateway_proxy

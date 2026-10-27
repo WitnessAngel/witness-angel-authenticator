@@ -8,14 +8,12 @@ import logging
 import os
 import shutil
 import tempfile
-import uuid
 from pathlib import Path
 from uuid import UUID
 
-from wacryptolib.exceptions import ExistenceError, KeyDoesNotExist, ValidationError, SchemaValidationError
+from wacryptolib.exceptions import ExistenceError, KeyDoesNotExist
 from wacryptolib.keystore import (
     FilesystemKeystorePool, FilesystemKeystore, ReadonlyFilesystemKeystore, validate_keystore_tree,
-    load_keystore_metadata,
 )
 
 from waflet_components.authenticator_services import ServiceError
