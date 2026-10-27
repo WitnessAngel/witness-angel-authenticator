@@ -13,9 +13,11 @@ def icon_action(icon, tooltip_msgid, on_click, disabled=False):
     return ft.IconButton(icon=icon, tooltip=tr._(tooltip_msgid), on_click=on_click, disabled=disabled)
 
 
-def top_bar(app, title, back=False, actions=(), disabled=False):
-    """02 §1.3: title, optional Back arrow, right-side icon actions with tooltips."""
+def top_bar(app, title, back=False, actions=(), disabled=False, menu=False):
+    """02 §1.3: title, optional Back arrow (or `menu` hamburger opening the drawer), right-side icon actions."""
     leading = icon_action(ft.Icons.ARROW_BACK, "Back", lambda e: app.go_back(), disabled=disabled) if back else None
+    if menu:
+        leading = icon_action(ft.Icons.MENU, "Menu", lambda e: app.open_drawer())
     for action in actions:
         action.disabled = disabled
     return ft.AppBar(title=ft.Text(title), leading=leading, automatically_imply_leading=False, elevation=8,
@@ -109,3 +111,23 @@ def pick_path(app, start_dir, on_select, select_folders=True, extensions=()):
             app.guarded(on_select)(Path(result))
 
     app.page.run_task(_native)
+
+
+def empty_state():
+    """02 §6.2: centred "Empty" message of an empty list."""
+    return ft.Container(ft.Text(tr._("Empty"), size=20), alignment=ft.Alignment.CENTER, padding=40)
+
+
+def banner(text):
+    """The elevated one-line strip under each top bar (02 §1.4); `.content.value` can be updated."""
+    return ft.Container(ft.Text(text), height=40, bgcolor=ft.Colors.BLUE_50, padding=ft.Padding.symmetric(horizontal=10),
+                        alignment=ft.Alignment.CENTER_LEFT)
+
+
+def selectable_row(title, checked, on_toggle, on_info=None, subtitle=None):
+    """Checkbox + text + optional (i) icon (02 §5.2, §6.2). `on_toggle(bool)`, `on_info()`."""
+    return ft.ListTile(
+        leading=ft.Checkbox(value=checked, on_change=lambda e: on_toggle(bool(e.control.value))),
+        title=ft.Text(title, size=14), subtitle=ft.Text(subtitle) if subtitle else None, dense=True,
+        trailing=ft.IconButton(icon=ft.Icons.INFO_OUTLINE, tooltip=tr._("Details"), on_click=lambda e: on_info())
+        if on_info else None)

@@ -171,8 +171,11 @@ def get_cryptainer_details(storage, name) -> dict:
     cryptainer = storage.load_cryptainer_from_storage(name, include_payload_ciphertext=False)
     dependencies = gather_trustee_dependencies([cryptainer])["encryption"]
     owners = sorted(conf.get("keystore_owner") or "" for conf, _keys in dependencies.values())
+    trustees = sorted((dict(owner=conf.get("keystore_owner"), keystore_uid=conf.get("keystore_uid"),
+                            trustee_type=conf.get("trustee_type")) for conf, _keys in dependencies.values()),
+                      key=lambda t: (t["owner"] or "").lower())
     return dict(name=name, cryptainer_uid=cryptainer["cryptainer_uid"], cryptainer_format=cryptainer["cryptainer_format"],
-                trustee_owners=owners, summary=get_cryptoconf_summary(cryptainer))
+                trustee_owners=owners, trustees=trustees, summary=get_cryptoconf_summary(cryptainer))
 
 
 def delete_cryptainers(storage, names) -> int:

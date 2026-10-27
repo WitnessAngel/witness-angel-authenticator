@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 import flet as ft
 
 from .config import AppConfig
-from .i18n import tr, detect_language
+from .i18n import tr, detect_language, SUPPORTED_LANGUAGES
 from .storage import discover_storage_roots, bootstrap_storage, detect_platform
 
 logger = logging.getLogger(__name__)
@@ -30,6 +30,7 @@ class Screen:
     name = ""
     title = ""
     parent_screen = None  # Screen name that Back returns to; None for the home screen
+    top_level = False  # Top-level screens get the navigation drawer (when the app defines `drawer_entries`)
 
     def __init__(self, app):
         self.app = app
@@ -39,6 +40,7 @@ class Screen:
 
     def build_view(self):
         return ft.View(route="/" + self.name, appbar=self.build_appbar(), padding=0, can_pop=self.can_go_back(),
+                       drawer=self.app.build_drawer(self.name) if self.top_level else None,
                        controls=[ft.SafeArea(expand=True, content=ft.Container(padding=10, expand=True,
                                                                               content=self.build()))])
 
@@ -63,6 +65,11 @@ class WaFletApp:
     screen_classes = []
     home_screen = ""
     app_catalogs = []  # Registered before the components catalog, so they win
+    log_filename = "app.log"
+    language_setting = None  # ("section", "key") of the config where the language choice is persisted (OI-83)
+    drawer_entries = []  # [(icon, label msgid, screen name)]: navigation drawer of the top-level screens
+    drawer_logo = None  # bytes of a PNG shown on top of the drawer
+    settings_instant = False  # True: every settings control saves at once (valid values only), no OK button
 
     def __init__(self, page, storage_roots=None):
         self.page = page
@@ -88,7 +95,7 @@ class WaFletApp:
     def setup(self):
         """Synchronous part of startup, also used by tests with a stub page."""
         bootstrap_storage(self.storage_roots)
-        log_file = str(self.storage_roots.logs_dir / "app.log")
+        log_file = str(self.storage_roots.logs_dir / self.log_filename)
         if not any(getattr(h, "baseFilename", None) == log_file for h in logging.getLogger().handlers):
             log_handler = logging.handlers.RotatingFileHandler(  # OI-58: "check logs" now points somewhere
                 log_file, maxBytes=1_000_000, backupCount=3, encoding="utf8", delay=True)
@@ -98,6 +105,10 @@ class WaFletApp:
         for catalog in reversed(self.app_catalogs):
             tr.add_catalog(catalog, first=True)  # App catalogs win over the components one (OI-50)
         tr.lang = detect_language()
+        if self.language_setting:
+            stored = self.config.get(*self.language_setting)
+            if stored in SUPPORTED_LANGUAGES:
+                tr.lang = stored
         page = self.page
         page.title = self.title  # Deliberately untranslated
         page.theme = ft.Theme(color_scheme_seed=ft.Colors.BLUE_900)
@@ -164,6 +175,30 @@ class WaFletApp:
 
     def _on_view_pop(self, e):
         self.handle_back()
+
+    # ------------------------------------------------------------ navigation drawer (02 §1.3)
+
+    def build_drawer(self, current_name):
+        if not self.drawer_entries:
+            return None
+        names = [name for _icon, _label, name in self.drawer_entries]
+
+        async def _changed(e):
+            await self.page.close_drawer()  # OI-93: closed explicitly
+            self.guarded(self.go)(names[int(e.control.selected_index)])
+
+        logo = [ft.Container(ft.Image(src=self.drawer_logo, width=150, height=150), alignment=ft.Alignment.CENTER,
+                             padding=20)] if self.drawer_logo else []
+        return ft.NavigationDrawer(
+            selected_index=names.index(current_name) if current_name in names else None, on_change=_changed,
+            controls=[*logo, *(ft.NavigationDrawerDestination(icon=icon, label=tr._(label))
+                               for icon, label, _name in self.drawer_entries), *self.build_drawer_extras()])
+
+    def build_drawer_extras(self):
+        return []
+
+    def open_drawer(self):
+        self.page.run_task(self.page.show_drawer)
 
     # ------------------------------------------------------------ worker
 
@@ -271,7 +306,15 @@ class WaFletApp:
         """Return an error msgid, or None."""
         return None
 
+    def on_setting_changed(self, section, key):
+        """Instant mode: called after each saved change."""
+
+    def on_settings_closed(self):
+        """Instant mode: called when the dialog is closed."""
+
     def open_settings(self):
+        if self.settings_instant:
+            return self._open_instant_settings()
         fields = []
         controls = []
         for item in self.get_settings_schema():
@@ -296,10 +339,73 @@ class WaFletApp:
         self.show_dialog(tr._(self.settings_title), content=ft.Column(controls, tight=True, width=400),
                          actions=[self.action_button(tr._("OK"), _save)], close_label=tr._("Cancel"))
 
+    # ponytail: instant mode, types: title, string, bool, options ("options": [(value, label)]), numeric
+    # ("numeric": "int"|"float", "gt"/"ge": exclusive/inclusive lower bound). Values are checked before saving.
+    def _check_numeric(self, item, raw):
+        try:
+            number = (int if item.get("numeric") == "int" else float)(raw)
+        except ValueError:
+            return "Please enter a whole number" if item.get("numeric") == "int" else "Please enter a number"
+        if "gt" in item and not number > item["gt"]:
+            return tr.f("The value must be greater than {limit}", limit=item["gt"])
+        if "ge" in item and not number >= item["ge"]:
+            return tr.f("The value must be {limit} or more", limit=item["ge"])
+        return None
+
+    def apply_setting(self, item, raw):
+        """Validate then save one value; returns the (translated) error or None."""
+        error = self._check_numeric(item, raw) if item["type"] == "numeric" else None
+        error = error or self.validate_setting(item["section"], item["key"], raw)
+        if error:
+            return tr._(error)
+        self.config.set(item["section"], item["key"], raw)
+        self._settings_dirty = True
+        self.on_setting_changed(item["section"], item["key"])
+        return None
+
+    def _open_instant_settings(self):
+        self._settings_dirty = False
+        controls = []
+        for item in self.get_settings_schema():
+            kind, title, desc = item["type"], item["title"], item.get("desc")
+            if kind == "title":
+                controls.append(ft.Text(item["title"], weight=ft.FontWeight.BOLD, size=16))
+                continue
+            value = self.config.get(item["section"], item["key"])
+            if kind == "bool":
+                control = ft.Switch(label=title, value=value.strip().lower() in ("1", "true", "yes", "on"))
+                control.on_change = lambda e, item=item, c=control: self.guarded(self.apply_setting)(item, "1" if c.value else "0")
+            elif kind == "options":
+                blank = "-"  # Dropdown keys cannot be empty
+                control = ft.Dropdown(label=title, dense=True, value=value or blank, options=[
+                    ft.DropdownOption(key=v or blank, text=label) for v, label in item["options"]])
+                control.on_select = lambda e, item=item, c=control: self.guarded(self.apply_setting)(
+                    item, "" if c.value == blank else c.value)
+            else:  # string, numeric
+                control = ft.TextField(label=title, dense=True, value=value)
+
+                def _changed(e, item=item, c=control):
+                    c.error = None
+                    c.error_text = self.guarded(self.apply_setting)(item, c.value.strip())
+                    self.page.update()
+                control.on_change = _changed
+            controls.append(control)
+            if desc:
+                controls.append(ft.Text(desc, size=12, color=ft.Colors.GREY_700))
+        self.show_dialog(tr._(self.settings_title), content=ft.Column(controls, tight=True, width=420, spacing=8),
+                         close_label=tr._("Close"), on_close=self._settings_closed)
+
+    def _settings_closed(self):
+        dirty, self._settings_dirty = self._settings_dirty, False
+        if dirty:
+            self.on_settings_closed()
+
     # ------------------------------------------------------------ language
 
     def switch_language(self, lang):
         tr.switch_lang(lang)
+        if self.language_setting:
+            self.config.set(*self.language_setting, lang)  # OI-83
         self.refresh_current_screen()
         self.current_screen.on_language_change()
 

@@ -71,3 +71,15 @@ def format_path_for_display(path, home_dir=None, sdcard_prefix=None):
             except ValueError:
                 pass
     return str(path)
+
+
+def format_keypair_label_with_privacy(key_algo, keychain_uid, private_key_present):
+    """02 §5.3, §7.1: `RSA-OAEP …a1b2c3d4 (private key present|not present)`."""
+    suffix = tr._("(private key present)") if private_key_present else tr._("(private key not present)")
+    return "%s %s %s" % (key_algo.replace("_", "-"), shorten_uid(keychain_uid), suffix)
+
+
+def format_trustee_label(owner, keystore_uid, trustee_type):
+    """02 §6.3: `<owner> (ID …<uid>, type <trustee_type>)`."""
+    return "%s (ID %s, %s)" % (owner or tr._("Unknown"), shorten_uid(keystore_uid) if keystore_uid else tr._("Unknown"),
+                               tr.f("type {trustee_type}", trustee_type=trustee_type))

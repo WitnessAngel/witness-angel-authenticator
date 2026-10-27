@@ -1,4 +1,4 @@
-"""`python -m waflet_recorder --service` runs the background service; without arguments the GUI (phase 2)."""
+"""`python -m waflet_recorder` runs the GUI; `--service` the background service; `--web [PORT]` serves the GUI to a browser."""
 import sys
 
 
@@ -7,9 +7,14 @@ def main(argv=None):
     if "--service" in argv:
         from .service import run_service
         return run_service()
-    print("The recorder GUI is not implemented yet (phase 2). Use --service to run the background service.",
-          file=sys.stderr)
-    return 2
+    run_kwargs = {}
+    if "--web" in argv:
+        import flet as ft
+        rest = argv[argv.index("--web") + 1:]
+        run_kwargs = dict(view=ft.AppView.WEB_BROWSER, port=int(rest[0]) if rest and rest[0].isdigit() else 8551)
+    from .app import main as run_gui
+    run_gui(**run_kwargs)
+    return 0
 
 
 if __name__ == "__main__":
