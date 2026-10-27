@@ -39,6 +39,31 @@ class StorageRoots:
     def logs_dir(self):
         return self.internal_app_root / "logs"
 
+    # ---- Recorder paths (recorder 01 §7); same names as the Kivy app, shared by GUI and service
+    @property
+    def keystore_pool_dir(self):
+        return self.internal_app_root / "keystore_pool"
+
+    @property
+    def default_cryptainers_dir(self):
+        return self.internal_app_root / "cryptainers"
+
+    @property
+    def recording_marker(self):
+        return self.internal_app_root / "recording_in_progress"
+
+    @property
+    def preview_image(self):
+        return self.internal_cache_dir / "video_preview_image.jpg"
+
+    @property
+    def device_uid_file(self):
+        return self.internal_app_root / ".wa_device_uid.json"
+
+    def osc_socket_path(self, socket_index):
+        """Unix datagram socket of the GUI (0) or of the service (1); Windows uses UDP ports instead."""
+        return self.internal_app_root / (".witnessangel%d.sock" % socket_index)
+
 
 def detect_platform():
     flet_platform = os.getenv("FLET_PLATFORM", "")  # Set by Flet's mobile embedding
@@ -100,6 +125,31 @@ def bootstrap_storage(roots: StorageRoots):
                 folder.mkdir(parents=True, exist_ok=True)
             except OSError as exc:  # Best effort only
                 logger.warning("Could not create %s: %r", folder, exc)
+
+
+def bootstrap_recorder_storage(roots: StorageRoots):
+    """Directories of the recorder (01 §7): app root + logs + external dirs, then cache, keystore pool, cryptainers."""
+    bootstrap_storage(roots)
+    for folder in (roots.internal_cache_dir, roots.keystore_pool_dir, roots.default_cryptainers_dir):
+        folder.mkdir(parents=True, exist_ok=True)
+
+
+_RASPBERRY_PI_SOCS = ("BCM2708", "BCM2709", "BCM2835", "BCM2836", "BCM2711")
+
+
+def is_raspberry_pi(cpuinfo_path="/proc/cpuinfo", device_tree_model_path="/proc/device-tree/model") -> bool:
+    """01 §8.2 plus OI-43: the 1.0 SoC whitelist, or else the device-tree model (Pi 5 and newer SoCs)."""
+    try:
+        for line in Path(cpuinfo_path).read_text(errors="ignore").splitlines():
+            if line.startswith("Hardware") and line.split(":", 1)[-1].strip() in _RASPBERRY_PI_SOCS:
+                return True
+        return b"Raspberry Pi" in Path(device_tree_model_path).read_bytes()
+    except OSError:
+        return False
+
+
+def get_wait_time_multiplier(is_pi: bool) -> int:
+    return 4 if is_pi else 1
 
 
 def is_folder_writable(path: Path) -> bool:

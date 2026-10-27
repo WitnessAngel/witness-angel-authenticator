@@ -382,7 +382,9 @@ def reject_revelation_request(authenticator_dir, revelation_request, gateway_pro
                                             revelation_request_uid=revelation_request["revelation_request_uid"])
 
 
-def get_gateway_proxy(url):
+def get_gateway_proxy(url, timeout=None):
+    """`timeout` (seconds) is forwarded to `requests`; the recorder passes one (OI-73), the authenticator's library has its own."""
     from wacryptolib.jsonrpc_client import JsonRpcProxy, status_slugs_response_error_handler
 
-    return JsonRpcProxy(url=url, response_error_handler=status_slugs_response_error_handler)
+    kwargs = {"timeout": timeout} if timeout else {}
+    return JsonRpcProxy(url=url, response_error_handler=status_slugs_response_error_handler, **kwargs)
