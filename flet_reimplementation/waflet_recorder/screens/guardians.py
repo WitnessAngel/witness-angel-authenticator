@@ -40,7 +40,7 @@ class KeyGuardiansScreen(Screen):
         return ft.Column(expand=True, horizontal_alignment=ft.CrossAxisAlignment.STRETCH, controls=[
             banner(tr._("Please select the key guardians used to secure recordings")),
             self.list_view,
-            ft.Row([self.import_usb_button, self.import_web_button, self.delete_button], wrap=True),
+            ft.Row([self.import_usb_button, self.import_web_button, self.delete_button]),
         ])
 
     def build_appbar(self):

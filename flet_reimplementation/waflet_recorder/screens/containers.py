@@ -35,7 +35,7 @@ class ContainersScreen(Screen):
                 ft.Button(content=tr._("Prepare decryption"), icon=ft.Icons.REMOVE_RED_EYE_OUTLINED, expand=True,
                           on_click=lambda e: self.app.guarded(self.prepare_decryption)()),
                 ft.Button(content=tr._("All authorization requests"), icon=ft.Icons.FORMAT_LIST_BULLETED, expand=True,
-                          on_click=lambda e: self.app.go("claimant_revelation_request_management"))], wrap=True)])
+                          on_click=lambda e: self.app.go("claimant_revelation_request_management"))])])
 
     def build_appbar(self):
         return top_bar(self.app, tr._(self.title), menu=True, actions=[

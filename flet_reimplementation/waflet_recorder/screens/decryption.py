@@ -42,14 +42,14 @@ class DecryptionProcessScreen(Screen):
         self._render_guardians()
         return ft.Column(expand=True, horizontal_alignment=ft.CrossAxisAlignment.STRETCH, controls=[
             ft.Text(tr._("Containers selected for decryption"), weight=ft.FontWeight.BOLD),
-            ft.Container(self.container_list, expand=2),
+            ft.Container(self.container_list, expand=1),
             ft.Text(tr._("Summary of related key guardians"), weight=ft.FontWeight.BOLD),
-            ft.Container(self.guardian_list, expand=3),
+            ft.Container(self.guardian_list, expand=4),
             ft.Row([ft.Button(content=tr._("Add a passphrase"), icon=ft.Icons.KEY, expand=True,
                               on_click=lambda e: self.app.guarded(self.ask_passphrase)()),
                     ft.Button(content=tr._("Attempt decryption"), icon=ft.Icons.REMOVE_RED_EYE_OUTLINED, expand=True,
-                              on_click=lambda e: self.app.guarded(self.attempt_decryption)())], wrap=True),
-            ft.Row([self.remote_button, self.report_button], wrap=True),
+                              on_click=lambda e: self.app.guarded(self.attempt_decryption)())]),
+            ft.Row([self.remote_button, self.report_button]),
         ])
 
     def build_appbar(self):

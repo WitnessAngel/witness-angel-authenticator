@@ -180,22 +180,22 @@ def test_settings_dialog_validates_and_saves_at_once(app):
     duration = fields["Media recording duration (mn)"]
     duration.value = "0.5"
     duration.on_change(type("E", (), {"control": duration})())
-    assert duration.error_text is None and app.config.get("sensor", "recording_duration_mn") == "0.5"  # OI-35: decimals
+    assert duration.error is None and app.config.get("sensor", "recording_duration_mn") == "0.5"  # OI-35: decimals
     for bad, error in (("abc", "Please enter a number"), ("0", "The value must be greater than 0"), ("-3", "The value must be greater than 0")):
         duration.value = bad
         duration.on_change(None)
-        assert duration.error_text == error and app.config.get("sensor", "recording_duration_mn") == "0.5"
+        assert duration.error == error and app.config.get("sensor", "recording_duration_mn") == "0.5"
     threshold = fields["Key guardian threshold"]
     threshold.value = "1.5"
     threshold.on_change(None)
-    assert threshold.error_text == "Please enter a whole number"
+    assert threshold.error == "Please enter a whole number"
     url = fields["Witness Angel Gateway URL"]
     url.value = "ftp://x"
     url.on_change(None)
-    assert url.error_text and app.config.get("network", "wagateway_url") == ""  # OI-41
+    assert url.error and app.config.get("network", "wagateway_url") == ""  # OI-41
     url.value = "https://gw.example/rpc/"
     url.on_change(None)
-    assert url.error_text is None and app.settings.wagateway_url == "https://gw.example/rpc/"
+    assert url.error is None and app.settings.wagateway_url == "https://gw.example/rpc/"
     switch = next(s for s in find(dialog, ft.Switch) if s.label == "IP camera")
     switch.value = False
     switch.on_change(None)

@@ -385,8 +385,7 @@ class WaFletApp:
                 control = ft.TextField(label=title, dense=True, value=value)
 
                 def _changed(e, item=item, c=control):
-                    c.error = None
-                    c.error_text = self.guarded(self.apply_setting)(item, c.value.strip())
+                    c.error = self.guarded(self.apply_setting)(item, c.value.strip())
                     self.page.update()
                 control.on_change = _changed
             controls.append(control)

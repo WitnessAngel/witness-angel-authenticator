@@ -81,8 +81,10 @@ class HomepageScreen(Screen):
         enabled, pressed = self.app.record_state
         self.record_button.disabled = not enabled
         self.record_label.value = tr._("Stop Recording") if pressed else tr._("Start Recording")
-        self.record_button.style = ft.ButtonStyle(bgcolor=ft.Colors.RED_700 if pressed else None,
-                                                  color=ft.Colors.WHITE if pressed else None)
+        self.record_button.style = ft.ButtonStyle(
+            bgcolor={ft.ControlState.DISABLED: ft.Colors.GREY_300,
+                     ft.ControlState.DEFAULT: ft.Colors.RED_700 if pressed else ft.Colors.BLUE_900},
+            color={ft.ControlState.DISABLED: ft.Colors.GREY_600, ft.ControlState.DEFAULT: ft.Colors.WHITE})
         status = self.app.service_status or {}
         degraded = [s for s in status.get("sensors") or [] if s["state"] in ("restarting", "failed")]
         self.status_text.visible = bool(pressed and degraded)

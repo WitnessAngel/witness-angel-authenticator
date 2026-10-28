@@ -100,7 +100,6 @@ class WaRecorderApp(WaFletApp):
             _active_app.stop_services()
         _active_app = self
         self.page.on_close = lambda e: self.stop_services()
-        self.page.on_disconnect = lambda e: self.stop_services()
         self.channel = GuiChannel(
             self.storage_roots, supervisor=self.supervisor,
             on_recording_state=lambda value: self.call_on_ui(self.apply_recording_state, value),
