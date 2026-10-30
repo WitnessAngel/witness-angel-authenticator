@@ -6,14 +6,37 @@ gateway, because all crypto, keystore and JSON-RPC work goes through `wacryptoli
 
 ## Running
 
-From this folder, with the bundled virtualenv:
+From this folder, with Poetry (`pyproject.toml` + `poetry.lock`; the virtualenv goes in `.venv/`, see `poetry.toml`):
 
 ```bash
-.venv/bin/python -m waflet_authenticator          # desktop window (needs the flet desktop client, see limitations)
-.venv/bin/python main.py                          # same
-.venv/bin/python -c "import flet as ft; from waflet_authenticator.app import main; main(view=ft.AppView.WEB_BROWSER, port=8550)"
-.venv/bin/python -m pytest -q                     # test suite
+poetry install                                 # once
+poetry run python main.py                      # desktop window (downloads the flet desktop client on first run)
+poetry run python -m waflet_authenticator      # same
+poetry run python -c "import flet as ft; from waflet_authenticator.app import main; main(view=ft.AppView.WEB_BROWSER, port=8550)"
+poetry run pytest -q                           # test suite
 ```
+
+To drop the `poetry run` prefix, activate the virtualenv in your terminal. Activation only applies to that
+terminal; `deactivate` leaves it. Poetry 2 has no `poetry shell`: `poetry env activate` only prints the
+activation command, so evaluate its output or call the script directly:
+
+```powershell
+# Windows (PowerShell)
+.venv\Scripts\Activate.ps1                     # or: Invoke-Expression (poetry env activate)
+python main.py
+deactivate
+```
+
+```bash
+# Linux/macOS
+source .venv/bin/activate                      # or: eval "$(poetry env activate)"
+python main.py
+deactivate
+```
+
+If PowerShell refuses with "running scripts is disabled on this system", allow local scripts once with
+`Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`. In VS Code, "Python: Select Interpreter" →
+`flet_reimplementation/.venv/Scripts/python.exe` (or `.venv/bin/python`) makes new terminals activate it automatically.
 
 Environment variables: `WA_LOG_LEVEL` (default `INFO`) and `LANG` (`en`/`fr` forces the language).
 Data lives in `~/.witnessangel/` on desktop: config `wakeygen_config.ini`, `authenticator.keystore/`,
