@@ -1,0 +1,20 @@
+[project]
+name = "waflet-authenticator"
+description = "Witness Angel Authenticator, Flet reimplementation"
+version = "1.5"
+license = "GPL-2.0-or-later"
+requires-python = ">=3.10,<3.15"
+dependencies = [
+    # GUI ("all" pulls flet-desktop for the native window and flet-web for browser mode)
+    "flet[all]==1.0.5",
+    # Crypto, keystores and gateway JSON-RPC; same branch as the Kivy app's pyproject.toml
+    "wacryptolib @ git+https://github.com/WitnessAngel/witness-angel-cryptolib.git@wakeygen_stable",
+    "jsonrpc-requests==0.4.0",
+]
+
+[tool.poetry]
+# An app, not a library to publish: Poetry only manages its dependencies
+package-mode = false
+
+[tool.poetry.group.dev.dependencies]
+pytest = "9.2.0"
